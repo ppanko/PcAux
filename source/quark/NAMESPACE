@@ -1,0 +1,15 @@
+export(prepData,
+       createPcAux,
+       miWithPcAux,
+       mergePcAux,
+       makePredMatrix,
+       inspect,
+       getImpData,
+       quarkW)
+
+import(methods,
+       mice,
+       vcd,
+       ICC,
+       rlecuyer,
+       parallel)

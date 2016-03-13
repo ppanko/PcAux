@@ -1,0 +1,96 @@
+### Title:    Create Principal Component Auxiliary Variables
+### Author:   Kyle M. Lang & Steven Chesnut
+### Created:  2015-SEP-17
+### Modified: 2016-FEB-18
+
+### Copyright (C) 2016 Kyle M. Lang
+###
+### This program is free software: you can redistribute it and/or modify
+### it under the terms of the GNU General Public License as published by
+### the Free Software Foundation, either version 3 of the License, or
+### (at your option) any later version.
+###
+### This program is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU General Public License for more details.
+###
+### You should have received a copy of the GNU General Public License
+### along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+createPcAux <- function(quarkData,
+                        nComps = c(10L, 3L),
+                        useInteract = TRUE,
+                        usePoly = TRUE,
+                        maxPower = 3L,
+                        pcaMemLevel = 0L,
+                        simMode = FALSE,
+                        mySeed = 235711L,
+                        forcePmm = FALSE,
+                        verbose = !simMode,
+                        doImputation = TRUE,
+                        castData = !doImputation,
+                        control,
+                        ...)
+{
+    quarkData$setCall(match.call(), parent = "quark")
+    
+    ## Check for problems with the input values:
+    if(!simMode) checkInputs(parent = "quark")
+
+    ## Add elements to an extant instance of the QuarkData class:
+    quarkData$nComps <- as.integer(nComps)
+    quarkData$forcePmm <- forcePmm
+    quarkData$pcaMemLev <- as.integer(pcaMemLevel)
+    quarkData$calcInteract <- useInteract
+    quarkData$calcPoly <- usePoly
+    quarkData$maxPower <- as.integer(maxPower)
+    quarkData$simMode <- simMode
+
+    ## Make sure the control list is fully populated:
+    if(!missCheck(control)) {
+        conDefault <- quarkData$getControl()
+        for( i in names(conDefault) ) {
+            if( i %in% names(control) ) {
+                conDefault[[i]] <- control[[i]]
+            }
+        }
+        quarkData$setControl(conDefault)
+        rm(conDefault)
+    }
+
+    ## Populate some important elements of the QuarkData object:
+    if(usePoly) {
+        for(pp in 2 : maxPower) {
+            powerVal <- switch(pp - 1,
+                               "square",
+                               "cube",
+                               "quad")
+            quarkData$setPoly(x = data.frame(NULL), power = powerVal)
+        }
+    }# CLOSE if(usePoly)
+    
+    ## Re-cast the data if needed
+    if(castData) castData(map = quarkData)
+    
+    if(doImputation) {
+        ## NOTE: '...' pass hidden debugging flags that allow developers to
+        ## check the functionality of the fall-back imputation methods.
+        doSingleImputation(map = quarkData, ...)
+    }
+    
+    ## Extract the linear principal component scores:
+    doPCA(map = quarkData)
+    
+    if(nComps[2] > 0) {
+        ## Construct and orthogonalize nonlinear terms:
+        computeNonlinearTerms(map = quarkData)
+        
+        ## Extract the nonlinear principal component scores:
+        doPCA(map = quarkData)
+    }
+    
+    ## Return the QuarkData object:
+    quarkData
+}# END createPcAux()

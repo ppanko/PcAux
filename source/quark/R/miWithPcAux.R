@@ -1,0 +1,199 @@
+### Title:    Conduct Multiple Imputation with PC Auxiliaries
+### Author:   Kyle M. Lang & Steven Chesnut
+### Created:  2015-SEP-17
+### Modified: 2016-FEB-18
+### Purpose:  Use the principal component auxiliaries
+###           produced by createPcAux() to conduct MI.
+
+### Copyright (C) 2016 Kyle M. Lang
+###
+### This program is free software: you can redistribute it and/or modify
+### it under the terms of the GNU General Public License as published by
+### the Free Software Foundation, either version 3 of the License, or
+### (at your option) any later version.
+###
+### This program is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU General Public License for more details.
+###
+### You should have received a copy of the GNU General Public License
+### along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+miWithPcAux <- function(rawData,
+                        quarkData,
+                        nImps = 100L,
+                        nomVars = NULL,
+                        ordVars = NULL,
+                        idVars = NULL,
+                        dropVars = "useExtant",
+                        nLinear = NULL,
+                        nNonLinear = NULL,
+                        varExpLin = NULL,
+                        varExpNonLin = NULL,
+                        completeFormat = "list",
+                        mySeed = 235711L,
+                        simMode = FALSE,
+                        forcePmm = FALSE,
+                        useParallel = FALSE,
+                        nProcess = 1L,
+                        verbose = !simMode,
+                        control)
+{
+    quarkData$setCall(match.call(), parent = "rom")
+    
+    ## Get variable types:
+    if(!missCheck(nomVars)) {
+        quarkData$nomVars <- nomVars
+    } else {
+        nomVars <- quarkData$nomVars
+    }
+
+    if(!missCheck(ordVars)) {
+        quarkData$ordVars <- ordVars
+    } else {
+        ordVars <- quarkData$ordVars
+    }
+
+    if(!missCheck(idVars)) {
+        quarkData$idVars <- idVars
+    } else {
+        if(quarkData$dummyId) {
+            idVar   <- c(1 : nrow(rawData))
+            rawData <- data.frame(idVar, rawData)
+            idVars  <- "idVar"
+        } else {
+            idVars <- quarkData$idVars
+        }
+    }
+
+    if(length(dropVars) == 1 && dropVars == "useExtant") {
+        tmp <- quarkData$dropVars[quarkData$dropVars[ , 2] == "user_defined", ]
+        if(class(tmp) != "matrix") tmp <- matrix(tmp, 1, 2)
+        quarkData$dropVars <- tmp
+        if(tmp[1, 1] == "NONE_DEFINED") {
+            dropVars <- NULL
+        } else {
+            dropVars <- tmp[ , 1]
+        }
+    } else if(!missCheck(dropVars)) {
+        quarkData$dropVars <- cbind(dropVars, "user_defined")
+    } else {
+        quarkData$dropVars <- cbind("NONE_DEFINED", "user_defined")
+        dropVars <- NULL
+    }
+
+    ## Check inputs' validity:
+    checkInputs(parent = "rom")
+    
+    ## Combine the principal component auxiliaries with the raw data:
+    mergeOut <- mergePcAux(quarkData     = quarkData,
+                           rawData      = rawData,
+                           nLinear      = nLinear,
+                           nNonLinear   = nNonLinear,
+                           varExpLin    = varExpLin,
+                           varExpNonLin = varExpNonLin)
+    
+    ## Populate new fields in the extant QuarkData object:
+    quarkData$data       <- mergeOut$data
+    quarkData$nImps      <- as.integer(nImps)
+    quarkData$seed       <- as.integer(mySeed)
+    quarkData$simMode    <- simMode
+    quarkData$compFormat <- completeFormat
+    quarkData$forcePmm   <- forcePmm
+    quarkData$verbose    <- verbose
+    quarkData$nComps     <- c(mergeOut$nLinear,
+                              mergeOut$nNonLinear)
+      
+    if(quarkData$nComps[1] == 0) errFun("noLinPc", doingQuark = FALSE)
+    
+    ## Make sure the control list is fully populated:
+    conDefault <- list(miceRidge    = 1e-5,
+                       minRespCount = as.integer(
+                           floor(0.05 * nrow(rawData))
+                       ),
+                       maxNetWts    = 10000L,
+                       nomMaxLev    = 10L,
+                       ordMaxLev    = 10L,
+                       conMinLev    = 10L)
+    
+    if(missCheck(control)) {
+        quarkData$setControl(conDefault, parent = "rom")
+    } else {
+        for( i in names(conDefault) ) {
+            if( i %in% names(control) ) {
+                conDefault[[i]] <- control[[i]]
+            }
+        }
+        quarkData$setControl(conDefault, parent = "rom")
+    }
+    rm(conDefault)
+    
+    ## Cast the variables to their appropriate types:
+    castData(map = quarkData, doingQuark = FALSE)
+    
+    if(!simMode)
+        ## Check and clean the data:
+        cleanData(map = quarkData, doingQuark = FALSE)
+    
+    if(verbose) cat("\nMultiply imputing missing data...\n")
+    
+    ## Construct a predictor matrix for mice():
+    if(verbose) cat("--Constructing predictor matrix...")
+    predMat <- makePredMatrix(quarkData$data,
+                              quarkData$nComps[1],
+                              quarkData$nComps[2])
+    if(verbose) cat("done.\n")
+    
+    ## Specify a vector of elementary imputation methods:
+    if(verbose) cat("--Creating method vector...")
+    quarkData$createMethVec()
+    if(verbose) cat("done.\n")
+    
+    if(forcePmm & verbose) cat("PMM forced by user.\n")
+    
+    ## Multiply impute the missing data in 'mergedData':
+    if(verbose) cat("--Imputing missing values...\n")
+    
+    if(!useParallel) {# Impute in serial
+        quarkData$miceObject <- try(
+            mice(quarkData$data,
+                 m = nImps,
+                 maxit = 1L,
+                 predictorMatrix = predMat,
+                 method = quarkData$methVec,
+                 printFlag = verbose,
+                 ridge = quarkData$miceRidge,
+                 seed = mySeed),
+            silent = TRUE)
+        
+        if(class(quarkData$miceObject) != "try-error") {
+            quarkData$data <- "Removed to save resources."
+            
+            ## Complete the incomplete data sets:
+            quarkData$completeMiData()
+        } else {
+            errFun("miceCrash", map = quarkData)
+        }
+        
+    } else {# Impute in parallel
+        myCluster <- makeCluster(nProcess)
+        clusterEvalQ(myCluster, library(mice))
+        
+        quarkData$miDatasets <- parLapply(myCluster,
+                                         X = c(1 : nImps),
+                                         fun = parallelMice,
+                                         predMat = predMat,
+                                         map = quarkData)
+        
+        stopCluster(myCluster)
+        
+        if(quarkData$compFormat != "list") quarkData$transformMiData()
+    }
+    
+    if(verbose) cat("\n--done.\n")
+    if(verbose) cat("Complete.\n")
+    
+    quarkData
+}# END miWithPcAux()
