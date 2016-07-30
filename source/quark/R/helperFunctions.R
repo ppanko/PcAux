@@ -1,7 +1,7 @@
 ### Title:       Quark Helper Functions
 ### Author:      Kyle M. Lang
 ### Created:     2015-AUG-03
-### Modified:    2016-FEB-25
+### Modified:    2016-JUL-30
 
 ### Copyright (C) 2016 Kyle M. Lang
 ###
@@ -20,14 +20,17 @@
 
 
 ## Print startup message:
-.onAttach <- function(...) {
+.onAttach <- function(libname, pkgname) {
+    version <- read.dcf(file = system.file("DESCRIPTION", package = pkgname),
+                        fields = "Version")
     packageStartupMessage(
-        paste0("\nLoading 'quark' version 0.6.1, ",
-               "Copyright (C) 2016 Kyle M. Lang\n",
-               "This program comes with ABSOLUTELY NO WARRANTY; ",
-               "type: 'quarkW()' for details.\n",
-               "NOTE: quark is beta software. ",
-               "Please report any bugs. Thank You.\n")
+        "Loading: ", paste(pkgname, version), ", Copyright (C) 2016 Kyle M. Lang."
+    )
+    packageStartupMessage(
+        pkgname, " comes with ABSOLUTELY NO WARRANTY; execute 'quarkW()' for details."
+    )
+    packageStartupMessage(
+        pkgname, " is beta software. Please report any bugs. Thank You."
     )
 }
 
@@ -223,15 +226,20 @@ flexCenTen <- function(x)
 ## Convert factors to dummy codes:
 factorToDummy <- function(facVar, labelStem, refLevel = NULL)
 {
+    ## Remove empty factor levels (KML 2016-JUL-30):
+    missLevels <- setdiff(levels(facVar), unique(facVar))
+    levels(facVar)[levels(facVar) %in% missLevels] <- NA
+    length(levels(facVar))
+    
     dummyFrame <- data.frame(
         matrix(0,
                length(facVar),
-               length( levels(facVar) )
+               length(levels(facVar))
                )
-    )
-
+    )                            
+    
     if( is.null(refLevel) ) refLevel = ncol(dummyFrame)
-
+    
     for( i in 1 : nrow(dummyFrame) ) {
         if(!is.na(facVar[i])) {
             dummyFrame[i, as.numeric(facVar[i])] <- 1
