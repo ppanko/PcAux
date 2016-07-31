@@ -1,7 +1,7 @@
 ### Title:    QuarkData Reference Class Definition
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2016-FEB-26
+### Modified: 2016-JUL-30
 ### Note:     QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2016 Kyle M. Lang
@@ -73,7 +73,7 @@ QuarkData <- setRefClass("QuarkData",
                              impFails     = "list",
                              patterns     = "list",
                              frozenGVars  = "ANY",
-                             idFills      = "list",
+                             idFills      = "ANY",
                              dummyId      = "logical",
                              nImps        = "integer",
                              compFormat   = "character",
