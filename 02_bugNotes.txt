@@ -50,8 +50,8 @@
 
 ##### Version 0.6.1 #####
 
-1) quarkW() is not exported.
+1) quarkW() is not exported. -- FIXED
 
-##### Version 0.6.2 #####
+2) The idFills field in QuarkData has type "list", should be type "ANY" -- FIXED
 
-1) The idFills field in QuarkData has type "list", should be type "ANY"
+3) A single incomplete ID causes a crash in mergePcAux() -- FIXED
