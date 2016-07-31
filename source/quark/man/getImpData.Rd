@@ -1,12 +1,12 @@
 \name{getImpData}
 \alias{getImpData}
 \title{
-  Extract multiply imputed datasets from a RomData object.
+  Extract multiply imputed datasets from a QuarkData object.
 }
 \description{
   This is a simple wrapper function that extracts the completed,
-  multiply imputed data sets from a fitted RomData object produced by
-  running the \code{rom} function.
+  multiply imputed data sets from a fitted QuarkData object produced by
+  running the \code{miWithPcAux} function.
 }
 \usage{
 getImpData(quarkData)

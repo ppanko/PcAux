@@ -114,7 +114,7 @@ createPcAux(quarkData,
       \code{miceIters = 10L}.
     }
     \item{miceRidge: }{
-      Value of the ridge penalty parameter used to stabalize the
+      Value of the ridge penalty parameter used to stabilize the
       imputation models used by mice(). Defaults to \code{miceRidge =
 	1e-5}.
     }

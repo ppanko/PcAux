@@ -85,7 +85,7 @@ prepData(rawData,
       \code{miceIters = 10L}.
     }
     \item{miceRidge: }{
-      Value of the ridge penalty parameter used to stabalize the
+      Value of the ridge penalty parameter used to stabilize the
       imputation models used by mice(). Defaults to \code{miceRidge =
 	1e-5}.
     }
@@ -182,7 +182,7 @@ prepData(rawData,
     }
     \item{idFills: }{
       A list containing the values used to deterministically fill any
-      missing data that occured on the ID variables. The length of this
+      missing data that occurred on the ID variables. The length of this
       argument will equal the number of incomplete ID variables in
       \code{rawData}.
     }
