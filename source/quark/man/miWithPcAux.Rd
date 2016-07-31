@@ -63,7 +63,7 @@ miWithPcAux(rawData,
   }
   \item{dropVars}{
     An optional character vector containing names of any nuisance
-    variables that should be excluded from the imputaiton process. If
+    variables that should be excluded from the imputation process. If
     unspecified, the default value of \code{dropVars = "useExtant"}
     causes any user-defined \code{dropVars} defined in \code{quarkData}
     to be used.
@@ -91,7 +91,7 @@ miWithPcAux(rawData,
   \item{varExpNonLin}{
     An optional real number giving the proportion of variance to be
     explained by the non-linear principal component auxiliary
-    scores (see'Details' for a description of the implementation). This
+    scores (see 'Details' for a description of the implementation). This
     argument overrides \code{nNonLinear}. If unspecified, the
     \code{nNonLinear} argument will define the number of non-linear 
     principal component scores used.
@@ -120,15 +120,18 @@ miWithPcAux(rawData,
   }
   \item{forcePmm}{
     A logical flag indicating whether or not the imputation should use
-    predictive mean matching as the elementary imputation method for all
-    variables. If \code{forcePmm == FALSE}, the elementary imputation
-    methods are chosen to match each variable's declared type. Defaults
-    to \code{forcePmm = FALSE}.
+    predictive mean matching as the elementary imputation method for
+    (almost) all variables. If \code{forcePmm == FALSE}, the elementary
+    imputation methods are chosen to match each variable's declared
+    type. When \code{forcePmm == TRUE}, nominal variables are still
+    imputed with GLM-based methods appropriate for their declared types,
+    but all other variables are imputed with PMM. Defaults to
+    \code{forcePmm = FALSE}.
   }
   \item{useParallel}{
     A logical switch indicating if the multiple imputation should be
     executed using parallel processing. When set to \code{TRUE}, the
-    imputaiton job will be executed in \code{nProcess} parallel jobs
+    imputation job will be executed in \code{nProcess} parallel jobs
     using the \code{parLapply} function from the \pkg{parallel}
     package. Defaults to \code{useParallel = FALSE}.
   }
@@ -158,13 +161,13 @@ miWithPcAux(rawData,
   components will usually be slightly higher than the threshold
   requested, because the existence of a set of principal component
   scores that explain exactly the requested proportion of variance is
-  unlikely. 
+  unlikely.
 
   The \code{control} argument is a key-paired list with the following
   possible entries:
   \itemize{
     \item{miceRidge: }{
-      Value of the ridge penalty parameter used to stabalize the
+      Value of the ridge penalty parameter used to stabilize the
       imputation models used by mice(). Defaults to \code{miceRidge =
 	1e-5}.
     }
@@ -190,6 +193,11 @@ miWithPcAux(rawData,
       won't trigger a warning. Defaults to \code{minConLev = 10L}.
     }
   }
+  Note that the behavior of the \code{forcePmm} argument changed between
+  versions 0.6.1 and 0.6.2 of quark. In earlier releases (<0.6.2)
+  setting \code{forcePmm = TRUE} caused all variables to be imputed with
+  PMM. Later releases do not use PMM for nominal variable since the
+  underlying matching rule is inappropriate for unordered variables.  
 }
 \value{
   A Reference Class object of class QuarkData with all of the fields

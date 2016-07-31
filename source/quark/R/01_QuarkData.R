@@ -1,7 +1,7 @@
 ### Title:    QuarkData Reference Class Definition
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2016-JUL-30
+### Modified: 2016-JUL-31
 ### Note:     QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2016 Kyle M. Lang
@@ -484,11 +484,21 @@ QuarkData$methods(
             methVec        <<- rep     ("pmm", ncol(data))
             names(methVec) <<- colnames(data             )
 
+            ## KML 2016-JUL-31: Don't use PMM for nominal variables
+            binNames <- colnames(data)[typeVec[colnames(data)] == "binary"]
+            nomNames <- colnames(data)[typeVec[colnames(data)] == "nominal"]
+            
+            tmpIndex <- names(methVec) %in% binNames
+            setMethVec(x = "logreg", index = tmpIndex)
+
+            tmpIndex <- names(methVec) %in% nomNames
+            setMethVec(x = "polyreg", index = tmpIndex)
+       
             ## Don't impute ID or Dropped Variables:
             tmpIndex <- names(methVec) %in% dropVars[ , 1] |
                 names(methVec) %in% idVars
             setMethVec(x = "", index = tmpIndex)
-        } else {
+         } else {
             methVec <<-
                 sapply(typeVec[colnames(data)],
                        FUN = function(x) {

@@ -44,7 +44,7 @@ createPcAux(quarkData,
     polynomial terms. Defaults to \code{maxPower = 3L}.
   }
   \item{pcaMemLevel}{
-    An integer code representing a tradeoff between memory usage and
+    An integer code representing a trade-off between memory usage and
     numerical accuracy in the algorithm used to extract the principal
     component scores. A value of '0L' (the default) will extract the PC
     scores with the stats::prcomp() package for maximal accuracy. A
@@ -69,9 +69,12 @@ createPcAux(quarkData,
   \item{forcePmm}{
     A logical flag indicating whether or not the initial single
     imputation should use predictive mean matching as the elementary
-    imputation method for all variables. If \code{forcePmm == FALSE},
-    the elementary imputation methods are chosen to match each
-    variable's declared type. Defaults to \code{forcePmm = FALSE}.
+    imputation method for (almost) all variables. If \code{forcePmm ==
+      FALSE}, the elementary imputation methods are chosen to match each
+    variable's declared type. When \code{forcePmm == TRUE}, nominal
+    variables are still imputed with GLM-based methods appropriate for
+    their declared types, but all other variables are imputed with
+    PMM. Defaults to \code{forcePmm = FALSE}.
   }
   \item{verbose}{
     A logical switch indicating whether output should be printed to the
@@ -151,6 +154,11 @@ createPcAux(quarkData,
       will be split, if applicable. Defaults to \code{nGVarCats = 3L}.
     }
   }
+  Note that the behavior of the \code{forcePmm} argument changed between
+  versions 0.6.1 and 0.6.2 of quark. In earlier releases (<0.6.2)
+  setting \code{forcePmm = TRUE} caused all variables to be imputed with
+  PMM. Later releases do not use PMM for nominal variable since the
+  underlying matching rule is inappropriate for unordered variables.
 }
 \value{
   An Reference Class object of class QuarkData with fields for each of
@@ -169,7 +177,7 @@ createPcAux(quarkData,
     \item{rSquared: }{
       A list of length 2. The first element contains the cumulative
       proportion of variance explained by the linear principal component
-      auxiliary scores. The second element containst the cumulative
+      auxiliary scores. The second element contains the cumulative
       proportion of variance explained by the non-linear principal
       component auxiliary scores.
     }
@@ -245,7 +253,7 @@ createPcAux(quarkData,
     }
     \item{patterns: }{
       If the imputation process falls back to group mean substitution,
-      this field contains a list of the concatonated grouping patterns
+      this field contains a list of the concatenated grouping patterns
       used to define the strata within which the group means were
       computed. This list will have length equal to
       \code{length(groupVars)}.
@@ -253,12 +261,12 @@ createPcAux(quarkData,
     \item{frozenGVars: }{
       If group mean substitution is attempted and some grouping
       variables are continuous, this field contains the binned versions
-      of the continous grouping variables that were used for the group
+      of the continuous grouping variables that were used for the group
       mean substitution.
     }
     \item{idFills: }{
       A list containing the values used to deterministically fill any
-      missing data that occured on the ID variables. The length of this
+      missing data that occurred on the ID variables. The length of this
       argument will equal the number of incomplete ID variables in
       \code{rawData}.
     }
