@@ -351,7 +351,7 @@ pcAuxOut26 <- createPcAux(quarkData = quarkData17)
 frozenPcAuxOut26 <- pcAuxOut26$copy()
 
 
-##### ROM TESTING #####
+##### IMPUTATION TESTING #####
 
 
 ## Test:   Ordinary usage
@@ -407,6 +407,7 @@ miOut6 <- miWithPcAux(rawData = testData,
                       dropVars ="z2",
                       nImps = 5L,
                       varExpLin = 0.9)
+inspect(tmp, "rSquared")
 
 ## Test:   Asking for too much non-linear variance explained
 ## Result: Fatal Error
@@ -592,26 +593,6 @@ miOut27 <- miWithPcAux(rawData = testData,
                        nImps = 5L,
                        useParallel = TRUE,
                        nProcess = 4)
-
-## Test:   Time parallel vs. serial
-## Result: Parallel is faster
-tmp <- frozenPcAuxOut1$copy()
-system.time(
-    miOut27.2 <- miWithPcAux(rawData = testData,
-                             quarkData = tmp,
-                             dropVars = "z2",
-                             nImps = 20L,
-                             useParallel = TRUE,
-                             nProcess = 20)
-    )
-
-tmp <- frozenPcAuxOut1$copy()
-system.time(
-    miOut27.3 <- miWithPcAux(rawData = testData,
-                             quarkData = tmp,
-                             dropVars = "z2",
-                             nImps = 20L)
-    )
 
 ## Test:    Use parallel processing with "long" output
 ## Results: Successful execution
