@@ -1,7 +1,7 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2016-FEB-18
+### Modified: 2016-JUL-31
 
 ### Copyright (C) 2016 Kyle M. Lang
 ###
@@ -174,7 +174,12 @@ mergePcAux <- function(quarkData,
             
             ## Fill missing ID values with dummy levels from the Quark object:
             if( any(idMissPat) )
-                dataId[idMissPat] <- quarkData$idFills[[useId]]
+                ## KML 2016-JUL-31: Check class of 'idFills' to avoid crashes
+                ## with one incomplete ID
+                if(is.list(quarkData$idFills))
+                    dataId[idMissPat] <- quarkData$idFills[[useId]]
+                else
+                    dataId[idMissPat] <- quarkData$idFills
             
             ## Match ID variables in raw data and Quark object:
             matchVec <- match(dataId, quarkData$pcAux$lin[ , useId])
