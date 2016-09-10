@@ -2,8 +2,8 @@ Package: quark
 Type: Package
 Title: Missing data analysis with principal component auxiliary
         variables
-Version: 0.6.2
-Date: 2016-07-31
+Version: 0.6.3
+Date: 2016-09-09
 Author: Kyle M. Lang, Steven Chesnut, Todd D. Little
 Maintainer: Kyle M. Lang <kyle.lang@ttu.edu>
 Description: Implements the ideas of Howard, Rhemtulla, and Little (2015) to execute a principled missing data analysis that uses principal component scores as the auxiliary variables.

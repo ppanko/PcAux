@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2016-FEB-18
+### Modified: 2016-SEP-09
 ### Purpose:  Use the principal component auxiliaries
 ###           produced by createPcAux() to conduct MI.
 
@@ -88,7 +88,7 @@ miWithPcAux <- function(rawData,
     checkInputs(parent = "rom")
     
     ## Combine the principal component auxiliaries with the raw data:
-    mergeOut <- mergePcAux(quarkData     = quarkData,
+    mergeOut <- mergePcAux(quarkData    = quarkData,
                            rawData      = rawData,
                            nLinear      = nLinear,
                            nNonLinear   = nNonLinear,
@@ -136,6 +136,15 @@ miWithPcAux <- function(rawData,
     if(!simMode)
         ## Check and clean the data:
         cleanData(map = quarkData, doingQuark = FALSE)
+
+    ## Check for and treat any single nominal variables that are missing
+    ## only one datum
+    singleMissNom <- with(quarkData,
+                          (nrow(data) - respCounts == 1) &
+                              (typeVec == "binary" | typeVec == "nominal")
+                          )
+    if(any(singleMissNom))
+        quarkData$fillNomCell(colnames(quarkData$data[singleMissNom]))
     
     if(verbose) cat("\nMultiply imputing missing data...\n")
     

@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2016-FEB-18
+### Modified: 2016-SEP-09
 
 ### Copyright (C) 2016 Kyle M. Lang
 ###
@@ -75,6 +75,15 @@ createPcAux <- function(quarkData,
     if(castData) castData(map = quarkData)
     
     if(doImputation) {
+        ## Check for and treat any single nominal variables that are missing
+        ## only one datum
+        singleMissNom <- with(quarkData,
+                              (nrow(data) - respCounts == 1) &
+                                  (typeVec == "binary" | typeVec == "nominal")
+                              )
+        if(any(singleMissNom))
+            quarkData$fillNomCell(colnames(quarkData$data[singleMissNom]))
+        
         ## NOTE: '...' pass hidden debugging flags that allow developers to
         ## check the functionality of the fall-back imputation methods.
         doSingleImputation(map = quarkData, ...)
