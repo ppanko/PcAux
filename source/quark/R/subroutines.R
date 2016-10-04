@@ -1,7 +1,7 @@
 ### Title:       Quark Subroutines
 ### Author:      Kyle M. Lang & Stephen Chesnut
 ### Created:     2015-JUL-27
-### Modified:    2016-SEP-09
+### Modified:    2016-OCT-04
 
 ### Copyright (C) 2016 Kyle M. Lang
 ###
@@ -418,7 +418,9 @@ doSingleImputation <- function(map, ...)
                      predictorMatrix = predMat,
                      method = map$methVec,
                      printFlag = FALSE,
-                     seed = map$seed),
+                     seed = map$seed,
+                     MaxNWts = map$maxNetWts, # KML 2016-OCT-04: Adding maximum
+                     ridge = map$miceRidge),  # network weights and ridge options
                 silent = TRUE)
             if(map$verbose) cat("done.\n")
 
