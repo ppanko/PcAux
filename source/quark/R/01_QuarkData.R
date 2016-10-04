@@ -1,7 +1,7 @@
 ### Title:    QuarkData Reference Class Definition
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2016-JUL-31
+### Modified: 2016-SEP-09
 ### Note:     QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2016 Kyle M. Lang
@@ -471,7 +471,16 @@ QuarkData$methods(
         }
         data[ , targets] <<- tmp2
     },
-
+    
+    fillNomCell     = function(name)                                            {
+        "Fill single missing nominal cells via marginal sampling"
+        for(n in name) {
+            tmp         <- table(data[ , n])
+            impVal      <- sample(levels(data[ , n]), size = 1, prob = tmp)
+            data[is.na(data[ , n]), n] <<- impVal
+        }
+    },
+    
     cleanCollinVars = function(x)                                               {
         "Remove one variable from all collinear pairs"
         collinVars <<- x
@@ -516,7 +525,7 @@ QuarkData$methods(
         ## Don't impute fully observed variables:
         setMethVec(x = "", index = colSums(is.na(data)) == 0)
     },
-
+    
     addVars         = function(x, names = NULL)                                 {
         "Add columns to 'data'"
         if(is.null(names)) names <-  colnames  (x              )

@@ -1,7 +1,7 @@
 ### Title:       Quark Subroutines
 ### Author:      Kyle M. Lang & Stephen Chesnut
 ### Created:     2015-JUL-27
-### Modified:    2016-FEB-26
+### Modified:    2016-OCT-04
 
 ### Copyright (C) 2016 Kyle M. Lang
 ###
@@ -238,11 +238,6 @@ cleanData <- function(map, doingQuark = TRUE)
     ## Find each variable's number of observations:
     map$countResponses()
 
-    ## Flag variables with few responses:
-    if(map$verbose) cat("--Checking for high PM...")
-    haveHighPmVars <- map$findHighPmVars()
-    if(map$verbose) cat("done.\n")
-
     ## Flag empty variables:
     if(map$verbose) cat("--Checking for empty columns...")
     haveEmptyVars <- map$findEmptyVars(remove = doingQuark)
@@ -251,6 +246,11 @@ cleanData <- function(map, doingQuark = TRUE)
     ## Flag constant columns:
     if(map$verbose) cat("--Checking for constant columns...")
     haveConstCols <- map$findConstCols(doingQuark = doingQuark)
+    if(map$verbose) cat("done.\n")
+
+    ## Flag variables with few responses:
+    if(map$verbose) cat("--Checking for high PM...")
+    haveHighPmVars <- map$findHighPmVars()
     if(map$verbose) cat("done.\n")
 
     if(haveHighPmVars) {# Any low-response variables?
@@ -418,7 +418,9 @@ doSingleImputation <- function(map, ...)
                      predictorMatrix = predMat,
                      method = map$methVec,
                      printFlag = FALSE,
-                     seed = map$seed),
+                     seed = map$seed,
+                     MaxNWts = map$maxNetWts, # KML 2016-OCT-04: Adding maximum
+                     ridge = map$miceRidge),  # network weights and ridge options
                 silent = TRUE)
             if(map$verbose) cat("done.\n")
 
