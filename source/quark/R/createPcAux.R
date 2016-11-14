@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2016-SEP-09
+### Modified: 2016-NOV-14
 
 ### Copyright (C) 2016 Kyle M. Lang
 ###
@@ -81,8 +81,11 @@ createPcAux <- function(quarkData,
                               (nrow(data) - respCounts == 1) &
                                   (typeVec == "binary" | typeVec == "nominal")
                               )
-        if(any(singleMissNom))
-            quarkData$fillNomCell(colnames(quarkData$data[singleMissNom]))
+        ## KML 2016-NOV-14: Ignore dropped variables
+        singleMissNom <- setdiff(names(singleMissNom)[singleMissNom],
+                                 quarkData$dropVars[ , 1])
+        
+        if(length(singleMissNom) > 0) quarkData$fillNomCell(singleMissNom)
         
         ## NOTE: '...' pass hidden debugging flags that allow developers to
         ## check the functionality of the fall-back imputation methods.
