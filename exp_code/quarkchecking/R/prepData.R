@@ -27,8 +27,6 @@ prepData <- function(rawData,
                      groupVars = NULL,
                      simMode = FALSE,
                      mySeed = 235711L,
-                     useParallel = FALSE,
-                     nProcess = 1L,
                      verbose = !simMode,
                      control,
                      ...)
@@ -108,11 +106,7 @@ prepData <- function(rawData,
         cleanData(map = quarkData)
 
         ## Find any (bivariate) collinear variables:
-        ## If not using Parallel process
-        if(!useParallel)
-          findCollin(map = quarkData)
-        else ## If using Parallel process
-          findCollin(map = quarkData, f_useParallel = useParallel, f_nProc = nProcess)
+        findCollin(map = quarkData)
     }
 
     quarkData
