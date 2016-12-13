@@ -37,32 +37,51 @@ flexLinearAssoc11 <- function(Varpairs,map){
 #}
 ##### Create Data set
 #################################################
-#id.df<-NULL
-#for (i in 1:201)
-#{
-#  if(i == 1){
-#    id.df <-cbind(id.df,seq(1,201,1))
-#  }
-#  else
-#    id.df <-cbind(id.df,runif(201, 0, 10))
-#}
-#id.df <- as.data.frame(id.df)
-#for (i in 1:201)
-#{
-#  if(i == 1){
-#    names(id.df)[i] <-paste("id")
-#  }
-#  else
-#    names(id.df)[i] <-paste("x",i, sep = "")
-#}
+id.df<-NULL
+for (i in 1:201)
+{
+  if(i == 1){
+    id.df <-cbind(id.df,seq(1,201,1))
+  }
+  else
+    id.df <-cbind(id.df,runif(201, 0, 10))
+}
+id.df <- as.data.frame(id.df)
+for (i in 1:201)
+{
+  if(i == 1){
+    names(id.df)[i] <-paste("id")
+  }
+  else
+    names(id.df)[i] <-paste("x",i, sep = "")
+}
 ################################################
 #save(id.df, file = "exdata1.rda")
 #Read in data
+
+
+
+
+# new cluster 3 to see where the trade off shows, create a plot that shows the change
+# check quardata to see where the processors are stored
+# github
+#
+
+
+
+
+
+
 result.df<-NULL
 coreNUM.df<-NULL
 coreNUM.df <-rbind(coreNUM.df,1)
 coreNUM.df <-rbind(coreNUM.df,2)
+coreNUM.df <-rbind(coreNUM.df,3)
 coreNUM.df <-rbind(coreNUM.df,4)
+coreNUM.df <-rbind(coreNUM.df,5)
+coreNUM.df <-rbind(coreNUM.df,6)
+coreNUM.df <-rbind(coreNUM.df,7)
+coreNUM.df <-rbind(coreNUM.df,8)
 result.df <-cbind(result.df,coreNUM.df)
 
 
@@ -91,34 +110,98 @@ for( k in 1 : 10 ) {
   newVarPairs <-as.data.frame(varPairs)
   newVarPairs$coeff <-as.numeric(NA)
   names(newVarPairs)<-c("first","second","coeff")
-  t0<-Sys.time()
-  
+  t1<-Sys.time()
   #linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  )), stringsAsFactors = FALSE)
-  colnames(linAssocFrame) <- c("var1", "var2", "coef")
+  #colnames(linAssocFrame) <- c("var1", "var2", "coef")
   newVarPairs$coeff <-unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
-  t0<-Sys.time()-t0
-  result11.df <-rbind(result11.df,t0)
+  t1<-Sys.time()-t1
+  result11.df <-rbind(result11.df,t1)
+  
   newVarPairs <-as.data.frame(varPairs)
   newVarPairs$coeff <-as.numeric(NA)
   names(newVarPairs)<-c("first","second","coeff")
   c1 <-makeCluster(getOption("c1.cores", 2))
-  t1<-Sys.time()
-  linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  )), stringsAsFactors = FALSE)
-  colnames(linAssocFrame) <- c("var1", "var2", "coef")
-  
-  newVarPairs$coeff <-unlist(parApply(c1, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
-  t1<-Sys.time()-t1
-  stopCluster(c1)
-  result11.df <-rbind(result11.df,t1)
-  newVarPairs <-as.data.frame(varPairs)
-  newVarPairs$coeff <-as.numeric(NA)
-  names(newVarPairs)<-c("first","second","coeff")
-  c1 <-makeCluster(getOption("c1.cores", 4))
   t2<-Sys.time()
+  #linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  )), stringsAsFactors = FALSE)
+  #colnames(linAssocFrame) <- c("var1", "var2", "coef")
   newVarPairs$coeff <-unlist(parApply(c1, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
   t2<-Sys.time()-t2
   stopCluster(c1)
   result11.df <-rbind(result11.df,t2)
+  
+  newVarPairs <-as.data.frame(varPairs)
+  newVarPairs$coeff <-as.numeric(NA)
+  names(newVarPairs)<-c("first","second","coeff")
+  c3 <-makeCluster(getOption("c3.cores", 3))
+  t3<-Sys.time()
+  #linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  )), stringsAsFactors = FALSE)
+  #colnames(linAssocFrame) <- c("var1", "var2", "coef")
+  newVarPairs$coeff <-unlist(parApply(c3, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
+  t3<-Sys.time()-t3
+  stopCluster(c3)
+  result11.df <-rbind(result11.df,t3)
+  
+  newVarPairs <-as.data.frame(varPairs)
+  newVarPairs$coeff <-as.numeric(NA)
+  names(newVarPairs)<-c("first","second","coeff")
+  c1 <-makeCluster(getOption("c1.cores", 4))
+  t4<-Sys.time()
+  newVarPairs$coeff <-unlist(parApply(c1, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
+  t4<-Sys.time()-t4
+  stopCluster(c1)
+  result11.df <-rbind(result11.df,t4)
+  
+  newVarPairs <-as.data.frame(varPairs)
+  newVarPairs$coeff <-as.numeric(NA)
+  names(newVarPairs)<-c("first","second","coeff")
+  c1 <-makeCluster(getOption("c1.cores", 5))
+  t5<-Sys.time()
+  #linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  )), stringsAsFactors = FALSE)
+  #colnames(linAssocFrame) <- c("var1", "var2", "coef")
+  newVarPairs$coeff <-unlist(parApply(c1, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
+  t5<-Sys.time()-t5
+  stopCluster(c1)
+  result11.df <-rbind(result11.df,t5)
+  
+  newVarPairs <-as.data.frame(varPairs)
+  newVarPairs$coeff <-as.numeric(NA)
+  names(newVarPairs)<-c("first","second","coeff")
+  c3 <-makeCluster(getOption("c3.cores", 6))
+  t6<-Sys.time()
+  #linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs,1, FUN = flexLinearAssoc11, map = id.df  )), stringsAsFactors = FALSE)
+  #colnames(linAssocFrame) <- c("var1", "var2", "coef")
+  newVarPairs$coeff <-unlist(parApply(c3, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
+  t6<-Sys.time()-t6
+  stopCluster(c3)
+  result11.df <-rbind(result11.df,t6)
+  
+  newVarPairs <-as.data.frame(varPairs)
+  newVarPairs$coeff <-as.numeric(NA)
+  names(newVarPairs)<-c("first","second","coeff")
+  c1 <-makeCluster(getOption("c1.cores", 7))
+  t7<-Sys.time()
+  newVarPairs$coeff <-unlist(parApply(c1, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
+  t7<-Sys.time()-t7
+  stopCluster(c1)
+  result11.df <-rbind(result11.df,t7)
+  
+  
+  newVarPairs <-as.data.frame(varPairs)
+  newVarPairs$coeff <-as.numeric(NA)
+  names(newVarPairs)<-c("first","second","coeff")
+  c1 <-makeCluster(getOption("c1.cores", 8))
+  t8<-Sys.time()
+  newVarPairs$coeff <-unlist(parApply(c1, varPairs,1, FUN = flexLinearAssoc11, map = id.df  ))
+  t8<-Sys.time()-t8
+  stopCluster(c1)
+  result11.df <-rbind(result11.df,t8)
+  
+  
+  
+  
+  
+  
+  
   result.df <-cbind(result.df,result11.df[1])
 }
 result.df <- as.data.frame(result.df)

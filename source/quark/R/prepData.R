@@ -48,6 +48,10 @@ prepData <- function(rawData,
                            dropVars     = dropVars,
                            simMode      = simMode,
                            seed         = as.integer(mySeed),
+                           # put new values 
+                           # assign correct field in quarkdata object
+                           useParallel = useParallel,
+                           nProcess = nProcess,
                            verbose      = verbose)
 
     quarkData$setCall(match.call(), parent = "prepData")
@@ -109,9 +113,9 @@ prepData <- function(rawData,
 
         ## Find any (bivariate) collinear variables:
         ## If not using Parallel process
-        if(!useParallel)
-          findCollin(map = quarkData)
-        else ## If using Parallel process
+        #if(!useParallel)
+         # findCollin(map = quarkData)
+        #else ## If using Parallel process
           findCollin(map = quarkData, f_useParallel = useParallel, f_nProc = nProcess)
     }
 

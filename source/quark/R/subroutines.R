@@ -280,7 +280,8 @@ cleanData <- function(map, doingQuark = TRUE)
 
 
 ## Flag variables with perfect bivariate correlations (within some epsilon):
-findCollin <- function(map, f_useParallel = FALSE, f_nProc = 1L)
+# revise usePaarallel
+findCollin <- function(map)
 {
     if(map$verbose) cat("\nExamining data for collinear relationships...\n")
 
@@ -297,11 +298,11 @@ findCollin <- function(map, f_useParallel = FALSE, f_nProc = 1L)
     #}
     varPairs<-data.frame(t(combn(tmpVarNames,2)),stringsAsFactors = F)
     ##If not using any parallel process
-    if(!f_useParallel)
+    if(!map$useParallel)
       linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs, 1, FUN = flexLinearAssoc, map = map)), stringsAsFactors = FALSE)
     else
     {
-      myCluster <- makeCluster(f_nProc)
+      myCluster <- makeCluster(map$nProcess)
       clusterEvalQ(myCluster, library(mice))
       linAssocFrame <- data.frame(varPairs, unlist(parApply(myCluster, varPairs, 1, FUN = flexLinearAssoc, map = map)), stringsAsFactors = FALSE)
       stopCluster(myCluster)

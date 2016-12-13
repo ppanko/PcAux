@@ -78,7 +78,10 @@ QuarkData <- setRefClass("QuarkData",
                              nImps        = "integer",
                              compFormat   = "character",
                              miDatasets   = "ANY",
-                             miceObject   = "ANY"
+                             miceObject   = "ANY",
+                             #included new field for parallel
+                             useParallel = "integer",
+                             nProcess = "integer"
                          )# END fields
                          )# END QuarkData
 
@@ -158,7 +161,10 @@ QuarkData$methods(
         nImps      =  0L,
         compFormat = "",
         miDatasets = NULL,
-        miceObject = NULL
+        miceObject = NULL,
+        #Additional field initialization
+        useParallel = FALSE,
+        nProcess = 1L
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
