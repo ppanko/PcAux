@@ -1,0 +1,13 @@
+--branch dev branch(name for the feature)
+--within the branch(create a new folder for the feature)
+experimental directory
+use max 
+
+new name for quark
+pmdamd
+pldami
+
+palmdi
+
+placid
+
