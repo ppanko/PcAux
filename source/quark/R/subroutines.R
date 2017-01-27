@@ -289,14 +289,14 @@ findCollin <- function(map)
     varPairs <- NULL
 
     tmpVarNames <- setdiff(colnames(map$data), map$idVars)
-    varPairs<-data.frame(t(combn(tmpVarNames,2)),stringsAsFactors = F)
+    varPairs<-data.frame(t(combn(tmpVarNames, 2)), stringsAsFactors = F)
     ##If not using any parallel process
     if(!map$useParallel)
       linAssocFrame <- data.frame(varPairs, 
-                                  unlist(apply(varPairs, 
-                                               1,
-                                               FUN = flexLinearAssoc, 
-                                               map = map)),
+                                  unlist(
+                                    apply(varPairs, 1, 
+                                          FUN = flexLinearAssoc, 
+                                          map = map)),
                                   stringsAsFactors = FALSE
                                   )
     else
@@ -304,9 +304,7 @@ findCollin <- function(map)
       myCluster <- makeCluster(map$nProcess)
       clusterEvalQ(myCluster, library(mice))
       linAssocFrame <- data.frame(varPairs, 
-                                  unlist(parApply(myCluster, 
-                                                  varPairs, 
-                                                  1, 
+                                  unlist(parApply(myCluster, varPairs, 1, 
                                                   FUN = flexLinearAssoc, 
                                                   map = map)),
                                   stringsAsFactors = FALSE

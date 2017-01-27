@@ -48,10 +48,8 @@ prepData <- function(rawData,
                            dropVars     = dropVars,
                            simMode      = simMode,
                            seed         = as.integer(mySeed),
-                           # put new values 
-                           # assign correct field in quarkdata object
-                           useParallel = useParallel,
-                           nProcess = nProcess,
+                           useParallel  = useParallel,
+                           nProcess     = nProcess,
                            verbose      = verbose)
 
     quarkData$setCall(match.call(), parent = "prepData")
