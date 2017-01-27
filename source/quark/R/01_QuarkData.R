@@ -79,8 +79,7 @@ QuarkData <- setRefClass("QuarkData",
                              compFormat   = "character",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
-                             #included new field for parallel
-                             useParallel = "integer",
+                             useParallel = "logical",
                              nProcess = "integer"
                          )# END fields
                          )# END QuarkData
@@ -219,6 +218,8 @@ QuarkData$methods(
         compFormat   <<- compFormat
         miDatasets   <<- miDatasets
         miceObject   <<- miceObject
+        useParallel  <<- useParallel
+        nProcess     <<- nProcess
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##

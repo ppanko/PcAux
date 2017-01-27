@@ -289,22 +289,28 @@ findCollin <- function(map)
     varPairs <- NULL
 
     tmpVarNames <- setdiff(colnames(map$data), map$idVars)
-    #### Replacing double loop with Combination function
-    #    nVars <- length(tmpVarNames)
-    #    for( i in 1 : (nVars - 1) ) {
-    #    for( j in (i + 1) : nVars ) {
-    #        varPairs <- rbind(varPairs, tmpVarNames[c(i, j)])
-    #    }
-    #}
     varPairs<-data.frame(t(combn(tmpVarNames,2)),stringsAsFactors = F)
     ##If not using any parallel process
     if(!map$useParallel)
-      linAssocFrame <- data.frame(varPairs, unlist(apply(varPairs, 1, FUN = flexLinearAssoc, map = map)), stringsAsFactors = FALSE)
+      linAssocFrame <- data.frame(varPairs, 
+                                  unlist(apply(varPairs, 
+                                               1,
+                                               FUN = flexLinearAssoc, 
+                                               map = map)),
+                                  stringsAsFactors = FALSE
+                                  )
     else
     {
       myCluster <- makeCluster(map$nProcess)
       clusterEvalQ(myCluster, library(mice))
-      linAssocFrame <- data.frame(varPairs, unlist(parApply(myCluster, varPairs, 1, FUN = flexLinearAssoc, map = map)), stringsAsFactors = FALSE)
+      linAssocFrame <- data.frame(varPairs, 
+                                  unlist(parApply(myCluster, 
+                                                  varPairs, 
+                                                  1, 
+                                                  FUN = flexLinearAssoc, 
+                                                  map = map)),
+                                  stringsAsFactors = FALSE
+                                  )
       stopCluster(myCluster)
     }
     colnames(linAssocFrame) <- c("var1", "var2", "coef")
