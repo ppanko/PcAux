@@ -472,11 +472,62 @@ QuarkData$methods(
         data[ , targets] <<- tmp2
     },
 
-    cleanCollinVars = function(x)                                               {
-        "Remove one variable from all collinear pairs"
-        collinVars <<- x
-        removeVars(x = unique(collinVars$var1), reason = "collinear")
-    },
+    
+  cleanCollinVars = function(x)                                                {
+       "Remove one variable from all collinear pairs"
+        collinVars <- x
+        collinVarPairs <- collinVars[,1:2]
+  
+  while(nrow(collinVarPairs)>0){
+    
+    varCount<- data.frame(table(unlist(collinVarPairs)))
+    maxVarCount<- varCount[which(varCount$Freq==max(varCount$Freq)),]
+    
+    naCount <-sapply(data,function(c) sum(length(which(is.na(c)))))
+    naCount <- data.frame(naCount)
+    naCount<- add_rownames(naCount,"var1")
+    
+    ## Check for missing value counts if maximum counts are equal
+    if(nrow(maxVarCount)>1){
+      
+      maxNaCountValue<-max(sapply(as.character(maxVarCount$Var1),function(c) sum(is.na(data[,c]))))
+      maxNaCount<-naCount[which(naCount$naCount == maxNaCountValue),]
+      maxNaCount<-maxNaCount[which(maxNaCount$var1 %in% as.character(maxVarCount$Var1)),]
+      
+      
+      ## Check if missing counts are same
+      if(nrow(maxNaCount)>1){
+        
+		maxNaCount<- maxNaCount[1,]
+        maxNaCount<- as.character(maxNaCount$Var1)
+        varCount<- varCount[-which(varCount$Var1 == maxNaCount),]
+        collinVarPairs<- subset(collinVarPairs,collinVarPairs[,1]!=varCount)
+        vector_c<- append(vector_c,varCount)
+        
+		} else if(nrow(maxNaCount)==1){
+        
+        maxNaCount<- as.character(maxNaCount$var1)
+        varCount<- varCount[-which(varCount$Var1 == maxNaCount),]
+        collinVarPairs<- subset(collinVarPairs,collinVarPairs[,1]!=maxNaCount)
+        collinVarPairs<- subset(collinVarPairs,collinVarPairs[,2]!=maxNaCount)
+        vector_a<- append(vector_a,maxNaCount)
+      }
+      
+    }else
+      
+      ## Check if maximum counts are not equal
+      if(nrow(maxVarCount)==1){
+      
+       w<- as.character(maxVarCount$Var1)
+       varCount<- varCount[-which(varCount$Var1 == w),]
+       collinVarPairs<- subset(collinVarPairs,collinVarPairs[,1]!=w)
+       vector_t<- append(vector_t,w)
+      }
+   }
+  vector<- c(vector_t,vector_a,vector_c)
+  removeVars(x = vector, reason = "collinear")
+ },
+
 
     createMethVec  = function()                                                 {
         "Populate a vector of elementary imputation methods"
