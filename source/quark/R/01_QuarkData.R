@@ -78,7 +78,9 @@ QuarkData <- setRefClass("QuarkData",
                              nImps        = "integer",
                              compFormat   = "character",
                              miDatasets   = "ANY",
-                             miceObject   = "ANY"
+                             miceObject   = "ANY",
+                             useParallel = "logical",
+                             nProcess = "integer"
                          )# END fields
                          )# END QuarkData
 
@@ -158,7 +160,10 @@ QuarkData$methods(
         nImps      =  0L,
         compFormat = "",
         miDatasets = NULL,
-        miceObject = NULL
+        miceObject = NULL,
+        #Additional field initialization
+        useParallel = FALSE,
+        nProcess = 1L
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -213,6 +218,8 @@ QuarkData$methods(
         compFormat   <<- compFormat
         miDatasets   <<- miDatasets
         miceObject   <<- miceObject
+        useParallel  <<- useParallel
+        nProcess     <<- nProcess
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##

@@ -27,6 +27,8 @@ prepData <- function(rawData,
                      groupVars = NULL,
                      simMode = FALSE,
                      mySeed = 235711L,
+                     useParallel = FALSE,
+                     nProcess = 1L,
                      verbose = !simMode,
                      control,
                      ...)
@@ -46,6 +48,8 @@ prepData <- function(rawData,
                            dropVars     = dropVars,
                            simMode      = simMode,
                            seed         = as.integer(mySeed),
+                           useParallel  = useParallel,
+                           nProcess     = nProcess,
                            verbose      = verbose)
 
     quarkData$setCall(match.call(), parent = "prepData")
