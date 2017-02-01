@@ -8,17 +8,17 @@
 }
 \usage{
 createPcAux(quarkData,
-            nComps = c(10L, 3L),
-            useInteract = TRUE,
-            usePoly = TRUE,
-            maxPower = 3L,
-            pcaMemLevel = 0L,
-            simMode = FALSE,
-            mySeed = 235711L,
-            forcePmm = FALSE,
-            verbose = !simMode,
+            nComps       = c(10L, 3L),
+            useInteract  = TRUE,
+            usePoly      = TRUE,
+            maxPower     = 3L,
+            pcaMemLevel  = 0L,
+            simMode      = FALSE,
+            mySeed       = 235711L,
+            forcePmm     = FALSE,
+            verbose      = !simMode,
             doImputation = TRUE,
-            castData = !doImputation,
+            castData     = !doImputation,
             control,
             ...)
 }
@@ -288,15 +288,15 @@ createPcAux(quarkData,
 data(iris2)
 
 ## Prepare the data:
-cleanData <- prepData(rawData = iris2,
-                      nomVars = "Species",
-                      ordVars = "Petal.Width",
-                      idVars = "ID",
-                      dropVars = "Junk",
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
                       groupVars = "Species")
 
 ## Create the principal component auxiliaries:
 pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps = c(3, 2)
+                        nComps    = c(3, 2)
                         )
 }

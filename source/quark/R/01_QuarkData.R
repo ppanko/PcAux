@@ -1,7 +1,7 @@
 ### Title:    QuarkData Reference Class Definition
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2016-SEP-09
+### Modified: 2017-JAN-31
 ### Note:     QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2016 Kyle M. Lang
@@ -79,8 +79,8 @@ QuarkData <- setRefClass("QuarkData",
                              compFormat   = "character",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
-                             useParallel = "logical",
-                             nProcess = "integer"
+                             useParallel  = "logical",
+                             nProcess     = "integer"
                          )# END fields
                          )# END QuarkData
 
@@ -157,13 +157,12 @@ QuarkData$methods(
             groupMean = vector("character"),
             grandMean = vector("character")
         ),
-        nImps      =  0L,
-        compFormat = "",
-        miDatasets = NULL,
-        miceObject = NULL,
-        #Additional field initialization
-        useParallel = FALSE,
-        nProcess = 1L
+        nImps        =  0L,
+        compFormat   = "",
+        miDatasets   = NULL,
+        miceObject   = NULL,
+        useParallel  = FALSE,
+        nProcess     = 1L
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call

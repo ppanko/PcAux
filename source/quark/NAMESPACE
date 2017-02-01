@@ -15,4 +15,4 @@ import(methods,
        parallel)
 
 importFrom("stats", ".lm.fit", "cor", "cov", "prcomp", "sd")
-
+importFrom("utils", "combn")

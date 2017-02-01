@@ -1,9 +1,9 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2016-NOV-14
+### Modified: 2017-JAN-31
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -20,17 +20,17 @@
 
 
 createPcAux <- function(quarkData,
-                        nComps = c(10L, 3L),
-                        useInteract = TRUE,
-                        usePoly = TRUE,
-                        maxPower = 3L,
-                        pcaMemLevel = 0L,
-                        simMode = FALSE,
-                        mySeed = 235711L,
-                        forcePmm = FALSE,
-                        verbose = !simMode,
+                        nComps       = c(10L, 3L),
+                        useInteract  = TRUE,
+                        usePoly      = TRUE,
+                        maxPower     = 3L,
+                        pcaMemLevel  = 0L,
+                        simMode      = FALSE,
+                        mySeed       = 235711L,
+                        forcePmm     = FALSE,
+                        verbose      = !simMode,
                         doImputation = TRUE,
-                        castData = !doImputation,
+                        castData     = !doImputation,
                         control,
                         ...)
 {
@@ -40,13 +40,13 @@ createPcAux <- function(quarkData,
     if(!simMode) checkInputs(parent = "quark")
 
     ## Add elements to an extant instance of the QuarkData class:
-    quarkData$nComps <- as.integer(nComps)
-    quarkData$forcePmm <- forcePmm
-    quarkData$pcaMemLev <- as.integer(pcaMemLevel)
+    quarkData$nComps       <- as.integer(nComps)
+    quarkData$forcePmm     <- forcePmm
+    quarkData$pcaMemLev    <- as.integer(pcaMemLevel)
     quarkData$calcInteract <- useInteract
-    quarkData$calcPoly <- usePoly
-    quarkData$maxPower <- as.integer(maxPower)
-    quarkData$simMode <- simMode
+    quarkData$calcPoly     <- usePoly
+    quarkData$maxPower     <- as.integer(maxPower)
+    quarkData$simMode      <- simMode
 
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) {

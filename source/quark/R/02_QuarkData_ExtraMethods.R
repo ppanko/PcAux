@@ -1,14 +1,14 @@
 ### Title:    QuarkData Simple Accessor and Mutator Definitions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2016-FEB-17
+### Modified: 2017-JAN-31
 ### Note:     These methods are not currently used. The following
 ###           definitions are included mostly for "future-proofing,"
 ###           so that the QuarkData class will still be valid if future
 ###           implementations of R's Reference Classes require stricter
 ###           field access protocols.
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
