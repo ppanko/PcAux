@@ -1,7 +1,7 @@
 ### Title:    QuarkData Reference Class Definition
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2016-FEB-06
+### Modified: 2017-FEB-06
 ### Note:     QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2016 Kyle M. Lang
@@ -79,9 +79,9 @@ QuarkData <- setRefClass("QuarkData",
                              compFormat   = "character",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
-							 sameNaCntVec = "vector",
-			                 diffNaCntVec = "vector",
-			                 diffMaxCntVec= "vector"
+			     sameNaCntVec = "vector",
+			     diffNaCntVec = "vector",
+			     diffMaxCntVec= "vector"
                          )# END fields
                          )# END QuarkData
 
@@ -162,9 +162,9 @@ QuarkData$methods(
         compFormat = "",
         miDatasets = NULL,
         miceObject = NULL,
-		sameNaCntVec = vector("character"),
-	    diffNaCntVec = vector("character"),
-	    diffMaxCntVec = vector("character")
+	sameNaCntVec = vector("character"),
+	diffNaCntVec = vector("character"),
+	diffMaxCntVec = vector("character")
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -219,9 +219,9 @@ QuarkData$methods(
         compFormat   <<- compFormat
         miDatasets   <<- miDatasets
         miceObject   <<- miceObject,
-		sameNaCntVec <<- sameNaCntVec,
-	    diffNaCntVec <<- diffNaCntVec,
-	    diffMaxCntVec<<- diffMaxCntVec
+	sameNaCntVec <<- sameNaCntVec,
+	diffNaCntVec <<- diffNaCntVec,
+	diffMaxCntVec<<- diffMaxCntVec
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -490,16 +490,15 @@ QuarkData$methods(
         while(nrow(collinVarPairs) > 0){
     
         varCount     <- data.frame(table(unlist(collinVarPairs)))
-	    maxVarCount  <- varCount[which(varCount$Freq == max(varCount$Freq)), ]
-	    maxVarCommon <- intersect(names(respCounts), 
+	maxVarCount  <- varCount[which(varCount$Freq == max(varCount$Freq)), ]
+	maxVarCommon <- intersect(names(respCounts), 
 		                          maxVarCount[, 1])
     
         ## Check for missing value counts if maximum counts are equal
         if(nrow(maxVarCount) > 1){
       
         maxNaCountValue  <- max(respCounts[maxVarCommon])
-	    maxNaVarNames    <- names(which(respCounts[maxVarCommon] == maxNaCountValue))
-		
+	maxNaVarNames    <- names(which(respCounts[maxVarCommon] == maxNaCountValue)) 
         maxNaCount       <- data.frame(t(append(maxNaVarNames,
 		                                  maxNaCountValue)))
 										  
@@ -510,12 +509,10 @@ QuarkData$methods(
         if(nrow(maxNaCount) > 1){
         
         maxNaCount      <- maxNaCount[1, ]
-	    maxNaCount      <- as.character(maxNaCount$var1)
-		
-        collinVarPairs  <- subset(collinVarPairs, 
+	maxNaCount      <- as.character(maxNaCount$var1)
+	collinVarPairs  <- subset(collinVarPairs, 
 		                          collinVarPairs[,1] != maxNaCount)
-								  
-        collinVarPairs  <- subset(collinVarPairs, 
+	collinVarPairs  <- subset(collinVarPairs, 
 		                          collinVarPairs[,2] != maxNaCount)
 								  
         sameNaCntVec    <- append(sameNaCntVec, maxNaCount)
@@ -524,10 +521,9 @@ QuarkData$methods(
         }else if(nrow(maxNaCount) == 1){
         
         maxNaCount      <- as.character(maxNaCount$var1)
-	    collinVarPairs  <- subset(collinVarPairs, 
+	collinVarPairs  <- subset(collinVarPairs, 
 		                          collinVarPairs[,1] != maxNaCount)
-								  
-        collinVarPairs  <- subset(collinVarPairs, 
+	collinVarPairs  <- subset(collinVarPairs, 
 		                          collinVarPairs[,2] != maxNaCount)
 								  
         diffNaCntVec    <- append(diffNaCntVec, maxNaCount)
@@ -537,9 +533,8 @@ QuarkData$methods(
         }else if(nrow(maxVarCount) == 1){
       
         firstVar        <- as.character(maxVarCount$Var1)
-	    collinVarPairs  <- subset(collinVarPairs, 
+	collinVarPairs  <- subset(collinVarPairs, 
 	                             collinVarPairs[,1] != firstVar)
-								 
         collinVarPairs  <- subset(collinVarPairs, 
 	                             collinVarPairs[,2] != firstVar)
 								 
@@ -548,7 +543,7 @@ QuarkData$methods(
             }
 			
         vector     <- c(sameNaCntVec,diffNaCntVec, diffMaxCntVec)
-	    removeVars(x = unique(vector), reason = "collinear")
+	removeVars(x = unique(vector), reason = "collinear")
           },
 
 
