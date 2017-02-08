@@ -78,10 +78,7 @@ QuarkData <- setRefClass("QuarkData",
                              nImps        = "integer",
                              compFormat   = "character",
                              miDatasets   = "ANY",
-                             miceObject   = "ANY",
-			     sameNaCntVec = "vector",
-			     diffNaCntVec = "vector",
-			     diffMaxCntVec= "vector"
+                             miceObject   = "ANY"
                          )# END fields
                          )# END QuarkData
 
@@ -161,10 +158,7 @@ QuarkData$methods(
         nImps      =  0L,
         compFormat = "",
         miDatasets = NULL,
-        miceObject = NULL,
-	sameNaCntVec = vector("character"),
-	diffNaCntVec = vector("character"),
-	diffMaxCntVec = vector("character")
+        miceObject = NULL
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -218,10 +212,7 @@ QuarkData$methods(
         nImps        <<- nImps
         compFormat   <<- compFormat
         miDatasets   <<- miDatasets
-        miceObject   <<- miceObject,
-	sameNaCntVec <<- sameNaCntVec,
-	diffNaCntVec <<- diffNaCntVec,
-	diffMaxCntVec<<- diffMaxCntVec
+        miceObject   <<- miceObject
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -483,22 +474,28 @@ QuarkData$methods(
 
     
    cleanCollinVars  = function(x)                                               {
+        
+	sameNaCntVec <-  NULL
+	diffNaCntVec <-  NULL
+	diffMaxCntVec <- NULL
+   
         "Remove one variable from all collinear pairs"
         collinVars     <<-  x
         collinVarPairs <- collinVars[, 1:2]
+	naCount <- (nrow(data) - respCounts)
 		
         while(nrow(collinVarPairs) > 0){
     
         varCount     <- data.frame(table(unlist(collinVarPairs)))
 	maxVarCount  <- varCount[which(varCount$Freq == max(varCount$Freq)), ]
-	maxVarCommon <- intersect(names(respCounts), 
+	maxVarCommon <- intersect(names(naCount), 
 		                          maxVarCount[, 1])
     
         ## Check for missing value counts if maximum counts are equal
         if(nrow(maxVarCount) > 1){
       
-        maxNaCountValue  <- max(respCounts[maxVarCommon])
-	maxNaVarNames    <- names(which(respCounts[maxVarCommon] == maxNaCountValue)) 
+        maxNaCountValue  <- max(naCount[maxVarCommon])
+	maxNaVarNames    <- names(which(naCount[maxVarCommon] == maxNaCountValue)) 
         maxNaCount       <- data.frame(t(append(maxNaVarNames,
 		                                  maxNaCountValue)))
 										  
@@ -542,8 +539,8 @@ QuarkData$methods(
                   }
             }
 			
-        vector     <- c(sameNaCntVec,diffNaCntVec, diffMaxCntVec)
-	removeVars(x = unique(vector), reason = "collinear")
+        varsToRemove     <- c(sameNaCntVec,diffNaCntVec, diffMaxCntVec)
+	removeVars(x = unique(varsToRemove), reason = "collinear")
           },
 
 
