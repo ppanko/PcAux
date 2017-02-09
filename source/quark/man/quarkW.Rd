@@ -1,7 +1,7 @@
 \name{quarkW}
 \alias{quarkW}
 \title{
-  Print \pkg{quark}'s warranty statement.
+  Print warranty statement for \pkg{quark}.
 }
 \description{
   Print the sections of the GPL-3 that describe the warranty (or

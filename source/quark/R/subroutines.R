@@ -1,9 +1,10 @@
-### Title:       Quark Subroutines
-### Author:      Kyle M. Lang & Stephen Chesnut
-### Created:     2015-JUL-27
-### Modified:    2016-OCT-04
+### Title:        Quark Subroutines
+### Author:       Kyle M. Lang & Stephen Chesnut
+### Contributors: Byung Jung
+### Created:      2015-JUL-27
+### Modified:     2017-FEB-09
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by

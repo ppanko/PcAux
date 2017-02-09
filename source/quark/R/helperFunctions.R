@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-JAN-31
+### Modified: 2017-FEB-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -24,7 +24,7 @@
     version <- read.dcf(file = system.file("DESCRIPTION", package = pkgname),
                         fields = "Version")
     packageStartupMessage(
-        "Loading: ", paste(pkgname, version), ", Copyright (C) 2016 Kyle M. Lang."
+        "Loading: ", paste(pkgname, version), ", Copyright (C) 2017 Kyle M. Lang."
     )
     packageStartupMessage(
         pkgname, " comes with ABSOLUTELY NO WARRANTY; execute 'quarkW()' for details."

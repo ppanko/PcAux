@@ -8,8 +8,6 @@
 \packageDescription{quark}
 }
 \details{
-The DESCRIPTION file:
-\packageDESCRIPTION{quark}
 \packageIndices{quark}
 }
 \author{

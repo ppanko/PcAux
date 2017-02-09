@@ -1,7 +1,8 @@
-### Title:    Data Preperation
-### Author:   Kyle M. Lang
-### Created:  2016-JAN-19
-### Modified: 2017-JAN-31
+### Title:        Data Preperation
+### Author:       Kyle M. Lang
+### Contributors: Byung Jung
+### Created:      2016-JAN-19
+### Modified:     2017-FEB-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
