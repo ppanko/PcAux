@@ -487,64 +487,63 @@ QuarkData$methods(
             data[is.na(data[ , n]), n] <<- impVal
         }
     },
-    
+
     cleanCollinVars = function(x)                                               {
         "Remove one variable from all collinear pairs"
-        
-        collinVars     <<-  x
-        collinVarPairs <- collinVars[, 1:2]
+        collinVars     <<- x
+        collinVarPairs <- collinVars[ , 1 : 2]
         naCount        <- nrow(data) - respCounts
-        sameNaCntVec   <-  NULL
-        diffNaCntVec   <-  NULL
+        sameNaCntVec   <- NULL
+        diffNaCntVec   <- NULL
         diffMaxCntVec  <- NULL
        
         while(nrow(collinVarPairs) > 0) {
             varCount     <- data.frame(table(unlist(collinVarPairs)))
-            maxVarCommon <- intersect(names(naCount), maxVarCount[, 1])
             maxVarCount  <-
                 varCount[which(varCount$Freq == max(varCount$Freq)), ]
+            maxVarCommon <- intersect(names(naCount), maxVarCount[ , 1])
             
             ## Check for missing value counts if maximum counts are equal
             if(nrow(maxVarCount) > 1) {
-                maxNaCountValue  <- max(naCount[maxVarCommon])
-                maxNaVarNames    <-
+                maxNaCountValue <- max(naCount[maxVarCommon])
+                maxNaVarNames   <-
                     names(which(naCount[maxVarCommon] == maxNaCountValue)) 
-                maxNaCount       <-
+                maxNaCount      <-
                     data.frame(t(append(maxNaVarNames, maxNaCountValue)))
                 
                 colnames(maxNaCount) <- c("var1", "count")
                 
                 ## Check if missing counts are same
                 if(nrow(maxNaCount) > 1) {
-                    maxNaCount      <- maxNaCount[1, ]
-                    maxNaCount      <- as.character(maxNaCount$var1)
-                    collinVarPairs  <-
-                        subset(collinVarPairs, collinVarPairs[,1] != maxNaCount)
-                    collinVarPairs  <-
-                        subset(collinVarPairs, collinVarPairs[,2] != maxNaCount)
-                    sameNaCntVec    <- append(sameNaCntVec, maxNaCount)
+                    maxNaCount     <- maxNaCount[1, ]
+                    maxNaCount     <- as.character(maxNaCount$var1)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 1] != maxNaCount)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 2] != maxNaCount)
+                    sameNaCntVec   <- append(sameNaCntVec, maxNaCount)
 
                 } else if(nrow(maxNaCount) == 1) {
-                    maxNaCount      <- as.character(maxNaCount$var1)
-                    collinVarPairs  <-
-                        subset(collinVarPairs, collinVarPairs[,1] != maxNaCount)
-                    collinVarPairs  <-
-                        subset(collinVarPairs, collinVarPairs[,2] != maxNaCount)
-                    diffNaCntVec    <- append(diffNaCntVec, maxNaCount)
+                    maxNaCount     <- as.character(maxNaCount$var1)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 1] != maxNaCount)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 2] != maxNaCount)
+                    diffNaCntVec   <- append(diffNaCntVec, maxNaCount)
                 }
 
                 ## Check if maximum counts are not equal
             } else if(nrow(maxVarCount) == 1) {
-                firstVar        <- as.character(maxVarCount$Var1)
-                collinVarPairs  <-
-                    subset(collinVarPairs, collinVarPairs[,1] != firstVar)
-                collinVarPairs  <-
-                    subset(collinVarPairs, collinVarPairs[,2] != firstVar)
-                diffMaxCntVec   <- append(diffMaxCntVec, firstVar)
+                firstVar       <- as.character(maxVarCount$Var1)
+                collinVarPairs <-
+                    subset(collinVarPairs, collinVarPairs[ , 1] != firstVar)
+                collinVarPairs <-
+                    subset(collinVarPairs, collinVarPairs[ , 2] != firstVar)
+                diffMaxCntVec  <- append(diffMaxCntVec, firstVar)
             }
         }
         
-        varsToRemove <- c(sameNaCntVec,diffNaCntVec, diffMaxCntVec)
+        varsToRemove <- c(sameNaCntVec, diffNaCntVec, diffMaxCntVec)
         removeVars(x = unique(varsToRemove), reason = "collinear")
     },
     

@@ -339,7 +339,8 @@ warnFun <- function(type, map)
                           "replaced with the appropriate ",
                           "constant value.\n"),
                collin = {
-                   tmpDropNames <- unique(map$collinVars$var1)
+                   tmpDropNames <-
+                       map$dropVars[map$dropVars[ , 2] == "collinear", 1]
                    prettyPairs <- toString(
                        apply(map$collinVars, 1,
                              FUN = function(x) {
