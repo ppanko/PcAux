@@ -11,22 +11,22 @@
 \usage{
 miWithPcAux(rawData,
             quarkData,
-            nImps = 100L,
-            nomVars = NULL,
-            ordVars = NULL,
-            idVars = NULL,
-            dropVars = "useExtant",
-            nLinear = NULL,
-            nNonLinear = NULL,
-            varExpLin = NULL,
-            varExpNonLin = NULL,
+            nImps          = 100L,
+            nomVars        = NULL,
+            ordVars        = NULL,
+            idVars         = NULL,
+            dropVars       = "useExtant",
+            nLinear        = NULL,
+            nNonLinear     = NULL,
+            varExpLin      = NULL,
+            varExpNonLin   = NULL,
             completeFormat = "list",
-            mySeed = 235711L,
-            simMode = FALSE,
-            forcePmm = FALSE,
-            useParallel = FALSE,
-            nProcess = 1L,
-            verbose = !simMode,
+            mySeed         = 235711L,
+            simMode        = FALSE,
+            forcePmm       = FALSE,
+            useParallel    = FALSE,
+            nProcess       = 1L,
+            verbose        = !simMode,
             control)
 }
 \arguments{
@@ -287,20 +287,20 @@ miWithPcAux(rawData,
 data(iris2)
 
 ## Prepare the data:
-cleanData <- prepData(rawData = iris2,
-                      nomVars = "Species",
-                      ordVars = "Petal.Width",
-                      idVars = "ID",
-                      dropVars = "Junk",
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
 pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps = c(3, 2)
+                        nComps    = c(3, 2)
                         )
 
 ## Conduct MI with the pcAux:
-miOut <- miWithPcAux(rawData = iris2,
+miOut <- miWithPcAux(rawData   = iris2,
                      quarkData = pcAuxOut,
-                     nImps = 5)
+                     nImps     = 5)
 }

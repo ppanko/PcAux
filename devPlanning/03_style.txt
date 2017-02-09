@@ -1,0 +1,165 @@
+Title:    Programming Style Guide for Project paveR
+Version:  1
+Author:   Kyle M. Lang
+Created:  2017-JAN-18
+Modified: 2017-JAN-24
+
+
+---GENERAL---
+
+1. No lines (including comment lines) will be more than 80 characters long
+
+2. Every syntax file will begin with the following four-lines of meta-data:
+
+  Title:    <- Title of the file (should be reasonably descriptive)
+  Author:   <- Author(s) of the file
+  Created:  <- Date the file was created (in sortable format, e.g.,  2017-JAN-01
+               or 2017-01-01)
+  Modified: <- Date the file was last modified (in sortable format)
+
+3. Additional meta-data (e.g., a 'notes' line) can be added to the four
+   obligatory lines when doing so will clarify the file's purpose
+   
+4. The meta data block described above will be followed by the GPL licensing
+   excerpt recommended by the GPL team.
+
+
+---COMMENTS---
+
+1. Self-documenting code will not be commented
+
+  a. E.g., x <- rnorm()
+
+2. Opaque, unusual, or novel code will be documented, inline, with appropriate
+   comments
+
+  a. E.g., ## Specify variance of y to ensure desired SNR:
+           yVar <- (1 / snr) * t(beta) %*% cov(X) %*% beta
+
+3. Single comment characters '#' will be used to comment-out code for debugging
+   or to add short comments at the end of lines
+
+4. Double comment characters '##' will be used to provide descriptive comments
+   within the code that document single expressions or small groups of
+   expressions.
+
+5. Triple comment characters '###' will be used to document entire functions,
+   signpost large "sections" of code that perform a subtask, and will be
+   comment-out boiler-plate language at the top of syntax files.
+
+
+---OBJECT NAMING---
+
+1. No object names will contain periods or underscores
+
+2. All object names (except for classes) will employ lower camel-case.
+
+  a. E.g., myVar <- 7
+  b. E.g., myFunction <- function(x) x - x
+
+3. Class names will employ upper camel-case
+
+  a. E.g., MyClass
+  b. E.g., MyOtherClass
+
+4. Objects of instantiated classes will still be named with lower camel-case
+
+  a. E.g., myClass <- MyClass()
+
+
+---SYNTAX FORMATTING---
+
+1. All infix operators will be surrounded by whitespace.
+
+  a. E.g., x <- 7
+  b. E.g., y == x
+  c. E.g., z + y
+
+2. All commas will be adjacent to the character they follow and will be followed
+   by whitespace
+
+  a. E.g., z <- c(1, 2, 3, 4)
+
+3. Parentheses will surround their arguments without whitespace
+
+  a. E.g., x <- rnorm(100, 10, 5)
+
+4. Align on assignment operators, where sensible
+
+  a. E.g., x   <- 7
+           y   <- 8
+           xy  <- 9
+           xyz <- 10
+
+5. Lines will be broken according to the following precedence:
+
+  a. Break after assignment character
+  b. Break after addition/subtraction
+  c. Break after division/multiplication
+  d. Break after comma separating function arguments
+
+  i. NOTE: When arithmetic expressions are simple and appear inline as function
+           arguments, option "d" should take precedence over options "b" and "c"
+
+  e. E.g., myStupidVariableName <-
+               Rnorm(myOtherStupidVariableName,
+                     myThirdStudidVariableName,
+                     myLastVariableName)
+
+  f. E.g., myNextVariableName <- 
+               myNextNextVariableName +
+               myOtherNextVariableName / 2
+
+  g. E.g., myLastVariableName <- 
+               rnorm(nObs,
+                     100 * colMeans(myData),
+                     cov(myData)
+                     ) 
+
+
+6. When doing so will significantly clarify the code, break function calls
+   across lines so that each argument begins on a new line.
+
+  a. E.g., myVars <- c("name1",
+                       "name2",
+                       "name3",
+                       "name4")
+   
+7. If a function call must be broken across lines, start a new line with each
+   argument
+
+  a. E.g., x <- rnorm(nObs,
+                      colMeans(myData[ , 1 : nVar]),
+                      cov(myData[ , 1 : nVar])
+                      )
+
+8. Explicitly name function arguments unless the name is obvious to the average
+   R user.
+
+  a. E.g., impOut <- mice(data  = missData,
+                          m     = 100,
+                          maxit = 20)
+
+  b. E.g., x <- rnorm(100, 0, 1)
+
+9. When function calls with named arguments are broken across lines, align
+   argument definitions on the equals sign.
+
+  a. E.g., impOut <- mice(data  = missData,
+                          m     = 100,
+                          maxit = 20)
+
+10. Use blank lines (i.e., vertical whitespace) to group related expressions and
+    avoid overly dense code
+
+  a. E.g.,
+  mVar    <- cov(myData)
+  myMean  <- colMeans(myData)
+  myMean2 <- myMean * diag(myVar)
+
+  newData <- mvtnorm(nrow(myData), myMean2, myVar)
+
+  out <- lm(newData[ , 1] ~ newData[ , -1])
+  summary(out) 
+
+

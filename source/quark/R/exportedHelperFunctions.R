@@ -1,9 +1,9 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2016-OCT-04
+### Modified: 2017-JAN-31
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by

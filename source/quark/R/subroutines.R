@@ -1,9 +1,10 @@
-### Title:       Quark Subroutines
-### Author:      Kyle M. Lang & Stephen Chesnut
-### Created:     2015-JUL-27
-### Modified:    2016-OCT-04
+### Title:        Quark Subroutines
+### Author:       Kyle M. Lang & Stephen Chesnut
+### Contributors: Byung Jung
+### Created:      2015-JUL-27
+### Modified:     2017-FEB-09
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -280,6 +281,7 @@ cleanData <- function(map, doingQuark = TRUE)
 
 
 ## Flag variables with perfect bivariate correlations (within some epsilon):
+# revise usePaarallel
 findCollin <- function(map)
 {
     if(map$verbose) cat("\nExamining data for collinear relationships...\n")
@@ -288,21 +290,28 @@ findCollin <- function(map)
     varPairs <- NULL
 
     tmpVarNames <- setdiff(colnames(map$data), map$idVars)
-    nVars <- length(tmpVarNames)
-    for( i in 1 : (nVars - 1) ) {
-        for( j in (i + 1) : nVars ) {
-            varPairs <- rbind(varPairs, tmpVarNames[c(i, j)])
-        }
+    varPairs<-data.frame(t(combn(tmpVarNames, 2)), stringsAsFactors = F)
+    ##If not using any parallel process
+    if(!map$useParallel)
+      linAssocFrame <- data.frame(varPairs, 
+                                  unlist(
+                                    apply(varPairs, 1, 
+                                          FUN = flexLinearAssoc, 
+                                          map = map)),
+                                  stringsAsFactors = FALSE
+                                  )
+    else
+    {
+      myCluster <- makeCluster(map$nProcess)
+      clusterEvalQ(myCluster, library(mice))
+      linAssocFrame <- data.frame(varPairs, 
+                                  unlist(parApply(myCluster, varPairs, 1, 
+                                                  FUN = flexLinearAssoc, 
+                                                  map = map)),
+                                  stringsAsFactors = FALSE
+                                  )
+      stopCluster(myCluster)
     }
-
-    linAssocFrame <- data.frame(
-        varPairs,
-        unlist(apply(varPairs,
-                     1,
-                     FUN = flexLinearAssoc,
-                     map = map)
-               ),
-        stringsAsFactors = FALSE)
     colnames(linAssocFrame) <- c("var1", "var2", "coef")
 
     collinFlag <- !is.na(linAssocFrame$coef) &

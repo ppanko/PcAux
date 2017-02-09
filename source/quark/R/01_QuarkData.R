@@ -1,10 +1,11 @@
-### Title:    QuarkData Reference Class Definition
-### Author:   Kyle M. Lang
-### Created:  2015-OCT-30
-### Modified: 2016-SEP-09
-### Note:     QuarkData is the metadata class for the quark package.
+### Title:        QuarkData Reference Class Definition
+### Author:       Kyle M. Lang
+### Contributors: Byung Jung, Vibhuti Gupta
+### Created:      2015-OCT-30
+### Modified:     2017-FEB-09
+### Note:         QuarkData is the metadata class for the quark package.
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -78,7 +79,9 @@ QuarkData <- setRefClass("QuarkData",
                              nImps        = "integer",
                              compFormat   = "character",
                              miDatasets   = "ANY",
-                             miceObject   = "ANY"
+                             miceObject   = "ANY",
+                             useParallel  = "logical",
+                             nProcess     = "integer"
                          )# END fields
                          )# END QuarkData
 
@@ -155,10 +158,12 @@ QuarkData$methods(
             groupMean = vector("character"),
             grandMean = vector("character")
         ),
-        nImps      =  0L,
-        compFormat = "",
-        miDatasets = NULL,
-        miceObject = NULL
+        nImps        =  0L,
+        compFormat   = "",
+        miDatasets   = NULL,
+        miceObject   = NULL,
+        useParallel  = FALSE,
+        nProcess     = 1L
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -213,6 +218,8 @@ QuarkData$methods(
         compFormat   <<- compFormat
         miDatasets   <<- miDatasets
         miceObject   <<- miceObject
+        useParallel  <<- useParallel
+        nProcess     <<- nProcess
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -471,7 +478,7 @@ QuarkData$methods(
         }
         data[ , targets] <<- tmp2
     },
-    
+     
     fillNomCell     = function(name)                                            {
         "Fill single missing nominal cells via marginal sampling"
         for(n in name) {
@@ -480,13 +487,66 @@ QuarkData$methods(
             data[is.na(data[ , n]), n] <<- impVal
         }
     },
-    
+
     cleanCollinVars = function(x)                                               {
         "Remove one variable from all collinear pairs"
-        collinVars <<- x
-        removeVars(x = unique(collinVars$var1), reason = "collinear")
-    },
+        collinVars     <<- x
+        collinVarPairs <- collinVars[ , 1 : 2]
+        naCount        <- nrow(data) - respCounts
+        sameNaCntVec   <- NULL
+        diffNaCntVec   <- NULL
+        diffMaxCntVec  <- NULL
+       
+        while(nrow(collinVarPairs) > 0) {
+            varCount     <- data.frame(table(unlist(collinVarPairs)))
+            maxVarCount  <-
+                varCount[which(varCount$Freq == max(varCount$Freq)), ]
+            maxVarCommon <- intersect(names(naCount), maxVarCount[ , 1])
+            
+            ## Check for missing value counts if maximum counts are equal
+            if(nrow(maxVarCount) > 1) {
+                maxNaCountValue <- max(naCount[maxVarCommon])
+                maxNaVarNames   <-
+                    names(which(naCount[maxVarCommon] == maxNaCountValue)) 
+                maxNaCount      <-
+                    data.frame(t(append(maxNaVarNames, maxNaCountValue)))
+                
+                colnames(maxNaCount) <- c("var1", "count")
+                
+                ## Check if missing counts are same
+                if(nrow(maxNaCount) > 1) {
+                    maxNaCount     <- maxNaCount[1, ]
+                    maxNaCount     <- as.character(maxNaCount$var1)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 1] != maxNaCount)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 2] != maxNaCount)
+                    sameNaCntVec   <- append(sameNaCntVec, maxNaCount)
 
+                } else if(nrow(maxNaCount) == 1) {
+                    maxNaCount     <- as.character(maxNaCount$var1)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 1] != maxNaCount)
+                    collinVarPairs <- subset(collinVarPairs,
+                                             collinVarPairs[ , 2] != maxNaCount)
+                    diffNaCntVec   <- append(diffNaCntVec, maxNaCount)
+                }
+
+                ## Check if maximum counts are not equal
+            } else if(nrow(maxVarCount) == 1) {
+                firstVar       <- as.character(maxVarCount$Var1)
+                collinVarPairs <-
+                    subset(collinVarPairs, collinVarPairs[ , 1] != firstVar)
+                collinVarPairs <-
+                    subset(collinVarPairs, collinVarPairs[ , 2] != firstVar)
+                diffMaxCntVec  <- append(diffMaxCntVec, firstVar)
+            }
+        }
+        
+        varsToRemove <- c(sameNaCntVec, diffNaCntVec, diffMaxCntVec)
+        removeVars(x = unique(varsToRemove), reason = "collinear")
+    },
+    
     createMethVec  = function()                                                 {
         "Populate a vector of elementary imputation methods"
         if(forcePmm) {

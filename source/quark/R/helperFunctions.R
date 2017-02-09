@@ -1,9 +1,9 @@
-### Title:       Quark Helper Functions
-### Author:      Kyle M. Lang
-### Created:     2015-AUG-03
-### Modified:    2016-OCT-04
+### Title:    Quark Helper Functions
+### Author:   Kyle M. Lang
+### Created:  2015-AUG-03
+### Modified: 2017-FEB-09
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
     version <- read.dcf(file = system.file("DESCRIPTION", package = pkgname),
                         fields = "Version")
     packageStartupMessage(
-        "Loading: ", paste(pkgname, version), ", Copyright (C) 2016 Kyle M. Lang."
+        "Loading: ", paste(pkgname, version), ", Copyright (C) 2017 Kyle M. Lang."
     )
     packageStartupMessage(
         pkgname, " comes with ABSOLUTELY NO WARRANTY; execute 'quarkW()' for details."
@@ -339,7 +339,8 @@ warnFun <- function(type, map)
                           "replaced with the appropriate ",
                           "constant value.\n"),
                collin = {
-                   tmpDropNames <- unique(map$collinVars$var1)
+                   tmpDropNames <-
+                       map$dropVars[map$dropVars[ , 2] == "collinear", 1]
                    prettyPairs <- toString(
                        apply(map$collinVars, 1,
                              FUN = function(x) {
