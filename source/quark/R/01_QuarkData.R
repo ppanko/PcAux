@@ -1,7 +1,7 @@
 ### Title:    QuarkData Reference Class Definition
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2017-JAN-31
+### Modified: 2017-FEB-09
 ### Note:     QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2016 Kyle M. Lang
@@ -477,7 +477,7 @@ QuarkData$methods(
         }
         data[ , targets] <<- tmp2
     },
-    
+     
     fillNomCell     = function(name)                                            {
         "Fill single missing nominal cells via marginal sampling"
         for(n in name) {
@@ -489,8 +489,51 @@ QuarkData$methods(
     
     cleanCollinVars = function(x)                                               {
         "Remove one variable from all collinear pairs"
-        collinVars <<- x
-        removeVars(x = unique(collinVars$var1), reason = "collinear")
+      	sameNaCntVec <-  NULL
+	      diffNaCntVec <-  NULL
+	      diffMaxCntVec <- NULL
+      
+        collinVars     <<-  x
+        collinVarPairs <- collinVars[, 1:2]
+	      naCount        <- nrow(data) - respCounts
+		
+        while(nrow(collinVarPairs) > 0) {
+          varCount     <- data.frame(table(unlist(collinVarPairs)))
+	        maxVarCount  <- varCount[which(varCount$Freq == max(varCount$Freq)), ]
+	        maxVarCommon <- intersect(names(naCount), maxVarCount[, 1])
+    
+          ## Check for missing value counts if maximum counts are equal
+          if(nrow(maxVarCount) > 1) {
+            maxNaCountValue  <- max(naCount[maxVarCommon])
+	          maxNaVarNames    <- names(which(naCount[maxVarCommon] == maxNaCountValue)) 
+            maxNaCount       <- data.frame(t(append(maxNaVarNames, maxNaCountValue)))
+										  
+            colnames(maxNaCount) <- c("var1", "count")
+      
+            ## Check if missing counts are same
+            if(nrow(maxNaCount) > 1) {
+                maxNaCount      <- maxNaCount[1, ]
+	              maxNaCount      <- as.character(maxNaCount$var1)
+	              collinVarPairs  <- subset(collinVarPairs, collinVarPairs[,1] != maxNaCount)
+	              collinVarPairs  <- subset(collinVarPairs, collinVarPairs[,2] != maxNaCount)
+								sameNaCntVec    <- append(sameNaCntVec, maxNaCount)
+            } else if(nrow(maxNaCount) == 1) {
+                maxNaCount      <- as.character(maxNaCount$var1)
+               	collinVarPairs  <- subset(collinVarPairs, collinVarPairs[,1] != maxNaCount)
+	              collinVarPairs  <- subset(collinVarPairs, collinVarPairs[,2] != maxNaCount)
+								diffNaCntVec    <- append(diffNaCntVec, maxNaCount)
+            }
+        ## Check if maximum counts are not equal
+        } else if(nrow(maxVarCount) == 1) {
+            firstVar        <- as.character(maxVarCount$Var1)
+	          collinVarPairs  <- subset(collinVarPairs, collinVarPairs[,1] != firstVar)
+            collinVarPairs  <- subset(collinVarPairs, collinVarPairs[,2] != firstVar)
+						diffMaxCntVec   <- append(diffMaxCntVec, firstVar)
+        }
+      }
+			
+      varsToRemove <- c(sameNaCntVec,diffNaCntVec, diffMaxCntVec)
+	    removeVars(x = unique(varsToRemove), reason = "collinear")
     },
 
     createMethVec  = function()                                                 {
