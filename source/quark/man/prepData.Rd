@@ -9,14 +9,16 @@
 }
 \usage{
 prepData(rawData,
-         nomVars = NULL,
-         ordVars = NULL,
-         idVars = NULL,
-         dropVars = NULL,
-         groupVars = NULL,
-         simMode = FALSE,
-         mySeed = 235711L,
-         verbose = !simMode,
+         nomVars     = NULL,
+         ordVars     = NULL,
+         idVars      = NULL,
+         dropVars    = NULL,
+         groupVars   = NULL,
+         simMode     = FALSE,
+         mySeed      = 235711L,
+         useParallel = FALSE,
+         nProcess    = 1L,
+         verbose     = !simMode,
          control,
          ...)
 }
@@ -62,6 +64,16 @@ prepData(rawData,
   \item{mySeed}{
     An integer used to seed the random number generator used by the
     imputation algorithm. Defaults to \code{mySeed = 235711L}.
+  }
+  \item{useParallel}{
+    A logical switch indicating if parallel processing should be used to
+    compute the linear associations during collinearity
+    checking. Defaults to \code{useParallel = FALSE}.
+  }
+  \item{nProcess}{
+    An integer indicating the number of processors to use when
+    \code{useParallel == TRUE}. Ignored when \code{useParallel ==
+      FALSE}. Defaults to \code{useParallel = FALSE}.
   }
   \item{verbose}{
     A logical switch indicating whether output should be printed to the
@@ -204,10 +216,10 @@ prepData(rawData,
 data(iris2)
 
 ## Prepare the data:
-newData <- prepData(rawData = iris2,
-                    nomVars = "Species",
-                    ordVars = "Petal.Width",
-                    idVars = "ID",
-                    dropVars = "Junk",
+newData <- prepData(rawData   = iris2,
+                    nomVars   = "Species",
+                    ordVars   = "Petal.Width",
+                    idVars    = "ID",
+                    dropVars  = "Junk",
                     groupVars = "Species")
 }

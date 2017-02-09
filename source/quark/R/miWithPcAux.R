@@ -1,11 +1,11 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2016-FEB-18
-### Purpose:  Use the principal component auxiliaries
-###           produced by createPcAux() to conduct MI.
+### Modified: 2017-JAN-31
+### Purpose:  Use the principal component auxiliaries produced by createPcAux()
+###           to conduct MI.
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -23,22 +23,22 @@
 
 miWithPcAux <- function(rawData,
                         quarkData,
-                        nImps = 100L,
-                        nomVars = NULL,
-                        ordVars = NULL,
-                        idVars = NULL,
-                        dropVars = "useExtant",
-                        nLinear = NULL,
-                        nNonLinear = NULL,
-                        varExpLin = NULL,
-                        varExpNonLin = NULL,
+                        nImps          = 100L,
+                        nomVars        = NULL,
+                        ordVars        = NULL,
+                        idVars         = NULL,
+                        dropVars       = "useExtant",
+                        nLinear        = NULL,
+                        nNonLinear     = NULL,
+                        varExpLin      = NULL,
+                        varExpNonLin   = NULL,
                         completeFormat = "list",
-                        mySeed = 235711L,
-                        simMode = FALSE,
-                        forcePmm = FALSE,
-                        useParallel = FALSE,
-                        nProcess = 1L,
-                        verbose = !simMode,
+                        mySeed         = 235711L,
+                        simMode        = FALSE,
+                        forcePmm       = FALSE,
+                        useParallel    = FALSE,
+                        nProcess       = 1L,
+                        verbose        = !simMode,
                         control)
 {
     quarkData$setCall(match.call(), parent = "rom")
@@ -88,7 +88,7 @@ miWithPcAux <- function(rawData,
     checkInputs(parent = "rom")
     
     ## Combine the principal component auxiliaries with the raw data:
-    mergeOut <- mergePcAux(quarkData     = quarkData,
+    mergeOut <- mergePcAux(quarkData    = quarkData,
                            rawData      = rawData,
                            nLinear      = nLinear,
                            nNonLinear   = nNonLinear,
@@ -103,16 +103,13 @@ miWithPcAux <- function(rawData,
     quarkData$compFormat <- completeFormat
     quarkData$forcePmm   <- forcePmm
     quarkData$verbose    <- verbose
-    quarkData$nComps     <- c(mergeOut$nLinear,
-                              mergeOut$nNonLinear)
+    quarkData$nComps     <- c(mergeOut$nLinear, mergeOut$nNonLinear)
       
     if(quarkData$nComps[1] == 0) errFun("noLinPc", doingQuark = FALSE)
     
     ## Make sure the control list is fully populated:
     conDefault <- list(miceRidge    = 1e-5,
-                       minRespCount = as.integer(
-                           floor(0.05 * nrow(rawData))
-                       ),
+                       minRespCount = as.integer(floor(0.05 * nrow(rawData))),
                        maxNetWts    = 10000L,
                        nomMaxLev    = 10L,
                        ordMaxLev    = 10L,
@@ -136,6 +133,15 @@ miWithPcAux <- function(rawData,
     if(!simMode)
         ## Check and clean the data:
         cleanData(map = quarkData, doingQuark = FALSE)
+
+    ## Check for and treat any single nominal variables that are missing
+    ## only one datum
+    singleMissNom <- with(quarkData,
+                          (nrow(data) - respCounts == 1) &
+                              (typeVec == "binary" | typeVec == "nominal")
+                          )
+    if(any(singleMissNom))
+        quarkData$fillNomCell(colnames(quarkData$data[singleMissNom]))
     
     if(verbose) cat("\nMultiply imputing missing data...\n")
     
@@ -159,13 +165,13 @@ miWithPcAux <- function(rawData,
     if(!useParallel) {# Impute in serial
         quarkData$miceObject <- try(
             mice(quarkData$data,
-                 m = nImps,
-                 maxit = 1L,
+                 m               = nImps,
+                 maxit           = 1L,
                  predictorMatrix = predMat,
-                 method = quarkData$methVec,
-                 printFlag = verbose,
-                 ridge = quarkData$miceRidge,
-                 seed = mySeed),
+                 method          = quarkData$methVec,
+                 printFlag       = verbose,
+                 ridge           = quarkData$miceRidge,
+                 seed            = mySeed),
             silent = TRUE)
         
         if(class(quarkData$miceObject) != "try-error") {
@@ -182,10 +188,10 @@ miWithPcAux <- function(rawData,
         clusterEvalQ(myCluster, library(mice))
         
         quarkData$miDatasets <- parLapply(myCluster,
-                                         X = c(1 : nImps),
-                                         fun = parallelMice,
+                                         X       = c(1 : nImps),
+                                         fun     = parallelMice,
                                          predMat = predMat,
-                                         map = quarkData)
+                                         map     = quarkData)
         
         stopCluster(myCluster)
         

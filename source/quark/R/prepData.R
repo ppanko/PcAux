@@ -1,9 +1,9 @@
 ### Title:    Data Preperation
 ### Author:   Kyle M. Lang
 ### Created:  2016-JAN-19
-### Modified: 2016-FEB-18
+### Modified: 2017-JAN-31
 
-### Copyright (C) 2016 Kyle M. Lang
+### Copyright (C) 2017 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -20,14 +20,16 @@
 
 
 prepData <- function(rawData,
-                     nomVars = NULL,
-                     ordVars = NULL,
-                     idVars = NULL,
-                     dropVars = NULL,
-                     groupVars = NULL,
-                     simMode = FALSE,
-                     mySeed = 235711L,
-                     verbose = !simMode,
+                     nomVars     = NULL,
+                     ordVars     = NULL,
+                     idVars      = NULL,
+                     dropVars    = NULL,
+                     groupVars   = NULL,
+                     simMode     = FALSE,
+                     mySeed      = 235711L,
+                     useParallel = FALSE,
+                     nProcess    = 1L,
+                     verbose     = !simMode,
                      control,
                      ...)
 {
@@ -46,6 +48,8 @@ prepData <- function(rawData,
                            dropVars     = dropVars,
                            simMode      = simMode,
                            seed         = as.integer(mySeed),
+                           useParallel  = useParallel,
+                           nProcess     = as.integer(nProcess),
                            verbose      = verbose)
 
     quarkData$setCall(match.call(), parent = "prepData")
