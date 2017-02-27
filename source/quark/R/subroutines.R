@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-FEB-09
+### Modified:     2017-FEB-27
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -111,8 +111,8 @@ checkInputs <- function(parent)
         checkVec3 <- varNames3 %in% env$idVars
         if(any(checkVec3))
             errFun("idOverlap",
-                   varNames3 = varNames3,
-                   checkVec3 = checkVec3,
+                   varNames3  = varNames3,
+                   checkVec3  = checkVec3,
                    doingQuark = FALSE)
     }
     if(env$verbose) cat("Complete.\n")
@@ -221,8 +221,8 @@ cleanData <- function(map, doingQuark = TRUE)
 
         ## If there are any missing IDs, fill them with dummy values:
         if(length(missIds) > 1) {# More than 1 incomplete ID
-            map$idFills <- lapply(map$data[ , missIds],
-                                  FUN = createDummyIdValues)
+            map$idFills <-
+                lapply(map$data[ , missIds], FUN = createDummyIdValues)
 
             ## Fill missing IDs with their dummy values
             for(i in missIds)
@@ -290,13 +290,13 @@ findCollin <- function(map)
     varPairs <- NULL
 
     tmpVarNames <- setdiff(colnames(map$data), map$idVars)
-    varPairs<-data.frame(t(combn(tmpVarNames, 2)), stringsAsFactors = F)
+    varPairs    <- data.frame(t(combn(tmpVarNames, 2)), stringsAsFactors = FALSE)
     ##If not using any parallel process
     if(!map$useParallel)
-      linAssocFrame <- data.frame(varPairs, 
+      linAssocFrame <- data.frame(varPairs,
                                   unlist(
-                                    apply(varPairs, 1, 
-                                          FUN = flexLinearAssoc, 
+                                    apply(varPairs, 1,
+                                          FUN = flexLinearAssoc,
                                           map = map)),
                                   stringsAsFactors = FALSE
                                   )
@@ -304,9 +304,9 @@ findCollin <- function(map)
     {
       myCluster <- makeCluster(map$nProcess)
       clusterEvalQ(myCluster, library(mice))
-      linAssocFrame <- data.frame(varPairs, 
-                                  unlist(parApply(myCluster, varPairs, 1, 
-                                                  FUN = flexLinearAssoc, 
+      linAssocFrame <- data.frame(varPairs,
+                                  unlist(parApply(myCluster, varPairs, 1,
+                                                  FUN = flexLinearAssoc,
                                                   map = map)),
                                   stringsAsFactors = FALSE
                                   )
@@ -324,13 +324,6 @@ findCollin <- function(map)
     }
 
     if(map$verbose) cat("Complete.\n")
-
-    ## Clean up:
-    rm(collinFlag)
-    rm(linAssocFrame)
-    rm(tmpVarNames)
-    rm(varPairs)
-    silentGC()
 }# END findCollin()
 
 
@@ -344,7 +337,7 @@ doSingleImputation <- function(map, ...)
     extraArgs <- list(...)
     ## Prepare for debugging checks when extra arguments are supplied
     if(length(extraArgs) > 0) prepImpChecks()
-    skipList <- createSkipFlags(...)
+    skipList      <- createSkipFlags(...)
     skipFirstPass <- map$forcePmm | skipList$firstPass
 
     if(!skipFirstPass) {
@@ -361,15 +354,15 @@ doSingleImputation <- function(map, ...)
         ## Initially fill-in the data with a single imputation:
         if(map$verbose) cat("--Filling missing values...")
         map$data <- try(
-            mice(map$data,
-                 maxit = map$miceIters,
-                 m = 1,
+            mice(data            = map$data,
+                 maxit           = map$miceIters,
+                 m               = 1L,
                  predictorMatrix = predMat,
-                 method = map$methVec,
-                 printFlag = FALSE,
-                 seed = map$seed,
-                 MaxNWts = map$maxNetWts,
-                 ridge = map$miceRidge),
+                 method          = map$methVec,
+                 printFlag       = FALSE,
+                 seed            = map$seed,
+                 nnet.MaxNWts    = map$maxNetWts,
+                 ridge           = map$miceRidge),
             silent = TRUE)
         if(map$verbose) cat("done.\n")
 
@@ -391,7 +384,7 @@ doSingleImputation <- function(map, ...)
 
             ## Store names of un-imputed variables:
             if(map$forcePmm) badImps <- "Skipped by User"
-            else badImps <- colnames(map$data)[map$respCounts > 0]
+            else             badImps <- colnames(map$data)[map$respCounts > 0]
 
             map$updateImpFails(x = badImps, type = "firstPass")
 
@@ -413,23 +406,22 @@ doSingleImputation <- function(map, ...)
                 map$createMethVec()
             } else {
                 map$methVec <- rep("", ncol(map$data))
-                map$setMethVec(x = "pmm",
-                               index = map$respCounts > 0)
+                map$setMethVec(x = "pmm", index = map$respCounts > 0)
             }
             if(map$verbose) cat("done.\n")
 
             ## Try mice() with PMM:
             if(map$verbose) cat("--Filling missing values...")
             map$data <- try(
-                mice(map$data,
-                     maxit = map$miceIters,
-                     m = 1,
+                mice(data            = map$data,
+                     maxit           = map$miceIters,
+                     m               = 1L,
                      predictorMatrix = predMat,
-                     method = map$methVec,
-                     printFlag = FALSE,
-                     seed = map$seed,
-                     MaxNWts = map$maxNetWts, # KML 2016-OCT-04: Adding maximum
-                     ridge = map$miceRidge),  # network weights and ridge options
+                     method          = map$methVec,
+                     printFlag       = FALSE,
+                     seed            = map$seed,
+                     nnet.MaxNWts    = map$maxNetWts,
+                     ridge           = map$miceRidge),
                 silent = TRUE)
             if(map$verbose) cat("done.\n")
 
@@ -468,7 +460,6 @@ doSingleImputation <- function(map, ...)
     }
 
     if(map$verbose) cat("Complete.\n")
-    silentGC()
 }# END doSingleImputation()
 
 
@@ -497,14 +488,14 @@ doGroupMeanSub <- function(map)
                 map$data[ , map$respCounts > 0] <-
                     data.frame(
                         lapply(map$data[ , map$respCounts > 0],
-                               FUN = fillWithGroupMean,
-                               pat = map$patterns[[i]],
+                               FUN     = fillWithGroupMean,
+                               pat     = map$patterns[[i]],
                                patLevs = patLevels)
                     )
             } else {
                 map$data[ , map$respCounts > 0] <-
                     fillWithGroupMean(map$data[ , map$respCounts > 0],
-                                      pat = map$patterns[[i]],
+                                      pat     = map$patterns[[i]],
                                       patLevs = patLevels)
             }
 
@@ -627,8 +618,6 @@ meanSubstitute <- function(map, skipList)
         map$removeVars(x = colnames(map$data)[map$respCounts > 0],
                        reason = "imp_fail")
     }# CLOSE if( any(map$respCounts > 0) )
-
-    silentGC()
 }# END meanSubstitute()
 
 
@@ -796,8 +785,6 @@ doPCA <- function(map)
                 (map$rSquared[[linVal]][i] / totalVar)
     }
 
-    rm(totalVar)
-    silentGC()
     if(map$verbose) cat("Complete.\n")
 }# END doPCA()
 
@@ -811,7 +798,7 @@ computeNonlinearTerms <- function(map)
 
     ## Get variable names without IDs included:
     dataNames <- setdiff(colnames(map$data), map$idVars)
-    pcNames <- setdiff(colnames(map$pcAux$lin), map$idVars)
+    pcNames   <- setdiff(colnames(map$pcAux$lin), map$idVars)
 
     if(map$calcInteract) {
         ## Construct all possible two-way interactions between the comps
@@ -889,7 +876,6 @@ computeNonlinearTerms <- function(map)
         map$poly <- NULL
     }# CLOSE if(calcPoly)
 
-    silentGC()
     if(map$verbose) cat("Complete.\n")
 }# END computeNonlinearTerms()
 
@@ -907,13 +893,14 @@ parallelMice <- function(imp, predMat, map)
 
     ## Create a single imputation:
     miceOut <- try(
-        mice(map$data,
-             m = 1L,
-             maxit = 1L,
+        mice(data            = map$data,
+             m               = 1L,
+             maxit           = 1L,
              predictorMatrix = predMat,
-             method = map$methVec,
-             printFlag = map$verbose,
-             ridge = map$miceRidge),
+             method          = map$methVec,
+             printFlag       = map$verbose,
+             ridge           = map$miceRidge,
+             nnet.MaxNWts    = map$maxNWts),
         silent = FALSE)
 
     if(class(miceOut) != "try-error") {
