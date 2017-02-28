@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-FEB-09
+### Modified:     2017-FEB-28
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -83,21 +83,19 @@ prepData <- function(rawData,
 
     ## Check for special variable arguments and fill the
     ## appropriate slots in the quarkData object:
-    if( missCheck(idVars) ) {
-        quarkData$addVars(x = c(1 : nrow(quarkData$data)), names = "idVar")
-        quarkData$idVars <- "idVar"
-        quarkData$dummyId <- TRUE
-    } else {
+    if(!missCheck(idVars)) {
         quarkData$idVars <- idVars
+        quarkData$idCols <- quarkData$data[ , idVars]
+        quarkData$data   <-
+            quarkData$data[ , setdiff(colnames(quarkData$data), idVars)]
     }
-    ## Do we actually need to create an ID variable if none exist?
-    if( !missCheck(groupVars) ) {
+    if(!missCheck(groupVars)) {
         quarkData$groupVars <- groupVars
     }
-    if( !missCheck(nomVars) ) {
+    if(!missCheck(nomVars)) {
         quarkData$nomVars <- nomVars
     }
-    if( !missCheck(ordVars) ) {
+    if(!missCheck(ordVars)) {
         quarkData$ordVars <- ordVars
     }
 

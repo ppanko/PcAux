@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-JAN-31
+### Modified: 2017-FEB-28
 ### Purpose:  Use the principal component auxiliaries produced by createPcAux()
 ###           to conduct MI.
 
@@ -44,29 +44,14 @@ miWithPcAux <- function(rawData,
     quarkData$setCall(match.call(), parent = "rom")
     
     ## Get variable types:
-    if(!missCheck(nomVars)) {
-        quarkData$nomVars <- nomVars
-    } else {
-        nomVars <- quarkData$nomVars
-    }
-
-    if(!missCheck(ordVars)) {
-        quarkData$ordVars <- ordVars
-    } else {
-        ordVars <- quarkData$ordVars
-    }
-
-    if(!missCheck(idVars)) {
-        quarkData$idVars <- idVars
-    } else {
-        if(quarkData$dummyId) {
-            idVar   <- c(1 : nrow(rawData))
-            rawData <- data.frame(idVar, rawData)
-            idVars  <- "idVar"
-        } else {
-            idVars <- quarkData$idVars
-        }
-    }
+    if(!missCheck(nomVars)) quarkData$nomVars <- nomVars
+    else                    nomVars           <- quarkData$nomVars
+    
+    if(!missCheck(ordVars)) quarkData$ordVars <- ordVars
+    else                    ordVars           <- quarkData$ordVars
+    
+    if(!missCheck(idVars)) quarkData$idVars <- idVars
+    else                   idVars           <- quarkData$idVars
 
     if(length(dropVars) == 1 && dropVars == "useExtant") {
         tmp <- quarkData$dropVars[quarkData$dropVars[ , 2] == "user_defined", ]
@@ -83,7 +68,7 @@ miWithPcAux <- function(rawData,
         quarkData$dropVars <- cbind("NONE_DEFINED", "user_defined")
         dropVars <- NULL
     }
-
+    
     ## Check inputs' validity:
     checkInputs(parent = "rom")
     

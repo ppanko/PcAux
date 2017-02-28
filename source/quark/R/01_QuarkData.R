@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-FEB-09
+### Modified:     2017-FEB-28
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -75,13 +75,14 @@ QuarkData <- setRefClass("QuarkData",
                              patterns     = "list",
                              frozenGVars  = "ANY",
                              idFills      = "ANY",
-                             dummyId      = "logical",
                              nImps        = "integer",
                              compFormat   = "character",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
                              useParallel  = "logical",
-                             nProcess     = "integer"
+                             nProcess     = "integer",
+                             moderators   = "character",
+                             intMeth      = "integer"
                          )# END fields
                          )# END QuarkData
 
@@ -143,7 +144,6 @@ QuarkData$methods(
         patterns     = list(),
         frozenGVars  = NULL,
         idFills      = list(),
-        dummyId      = FALSE,
         pcAux        = list(
             lin    = data.frame(NULL),
             nonLin = data.frame(NULL)
@@ -163,7 +163,9 @@ QuarkData$methods(
         miDatasets   = NULL,
         miceObject   = NULL,
         useParallel  = FALSE,
-        nProcess     = 1L
+        nProcess     = 1L,
+        moderators   = "",
+        intMeth      = 0L
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -204,7 +206,6 @@ QuarkData$methods(
         pcAux        <<- pcAux
         rSquared     <<- rSquared
         impFails     <<- impFails
-        dummyId      <<- dummyId
         dummyVars    <<- dummyVars
         interact     <<- interact
         collinThresh <<- collinThresh
@@ -220,6 +221,8 @@ QuarkData$methods(
         miceObject   <<- miceObject
         useParallel  <<- useParallel
         nProcess     <<- nProcess
+        moderators   <<- moderators
+        intMeth      <<- intMeth
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -565,7 +568,7 @@ QuarkData$methods(
        
             ## Don't impute ID or Dropped Variables:
             tmpIndex <- names(methVec) %in% dropVars[ , 1] |
-                names(methVec) %in% idVars
+                #names(methVec) %in% idVars
             setMethVec(x = "", index = tmpIndex)
          } else {
             methVec <<-
@@ -689,5 +692,101 @@ QuarkData$methods(
                 miDatasets <<- miDatasets[ , order(tmp)           ]
             }
         }
+    },
+    
+    computeInteract = function()                                                {
+        "Calculate interaction terms"
+        pcNames   <- setdiff(colnames(pcAux$lin), idVars)
+        mIndex    <- which(colnames(data) %in% moderators)
+        intList   <- list()
+        i         <- 0
+        if(intMeth == 1) {# Interact all raw variables with key moderators
+            for(m in mIndex) {
+                i <- i + 1
+                intList[[i]] <- data.frame(
+                    lapply(data[ , -m], function(X, y) X * y, y = data[ , m])
+                )
+                colnames(intList[[i]]) <-
+                    paste0(colnames(data)[-m], "_", colnames(data)[m])
+            }
+            interact <<- data.frame(intList)
+        } else if(intMeth == 2) {# Interact key moderators with linear pcAux
+            for(m in mIndex) {
+                i <- i + 1
+                intList[[i]] <- data.frame(
+                    lapply(pcAux$lin[ , pcNames],
+                           function(X, y) X * y,
+                           y = data[ , m])
+                )
+                colnames(intList[[i]]) <- paste0(pcNames, "_", colnames(data)[m])
+            }
+            interact <<- data.frame(intList)
+            interact <<- data.frame(
+                lapply(interact,
+                       function(y, X) .lm.fit(y = y, x = X)$resid,
+                       x = as.matrix(pcAux$lin[ , pcNames]))
+            )
+        } else if(intMeth == 3) {# Interact all raw variables with linear pcAux
+            for(m in colnames(data)) {
+                i <- i + 1
+                intList[[i]] <- data.frame(
+                    lapply(pcAux$lin[ , pcNames],
+                           function(X, y) X * y,
+                           y = data[ , m])
+                )
+                colnames(intList[[i]]) <- paste0(pcNames, "_", colnames(data)[m])
+            }
+            interact <<- data.frame(intList)
+            interact <<- data.frame(
+                lapply(interact,
+                       function(y, X) .lm.fit(y = y, x = X)$resid,
+                       x = as.matrix(pcAux$lin[ , pcNames]))
+            )
+        }
+    },
+    
+    computePoly     = function()                                                {
+        "Compute polynomial terms"
+        dataNames <- setdiff(colnames(data), dummyVars)
+        pcNames   <- setdiff(colnames(pcAux$lin), idVars)
+
+        for(p in 1 : (maxPower - 1)) {# Loop over power levels
+            powerVals <- c("square", "cube", "quad")
+
+            ## Compute the powered terms and orthogonalize them
+            ## w.r.t. their lower-powered counterparts and the linear pcAux:
+            poly[[ powerVals[p] ]] <<-
+                apply(data[ , dataNames],
+                      2,
+                      FUN = function(dv, pp, pcAux) {
+                          .lm.fit(y = dv^pp,
+                                  x = as.matrix(
+                                      cbind(
+                                          sapply(c((pp - 1) : 1),
+                                                 function(ppp, dat) dat^ppp,
+                                                 dat = dv),
+                                          pcAux)
+                                  )
+                                  )$resid
+                      },
+                      pp    = p + 1,
+                      pcAux = pcAux$lin[ , pcNames]
+                      )
+
+            ## Give some sensible variable names:
+            colnames(poly[[ powerVals[p] ]]) <-
+                paste0(colnames(map$data[ , dataNames]), "_p", p + 1)
+        }# END for(p in 1 : (map$maxPower - 1))
+    },
+    
+    computeNonLin   = function()                                                {
+        "Create nonlinear terms and orthogonalize them"
+        if(verbose) cat("\nComputing interaction and polynomial terms...\n")
+        
+        if(calcInteract) computeInteract()
+        if(map$calcPoly) computePoly()
+        
+        if(verbose) cat("Complete.\n")
     }
+
 )# END QuarkData$methods()

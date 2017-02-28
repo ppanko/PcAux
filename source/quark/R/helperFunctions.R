@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-FEB-09
+### Modified: 2017-FEB-28
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -393,7 +393,7 @@ warnFun <- function(type, map)
                           ".\nThese variables will be exluded from ",
                           "subsequent analyses."),
                linPcNum = {
-                   datCols <- ncol(map$data) - length(map$idVars)
+                   datCols <- ncol(map$data) #- length(map$idVars)
                    nComps <- map$nComps[1]
                    paste0("The number of linear principal component ",
                           "scores that you requested (i.e., ",
@@ -406,7 +406,7 @@ warnFun <- function(type, map)
                           ".\n")
                },
                nonLinPcNum = {
-                   datCols <- ncol(map$data) - length(map$idVars)
+                   datCols <- ncol(map$data) #- length(map$idVars)
                    nComps <- map$nComps[2]
                    paste0("The number of nonlinear principal component ",
                           "scores that you requested (i.e., ",
@@ -663,9 +663,8 @@ makePredMat <- function(map)
         badVars <- colnames(map$data)[badPredFlag]
         for(v in badVars) {
             ## Get names of potential predictors:
-            candidates <- setdiff(colnames(map$data),
-                                  c(map$idVars, map$dropVars[ , 1], v)
-                                  )
+            candidates <- setdiff(colnames(map$data), c(map$dropVars[ , 1], v))
+
             ## Find the bivariate linear associations with the target:
             tmpList <-
                 lapply(candidates,

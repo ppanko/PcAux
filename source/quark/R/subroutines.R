@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-FEB-27
+### Modified:     2017-FEB-28
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -213,9 +213,10 @@ cleanData <- function(map, doingQuark = TRUE)
 
     if(doingQuark) {
         ## Check for missing data on ID variables:
-        missIdCounts <- switch(ifelse(length(map$idVars) == 1, 1, 2),
-                               sum( is.na(map$data[ , map$idVars]) ),
-                               colSums( is.na(map$data[ , map$idVars]) )
+        missIdCounts <- switch(as.character(length(map$idVars)),
+                               "0" = break,
+                               "1" = sum(is.na(map$data[ , map$idVars])),
+                               colSums(is.na(map$data[ , map$idVars]))
                                )
         missIds <- map$idVars[missIdCounts > 0]
 
@@ -223,11 +224,11 @@ cleanData <- function(map, doingQuark = TRUE)
         if(length(missIds) > 1) {# More than 1 incomplete ID
             map$idFills <-
                 lapply(map$data[ , missIds], FUN = createDummyIdValues)
-
+            
             ## Fill missing IDs with their dummy values
             for(i in missIds)
                 map$data[ , i][is.na(map$data[ , i])] <- map$idFills[[i]]
-
+            
         } else if(length(missIds) == 1) {# Only 1 incomplete ID
             map$idFills <- createDummyIdValues(map$data[ , missIds])
             map$data[ , missIds][is.na(map$data[ , missIds])] <- map$idFills
@@ -236,6 +237,8 @@ cleanData <- function(map, doingQuark = TRUE)
         rm(missIdCounts)
     }# CLOSE if(doingQuark)
 
+    print("Test print")
+    
     ## Find each variable's number of observations:
     map$countResponses()
 
@@ -285,44 +288,43 @@ cleanData <- function(map, doingQuark = TRUE)
 findCollin <- function(map)
 {
     if(map$verbose) cat("\nExamining data for collinear relationships...\n")
-
+    
     ## Get all unique variable pairings:
     varPairs <- NULL
-
-    tmpVarNames <- setdiff(colnames(map$data), map$idVars)
-    varPairs    <- data.frame(t(combn(tmpVarNames, 2)), stringsAsFactors = FALSE)
+    varPairs <-
+        data.frame(t(combn(colnames(map$data), 2)), stringsAsFactors = FALSE)
     ##If not using any parallel process
     if(!map$useParallel)
-      linAssocFrame <- data.frame(varPairs,
-                                  unlist(
-                                    apply(varPairs, 1,
-                                          FUN = flexLinearAssoc,
-                                          map = map)),
-                                  stringsAsFactors = FALSE
-                                  )
+        linAssocFrame <- data.frame(varPairs,
+                                    unlist(
+                                        apply(varPairs, 1,
+                                              FUN = flexLinearAssoc,
+                                              map = map)),
+                                    stringsAsFactors = FALSE
+                                    )
     else
     {
-      myCluster <- makeCluster(map$nProcess)
-      clusterEvalQ(myCluster, library(mice))
-      linAssocFrame <- data.frame(varPairs,
-                                  unlist(parApply(myCluster, varPairs, 1,
-                                                  FUN = flexLinearAssoc,
-                                                  map = map)),
-                                  stringsAsFactors = FALSE
-                                  )
-      stopCluster(myCluster)
+        myCluster <- makeCluster(map$nProcess)
+        clusterEvalQ(myCluster, library(mice))
+        linAssocFrame <- data.frame(varPairs,
+                                    unlist(parApply(myCluster, varPairs, 1,
+                                                    FUN = flexLinearAssoc,
+                                                    map = map)),
+                                    stringsAsFactors = FALSE
+                                    )
+        stopCluster(myCluster)
     }
     colnames(linAssocFrame) <- c("var1", "var2", "coef")
-
+    
     collinFlag <- !is.na(linAssocFrame$coef) &
         abs(linAssocFrame$coef) > map$collinThresh
-
+    
     if( any(collinFlag) ) {
         ## Update the data object by removing the collinear variables:
         map$cleanCollinVars(linAssocFrame[collinFlag, ])
         warnFun("collin", map)
     }
-
+    
     if(map$verbose) cat("Complete.\n")
 }# END findCollin()
 
@@ -636,7 +638,7 @@ doPCA <- function(map)
         if(!map$simMode) {
             ## Make sure the number of PC scores we want is less than
             ## the number of columns in our data object:
-            datCols <- ncol(map$data) - length(map$idVars)
+            datCols <- ncol(map$data) #- length(map$idVars)
             if(nComps > datCols) {
                 warnFun("linPcNum", map)
                 nComps <- map$nComps[1] <- datCols
@@ -686,7 +688,8 @@ doPCA <- function(map)
         }
 
         ## Note the variables we need to scale down below:
-        scaleNames <- setdiff(colnames(map$data), map$idVars)
+        #scaleNames <- setdiff(colnames(map$data), map$idVars)
+        scaleNames <- colnames(map$data)
 
     } else {# We already have linear component scores
         if(map$verbose)
@@ -696,188 +699,80 @@ doPCA <- function(map)
         nComps <- map$nComps[2]
 
         ## Redefine the data object:
-        map$data <- map$data[ , map$idVars]
-        if(map$calcInteract) {
-            map$data <- data.frame(map$data, map$interact)
-        }
-        if(map$calcPoly) {
-            map$data <- data.frame(map$data,
-                                   do.call("data.frame", map$poly)
-                                   )
-        }
-
+        #map$data <- map$data[ , map$idVars]
+        if(map$calcInteract) map$data <- map$interact
+        if(map$calcPoly)     map$data <- data.frame(map$data, map$poly)
+        
         ## Note the variables we need to scale down below:
-        scaleNames <- c(colnames(map$interact),
-                        unlist(
-                            lapply(map$poly, colnames)
-                        )
-                        )
-        colnames(map$data) <- c(map$idVars, scaleNames)
-
+        colnames(map$data) <- c(colnames(map$interact),
+                                unlist(lapply(map$poly, colnames))
+                                )
+        
         if(!map$simMode) {
             ## Make sure the number of PC scores we want is less than
             ## the number of columns in our data object:
-            datCols <- ncol(map$data) - length(map$idVars)
-            if( nComps > datCols ) {
+            #datCols <- ncol(map$data) - length(map$idVars)
+            if(nComps > ncol(map$data)) {
                 warnFun("nonLinPcNum", map)
-                nComps <- map$nComps[2] <- datCols
+                nComps <- map$nComps[2] <- ncol(map$data)
             }
         }
-
+        
         ## Remove the contents of the 'interact' and 'poly'
         ## fields when they are no longer necessary:
         map$interact <- "Removed to save resources"
-        map$poly <- "Removed to save resources"
+        map$poly     <- "Removed to save resources"
     }# CLOSE if( is.null(map$pcAux$lin) )
 
     ## Execute the principal component analysis:
     if(map$pcaMemLev == 0) {
         ## Higher numerical accuracy, but more memory usage
-        pcaOut <- prcomp(map$data[ , setdiff(colnames(map$data), map$idVars)],
-                         scale = TRUE,
-                         retx = TRUE)
+        pcaOut <- prcomp(map$data, scale = TRUE, retx  = TRUE)
     } else if(map$pcaMemLev == 1) {
         ## Save memory at the expense of numerical accuracy
-        map$data[ , scaleNames] <- lowMemScale(map$data[ , scaleNames])
-
-        pcaOut <-
-            simplePca(inData = map$data[ ,
-                          setdiff(colnames(map$data), map$idVars)],
-                      nComps = nComps)
+        map$data <- lowMemScale(map$data)
+        pcaOut   <- simplePca(inData = map$data, nComps = nComps)
     } else {
         errFun("badPcaMemLev", map = map)
     }
-
+    
     ## Extract the principal component scores:
     map$pcAux[[linVal]] <-
-        data.frame(map$data[ , map$idVars], pcaOut$x[ , 1 : nComps])
-
-    ## Remove the contents of the 'data' field
-    ## when they're no longer needed:
+        data.frame(map$idCols, pcaOut$x[ , 1 : nComps])
+    
+    ## Remove the contents of the 'data' field when they're no longer needed:
     if(linVal == "nonLin") map$data <- "Removed to save resources"
 
     ## Give some informative column names:
-    if(linVal == "lin") {
+    if(linVal == "lin") 
         colnames(map$pcAux[[linVal]]) <- c(map$idVars,
                                            paste0("linPC", c(1 : nComps) )
                                            )
-    } else {
+    else
         colnames(map$pcAux[[linVal]]) <- c(map$idVars,
                                            paste0("nonLinPC", c(1 : nComps) )
                                            )
-    }
-
+    
     ## Save the components' variances:
     map$rSquared[[linVal]] <- pcaOut$sdev
 
     rm(pcaOut) # clear some memory
-    rm(scaleNames)
+    #rm(scaleNames)
 
     ## Compute the cumulative variance explained:
     totalVar <- sum(map$rSquared[[linVal]], na.rm = TRUE)
-
-    map$rSquared[[linVal]][1] <-
-        map$rSquared[[linVal]][1] / totalVar
-
-    for( i in 2 : length(map$rSquared[[linVal]]) ) {
+    
+    map$rSquared[[linVal]][1] <- map$rSquared[[linVal]][1] / totalVar
+    
+    for(i in 2 : length(map$rSquared[[linVal]])) {
         map$rSquared[[linVal]][i] <-
             map$rSquared[[linVal]][i - 1] +
-                (map$rSquared[[linVal]][i] / totalVar)
+            (map$rSquared[[linVal]][i] / totalVar)
     }
-
+    
     if(map$verbose) cat("Complete.\n")
 }# END doPCA()
 
-
-
-
-## Create nonlinear terms and orthogonalize them:
-computeNonlinearTerms <- function(map)
-{
-    if(map$verbose) cat("\nComputing interaction and polynomial terms...\n")
-
-    ## Get variable names without IDs included:
-    dataNames <- setdiff(colnames(map$data), map$idVars)
-    pcNames   <- setdiff(colnames(map$pcAux$lin), map$idVars)
-
-    if(map$calcInteract) {
-        ## Construct all possible two-way interactions between the comps
-        ## and the raw variables and orthogonalize them:
-        intCombMat <- expand.grid(dataNames,
-                                  pcNames,
-                                  stringsAsFactors = FALSE)
-        map$interact <- data.frame(
-            matrix(NA, nrow(map$data), nrow(intCombMat))
-        )
-
-        ## Orthogonalize the interaction terms w.r.t. their
-        ## constituent raw variables and PC scores:
-        for( i in 1 : nrow(intCombMat) ) {
-            ## Compute the interaction term:
-            tmp1 <- map$data[ , intCombMat[i, 1] ] *
-                map$pcAux$lin[ , intCombMat[i, 2] ]
-
-            ## Orthogonalize the interaction term and save it:
-            map$interact[ , i] <-
-                .lm.fit(y = tmp1,
-                        x = as.matrix(map$pcAux$lin[ , pcNames])
-                        )$resid
-        }
-
-        colnames(map$interact) <-
-            paste0(intCombMat[ , 1], "_", intCombMat[ , 2])
-
-        rm(intCombMat)
-        rm(tmp1)
-    } else {
-        map$interact <- NULL
-    }# CLOSE if(calcInteract)
-
-    ## Compute powered terms and orthogonalize them:
-    if(map$calcPoly) {
-
-        dataNames <- setdiff(dataNames, map$dummyVars)
-
-        for(p in 1 : (map$maxPower - 1)) {# Loop over power levels
-            powerVals <- c("square", "cube", "quad")
-
-            ## Compute the powered terms and orthogonalize them
-            ## w.r.t. their lower-powered counterparts and the linear pcAux:
-            map$poly[[ powerVals[p] ]] <-
-                apply(map$data[ , dataNames],
-                      2,
-                      FUN = function(dv, pp, pcAux) {
-                          .lm.fit(y = dv^pp,
-                                  x = as.matrix(
-                                      cbind(
-                                          sapply(c((pp - 1) : 1),
-                                                 FUN = function(ppp, dat) {
-                                                     dat^ppp
-                                                 },
-                                                 dat = dv),
-                                          pcAux)
-                                  )
-                                  )$resid
-                      },
-                      pp = p + 1,
-                      pcAux = map$pcAux$lin[ , pcNames]
-                      )
-
-            ## Give some sensible variable names:
-            colnames(map$poly[[ powerVals[p] ]]) <-
-                paste0(colnames(map$data[ , dataNames]),
-                       "_p",
-                       p + 1)
-
-        }# END for(p in 1 : (map$maxPower - 1))
-
-        rm(powerVals)
-    } else {
-        map$poly <- NULL
-    }# CLOSE if(calcPoly)
-
-    if(map$verbose) cat("Complete.\n")
-}# END computeNonlinearTerms()
 
 
 

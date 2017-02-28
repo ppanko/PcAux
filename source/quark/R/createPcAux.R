@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-JAN-31
+### Modified: 2017-FEB-28
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -21,9 +21,8 @@
 
 createPcAux <- function(quarkData,
                         nComps       = c(10L, 3L),
-                        useInteract  = TRUE,
-                        usePoly      = TRUE,
-                        maxPower     = 3L,
+                        interactType = 3L,
+                        maxPolyPow   = 3L,
                         pcaMemLevel  = 0L,
                         simMode      = FALSE,
                         mySeed       = 235711L,
@@ -40,13 +39,12 @@ createPcAux <- function(quarkData,
     if(!simMode) checkInputs(parent = "quark")
 
     ## Add elements to an extant instance of the QuarkData class:
-    quarkData$nComps       <- as.integer(nComps)
-    quarkData$forcePmm     <- forcePmm
-    quarkData$pcaMemLev    <- as.integer(pcaMemLevel)
-    quarkData$calcInteract <- useInteract
-    quarkData$calcPoly     <- usePoly
-    quarkData$maxPower     <- as.integer(maxPower)
-    quarkData$simMode      <- simMode
+    quarkData$nComps    <- as.integer(nComps)
+    quarkData$forcePmm  <- forcePmm
+    quarkData$pcaMemLev <- as.integer(pcaMemLevel)
+    quarkData$intMeth   <- as.integer(interactType)
+    quarkData$maxPower  <- as.integer(maxPower)
+    quarkData$simMode   <- simMode
 
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) {
@@ -61,8 +59,8 @@ createPcAux <- function(quarkData,
     }
 
     ## Populate some important elements of the QuarkData object:
-    if(usePoly) {
-        for(pp in 2 : maxPower) {
+    if(map$maxPower > 1) {
+        for(pp in 2 : map$maxPower) {
             powerVal <- switch(pp - 1,
                                "square",
                                "cube",
@@ -91,13 +89,16 @@ createPcAux <- function(quarkData,
         ## check the functionality of the fall-back imputation methods.
         doSingleImputation(map = quarkData, ...)
     }
+
+    ## Construct interactions from raw variables?
+    if(map$intMeth == 1) map$computeNonLin()
     
     ## Extract the linear principal component scores:
     doPCA(map = quarkData)
     
-    if(nComps[2] > 0) {
+    if(nComps[2] > 0) {# Construct seperate non-linear PcAux?
         ## Construct and orthogonalize nonlinear terms:
-        computeNonlinearTerms(map = quarkData)
+        map$computeNonLin()
         
         ## Extract the nonlinear principal component scores:
         doPCA(map = quarkData)
