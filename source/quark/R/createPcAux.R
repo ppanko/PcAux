@@ -83,6 +83,9 @@ createPcAux <- function(quarkData,
         ## check the functionality of the fall-back imputation methods.
         doSingleImputation(map = quarkData, ...)
     }
+
+    ## Parse the nComps argument:
+    quarkData$parseNComps()
     
     ## Construct interactions from raw variables?
     if(quarkData$intMeth == 1) quarkData$computeNonLin()

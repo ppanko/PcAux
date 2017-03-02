@@ -79,7 +79,7 @@ prepData <- function(rawData,
     ## appropriate slots in the quarkData object:
     if(!missCheck(idVars)) {
         quarkData$idVars <- idVars
-        quarkData$idCols <- quarkData$data[ , idVars]
+        quarkData$idCols <- as.data.frame(quarkData$data[ , idVars])
         quarkData$data   <-
             quarkData$data[ , setdiff(colnames(quarkData$data), idVars)]
     }

@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for Quark
 ### Author:   Kyle M. Lang
 ### Created:  2015-NOV-01
-### Modified: 2017-FEB-09
+### Modified: 2017-MAR-02
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -25,6 +25,16 @@ library(mvtnorm)
 source("makeTestData.R")
 
 ##### DATA PREP TESTING #####
+
+## Test:   Normal usage with one ID
+## Result: Successful execution
+quarkData <- prepData(rawData   = testData,
+                      nomVars   = c("nom1", "nom2"),
+                      ordVars   = c("ord1", "ord2"),
+                      idVars    = c("id1"),
+                      dropVars  = c("y1", "y2", "z2", "id2"),
+                      groupVars = c("nom1", "nom2", "ord1")
+                      )
 
 ## Test:   Catch high percent missing
 ## Result: Warning with request for user input
@@ -246,45 +256,49 @@ pcAuxOut <- createPcAux(quarkData = tmp,
 ## Test:   Don't use interactions
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData   = tmp,
-                        useInteract = FALSE)
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 0)
 
 ## Test:   Don't use polynomials
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp,
-                        usePoly   = FALSE)
+pcAuxOut <- createPcAux(quarkData  = tmp,
+                        maxPolyPow = 1)
 
 ## Test:   Only use squares
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp,
-                        maxPower  = 2L)
+pcAuxOut <- createPcAux(quarkData  = tmp,
+                        maxPolyPow = 2L)
 
 ## Test:   Use polynomials up to 4th power
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp,
-                        maxPower  = 4L)
+pcAuxOut <- createPcAux(quarkData  = tmp,
+                        maxPolyPow = 4L)
 
 ## Test:   Try to request only first-order polynomials
 ## Result: Fatal Error
-tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp,
-                        maxPower  = 1L)
+#tmp      <- frozenQuarkData1$copy()
+#pcAuxOut <- createPcAux(quarkData = tmp,
+#                        maxPower  = 1L)
 
 ## Test:   Try to request polynomial power greater than 4
 ## Result: Fatal Error
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp,
-                        maxPower  = 5L)
+pcAuxOut <- createPcAux(quarkData  = tmp,
+                        maxPolyPow = 5L)
 
 ## Test:   Try to request nComps[2] > 0 while asking for no nonlinearities
 ## Result: Fatal Error
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData   = tmp,
-                        useInteract = FALSE,
-                        usePoly     = FALSE)
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 0,
+                        maxPolyPow   = 1)
+
+#### PICK UP HERE
+
+
 
 ## Test:   Don't specify any ID variables
 ## Result: Successful Execution

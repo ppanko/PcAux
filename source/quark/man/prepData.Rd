@@ -8,17 +8,17 @@
   Rhemtulla, and Little (2015).
 }
 \usage{
-prepData(rawData,
-         nomVars     = NULL,
-         ordVars     = NULL,
-         idVars      = NULL,
-         dropVars    = NULL,
-         groupVars   = NULL,
-         simMode     = FALSE,
-         mySeed      = 235711L,
-         useParallel = FALSE,
-         nProcess    = 1L,
-         verbose     = !simMode,
+prepData(rawData, 
+         moderators = NULL,
+         nomVars    = NULL,
+         ordVars    = NULL,
+         idVars     = NULL,
+         dropVars   = NULL,
+         groupVars  = NULL,
+         simMode    = FALSE,
+         mySeed     = 235711L,
+         nProcess   = 1L,
+         verbose    = !simMode,
          control,
          ...)
 }
@@ -26,6 +26,16 @@ prepData(rawData,
   \item{rawData}{
     A data frame from which to extract the auxiliary pricipal
     components. 
+  }
+  \item{moderators}{
+    An optional character vector containing names of any moderator
+    variables to include in the initial, single imputation model. The
+    variables supplied here will be interacted with all other observed
+    variables when specifying the initial single imputation model's
+    systematic component. The exact method by which this moderation is
+    incorporated depends on the \code{interactType} argument in
+    \code{createPcAux} (see the documentation for \code{createPcAux} for
+    more information).
   }
   \item{nomVars}{
     An optional character vector containing names of any nominal
@@ -65,15 +75,12 @@ prepData(rawData,
     An integer used to seed the random number generator used by the
     imputation algorithm. Defaults to \code{mySeed = 235711L}.
   }
-  \item{useParallel}{
-    A logical switch indicating if parallel processing should be used to
-    compute the linear associations during collinearity
-    checking. Defaults to \code{useParallel = FALSE}.
-  }
   \item{nProcess}{
     An integer indicating the number of processors to use when
-    \code{useParallel == TRUE}. Ignored when \code{useParallel ==
-      FALSE}. Defaults to \code{useParallel = FALSE}.
+    using parallel processing for the collinearity checks. A value of
+    \code{nProcess = 1L} results in serial processing. Must be less than
+    or equal to the available number of logical processing
+    cores. Defaults to \code{nProcess = 1L}.
   }
   \item{verbose}{
     A logical switch indicating whether output should be printed to the

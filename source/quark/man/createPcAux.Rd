@@ -9,10 +9,8 @@
 \usage{
 createPcAux(quarkData,
             nComps       = c(10L, 3L),
-            useInteract  = TRUE,
-            usePoly      = TRUE,
-            maxPower     = 3L,
-            pcaMemLevel  = 0L,
+            interactType = 3L,
+            maxPolyPow   = 3L,
             simMode      = FALSE,
             mySeed       = 235711L,
             forcePmm     = FALSE,
@@ -27,32 +25,22 @@ createPcAux(quarkData,
     An object of class QuarkData returned from \code{prepData}. 
   }
   \item{nComps}{
-    A two-element integer vector giving the number of linear and
-    nonlinear, respectively, component scores to extract. Defaults to
+    A two-element vector giving the number of linear and
+    nonlinear, respectively, component scores to extract. See the
+    \emph{Details} section for more information. Defaults to
     \code{nComps = c(10L, 3L)}.
   }
-  \item{useInteract}{
-    A logical flag indicating whether or not to include the two-way
-    interactions in the PCA. Defaults to \code{useInteract = TRUE}.
+  \item{interactType}{
+    An integer code indicating which method is used to incorporate
+    interactions into the initial, single imputation model. See the
+    \emph{Details} section for more information. Defaults to
+    \code{interactType = 3L}.
   }
-  \item{usePoly}{
-    A logical flag indicating whether or not to include polynomial terms
-    in the PCA. Defaults to \code{usePoly = TRUE}.
-  }
-  \item{maxPower}{
+  \item{maxPolyPow}{
     An integer giving the maximum power used when constructing the
-    polynomial terms. Defaults to \code{maxPower = 3L}.
-  }
-  \item{pcaMemLevel}{
-    An integer code representing a trade-off between memory usage and
-    numerical accuracy in the algorithm used to extract the principal
-    component scores. A value of '0L' (the default) will extract the PC
-    scores with the stats::prcomp() package for maximal accuracy. A
-    value of '1L' will use the quark:::simplePca() subroutine to extract
-    the PC scores with considerably lower memory usage but, possibly,
-    less numerical accuracy than the prcomp() approach. Leaving this
-    option at the default value should be sufficient for most
-    applications.
+    polynomial terms. Setting \code{maxPolyPow = 1L} has the effect of
+    excluding any polynomial terms from the imputation model. Defaults
+    to \code{maxPolyPow = 3L}. 
   }
   \item{simMode}{
     A logical switch turning 'Simulation Mode' on or off. In Simulation
@@ -105,6 +93,33 @@ createPcAux(quarkData,
   }
 }
 \details{
+  The number of component scores requested via the \code{nComps}
+  argument can be defined in two ways: as simple counts, or in terms of
+  the proportion of variance in the data explained by the set of
+  extracted components. When specifying \code{nComps}, integer
+  arguments are interpreted as counts of components; real-valued
+  arguments between 0 and 1.0 are interpreted as proportions of
+  variance explained, and the special character token "max" indicates
+  the smallest number of component scores that explain 100\% of the
+  variance in the raw data.
+  
+  The \code{interactType} argument can take any of the values in {0, 1, 2,
+    3}. \code{interactType = 0} includes no interaction terms.
+  \code{iteractType = 1} incorporates all two-way interations between
+  the observed variables and the variables specified in the
+    \code{moderators} argument of \code{prepData}. \code{iteractType =
+    2} incorporates all two-way interactions between the linear
+    principal component scores and the variables specified in the
+    \code{moderators} argument of \code{prepData}. \code{iteractType
+    = 3} incorporates all two-way interations between linear principal
+  component scores and the raw observed variables. Note that
+  \code{interactType == 2} or \code{interactType == 3} will produce a
+  set of "non-linear" component scores in the \code{pcAux$nonLin} field
+    of the QuarkData object (in addition to the "linear" component
+    scores in the \code{pcAux$lin} field), while \code{interactType ==
+    0} and \code{interactType == 1} will produce component scores only
+    in the \code{pcAux$lin} field. 
+  
   The \code{control} argument is a key-paired list with the following
   possible entries:
   \itemize{
@@ -152,6 +167,17 @@ createPcAux(quarkData,
     \item{nGVarCats: }{
       The number of categories into which continuous grouping variables
       will be split, if applicable. Defaults to \code{nGVarCats = 3L}.
+    }
+    \item{pcaMemLevel:}{
+      An integer code representing a trade-off between memory usage and
+      numerical accuracy in the algorithm used to extract the principal
+      component scores. A value of '0L' (the default) will extract the PC
+      scores with the stats::prcomp() package for maximal accuracy. A
+      value of '1L' will use the quark:::simplePca() subroutine to extract
+      the PC scores with considerably lower memory usage but, possibly,
+      less numerical accuracy than the prcomp() approach. Leaving this
+      option at the default value should be sufficient for most
+      applications.
     }
   }
   Note that the behavior of the \code{forcePmm} argument changed between

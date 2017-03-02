@@ -10,13 +10,7 @@
   which the component scores were constructed.
 }
 \usage{
-mergePcAux(quarkData,
-           rawData,
-           nLinear = NULL,
-           nNonLinear = NULL,
-           varExpLin = NULL,
-           varExpNonLin = NULL,
-           verbose = TRUE)
+mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
 }
 \arguments{
   \item{quarkData}{
@@ -27,33 +21,11 @@ mergePcAux(quarkData,
     A data frame containing the raw data used to run
     \code{createPcAux}. 
   }
-  \item{nLinear}{
-    An optional integer giving the number of linear principal component
-    auxiliary scores to merge onto \code{rawData}. If unspecified, all
-    linear principal component scores that exist in \code{quarkData} are
-    used.
-  }
-  \item{nNonLinear}{
-    An optional integer giving the number of non-linear principal
-    component auxiliary scores to merge onto \code{rawData}. If
-    unspecified, all non-linear principal component scores that exist in
-    \code{quarkData} are used. 
-  }
-  \item{varExpLin}{
-    An optional real number giving the proportion of variance in
-    \code{rawData} to be explained by the set of linear principal
-    component auxiliary scores merged onto \code{rawData} (see 'Details'
-    for a description of the implementation). If unspecified, the
-    \code{nLinear} argument defines the number of linear component
-    scores used. 
-  }
-  \item{varExpNonLin}{
-    An optional real number giving the proportion of variance in
-    \code{rawData} to be explained by the set of non-linear principal
-    component auxiliary scores merged onto \code{rawData} (see 'Details'
-    for a description of the implementation). If unspecified, the
-    \code{nNonLinear} argument defines the number of non-linear
-    component scores used. 
+  \item{nComps}{
+    A two-element vector giving the number of linear and
+    nonlinear, respectively, component scores to extract. See the
+    \emph{Details} section for more information. When not specified, all
+    component scores that exist in \code{quarkData} are used.
   }
   \item{verbose}{
     A logical flag indicating whether verbose output should be printed
@@ -66,18 +38,17 @@ mergePcAux(quarkData,
   variables are not suitable (i.e., because they don't exist in the raw
   data or they're not unique row-identifiers), the merging will be
   accomplished via naive column-binding.
-
-  When non-zero values are provided for \code{varExpLin} and/or
-  \code{varExpNonLin}, the number of linear and/or non-linear principal
-  component auxiliary scores that are merged onto \code{rawData} is
-  taken to be the minimum number needed to explain \emph{at least} as 
-  much variance in \code{rawData} as the proportions given by
-  \code{varExpLin} and/or \code{varExpNonLin}. This means that the
-  actual proportions of variance explain by the selected number of
-  components will usually be slightly higher than the threshold
-  requested, because the existence of a set of principal component
-  scores that explain exactly the requested proportion of variance is
-  unlikely. 
+  
+  The number of component scores requested via the \code{nComps}
+  argument can be defined in two ways: as simple counts, or in terms of
+  the proportion of variance in the data explained by the set of
+  extracted components. When specifying \code{nComps}, integer
+  arguments are interpreted as counts of components; real-valued
+  arguments between 0 and 1.0 are interpreted as proportions of
+  variance explained, and the special character token "max" indicates
+  the smallest number of component scores that explain 100\% of the
+  variance in the raw data. An error is returned when more components
+  are requested than exist in \code{quarkData}.  
 }
 \value{
   A data frame with (a subset of) the principal component auxiliary

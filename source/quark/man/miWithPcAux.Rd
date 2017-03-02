@@ -16,15 +16,11 @@ miWithPcAux(rawData,
             ordVars        = NULL,
             idVars         = NULL,
             dropVars       = "useExtant",
-            nLinear        = NULL,
-            nNonLinear     = NULL,
-            varExpLin      = NULL,
-            varExpNonLin   = NULL,
+            nComps         = NULL,
             completeFormat = "list",
             mySeed         = 235711L,
             simMode        = FALSE,
             forcePmm       = FALSE,
-            useParallel    = FALSE,
             nProcess       = 1L,
             verbose        = !simMode,
             control)
@@ -68,33 +64,11 @@ miWithPcAux(rawData,
     causes any user-defined \code{dropVars} defined in \code{quarkData}
     to be used.
   }
-  \item{nLinear}{
-    An integer giving the number of linear principal component auxiliary
-    scores to use as predictors in the imputation model. If unspecified,
-    all linear principal component auxiliary scores contained in
-    \code{quarkData} will be used. 
-  }
-  \item{nNonLinear}{
-    An integer giving the number of non-linear principal component
-    auxiliary scores to use as predictors in the imputation model. If
-    unspecified, all non-linear principal component auxiliary scores
-    contained in \code{quarkData} will be used. 
-  }
-  \item{varExpLin}{
-    An optional real number giving the proportion of variance to be
-    explained by the linear principal component auxiliary scores (see
-    'Details' for a description of the implementation). This argument
-    overrides \code{nLinear}.  If unspecified, the \code{nLinear}
-    argument will define the number of linear principal component scores
-    used. 
-  }
-  \item{varExpNonLin}{
-    An optional real number giving the proportion of variance to be
-    explained by the non-linear principal component auxiliary
-    scores (see 'Details' for a description of the implementation). This
-    argument overrides \code{nNonLinear}. If unspecified, the
-    \code{nNonLinear} argument will define the number of non-linear 
-    principal component scores used.
+  \item{nComps}{
+    A two-element vector giving the number of linear and
+    nonlinear, respectively, component scores to extract. See the
+    \emph{Details} section for more information. When not specified, all
+    component scores that exist in \code{quarkData} are used.
   }
   \item{completeFormat}{
     The format in which the multiply-imputed data sets are
@@ -128,17 +102,11 @@ miWithPcAux(rawData,
     but all other variables are imputed with PMM. Defaults to
     \code{forcePmm = FALSE}.
   }
-  \item{useParallel}{
-    A logical switch indicating if the multiple imputation should be
-    executed using parallel processing. When set to \code{TRUE}, the
-    imputation job will be executed in \code{nProcess} parallel jobs
-    using the \code{parLapply} function from the \pkg{parallel}
-    package. Defaults to \code{useParallel = FALSE}.
-  }
   \item{nProcess}{
     An integer that gives the number of parallel processes to use when
-    \code{useParallel == TRUE}. Must be less than or equal to the number
-    of available logical processor cores. Defaults to \code{nProcess =
+    for parallel MI. Must be less than or equal to the number
+    of available logical processor cores. A value of \code{nProcess =
+      1L} results in serial MI processing. Defaults to \code{nProcess =
       1L}.
   }
   \item{verbose}{
@@ -151,18 +119,17 @@ miWithPcAux(rawData,
   }
 }
 \details{
-  When non-zero values are provided for \code{varExpLin} and/or
-  \code{varExpNonLin}, the number of linear and/or non-linear principal
-  component auxiliary scores used as predictors in the imputation model
-  is taken to be the minimum number needed to explain \emph{at least} as
-  much variance in \code{rawData} as the proportions given by
-  \code{varExpLin} and/or \code{varExpNonLin}. This means that the
-  actual proportions of variance explain by the selected number of
-  components will usually be slightly higher than the threshold
-  requested, because the existence of a set of principal component
-  scores that explain exactly the requested proportion of variance is
-  unlikely.
-
+  The number of component scores requested via the \code{nComps}
+  argument can be defined in two ways: as simple counts, or in terms of
+  the proportion of variance in the data explained by the set of
+  extracted components. When specifying \code{nComps}, integer
+  arguments are interpreted as counts of components; real-valued
+  arguments between 0 and 1.0 are interpreted as proportions of
+  variance explained, and the special character token "max" indicates
+  the smallest number of component scores that explain 100\% of the
+  variance in the raw data. An error is returned when more components
+  are requested than exist in \code{quarkData}. 
+  
   The \code{control} argument is a key-paired list with the following
   possible entries:
   \itemize{

@@ -51,7 +51,7 @@ outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)
 ### pcAux scores used as auxiliary variables.
 
 ## Create a predictor matrix:
-predMat <- makePredMatrix(mergedData = outData$data)
+predMat <- makePredMatrix(mergedData = outData)
 
 ### You can run mice() manually by supplying
 ### predMat to the predictorMatrix argument.

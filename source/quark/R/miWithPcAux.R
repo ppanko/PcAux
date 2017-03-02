@@ -74,7 +74,7 @@ miWithPcAux <- function(rawData,
                            nComps    = nComps)
     
     ## Populate new fields in the extant QuarkData object:
-    quarkData$data       <- mergeOut$data
+    quarkData$data       <- mergeOut
     quarkData$nImps      <- as.integer(nImps)
     quarkData$seed       <- as.integer(mySeed)
     quarkData$simMode    <- simMode
@@ -100,6 +100,8 @@ miWithPcAux <- function(rawData,
     #    quarkData$setControl(conDefault, parent = "rom")
     #}
     #rm(conDefault)
+
+    #print(head(quarkData$data))
     
     ## Cast the variables to their appropriate types:
     castData(map = quarkData, doingQuark = FALSE)

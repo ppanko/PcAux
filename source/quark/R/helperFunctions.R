@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-01
+### Modified: 2017-MAR-02
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -463,7 +463,7 @@ errFun <- function(type, ...)
                    paste0("Please provide a data frame or ",
                           "matrix for the rawData argument.\n"),
                smallPower =
-                   "maxPower must be an integer greater than 1.\n",
+                   "maxPolyPow must be a positive integer.\n",
                largePower =
                    "Polynomial powers greater than 4 are not supported.\n",
                noLinPc =
@@ -478,7 +478,7 @@ errFun <- function(type, ...)
                           "), but you have also told me not to compute any ",
                           "interactions or polynomial terms.\nI am confused.\n",
                           "Could you please adjust the values supplied to the ",
-                          "'nComps', 'useInteract', and 'usePoly' arguments so ",
+                          "'nComps', 'interactType', and 'maxPolyPow' arguments so ",
                           "that they are consistent?\n"),
                missingVars =
                    paste0("Some of the arguments you've supplied ",

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-01
+### Modified:     2017-MAR-02
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -62,8 +62,6 @@ QuarkData <- setRefClass("QuarkData",
                              pcAux        = "list",
                              rSquared     = "list",
                              pcaMemLev    = "integer",
-                             #calcInteract = "logical",
-                             #calcPoly     = "logical",
                              maxPower     = "integer",
                              interact     = "ANY",
                              poly         = "ANY",
@@ -134,8 +132,6 @@ QuarkData$methods(
         groupVars    = vector("character"),
         dummyVars    = vector("character"),
         pcaMemLev    = 0L,
-        #calcInteract = FALSE,
-        #calcPoly     = FALSE,
         maxPower     = 3L,
         interact     = NULL,
         poly         = NULL,
@@ -203,8 +199,6 @@ QuarkData$methods(
         verbose      <<- verbose
         groupVars    <<- groupVars
         pcaMemLev    <<- pcaMemLev
-        #calcInteract <<- calcInteract
-        #calcPoly     <<- calcPoly
         maxPower     <<- maxPower
         poly         <<- poly
         pcAux        <<- pcAux
@@ -269,18 +263,6 @@ QuarkData$methods(
             if(n %in% nonInts) assign(n, x[[n]])
             else               assign(n, as.integer(x[[n]]))
         }
-        
-        #miceIters    <<- as.integer(x$miceIters)
-        #nGVarCats    <<- as.integer(x$nGVarCats)
-        #minPredCor   <<- x$minPredCor
-        #collinThresh <<- x$collinThresh
-        #miceRidge    <<- x$miceRidge
-        #minRespCount <<- as.integer(x$minRespCount)
-        #maxNetWts    <<- as.integer(x$maxNetWts)
-        #nomMaxLev    <<- as.integer(x$nomMaxLev)
-        #ordMaxLev    <<- as.integer(x$ordMaxLev)
-        #conMinLev    <<- as.integer(x$conMinLev)
-        #pcaMemLev    <<- as.integer(x$pcaMemLev)
     },
 
     updateImpFails   = function(x, type)                                        {
@@ -617,12 +599,16 @@ QuarkData$methods(
 
     idToCharacter   = function()                                                {
         "If any IDs are factors, cast them as character objects"
-        for(i in idVars) {
-            if( any(class(data[ , i]) == "factor") )
-                data[ , i] <<- as.character(data[ , i])
+        if(length(idVars) == 1) {
+            if(is.factor(idCols)) idCols <<- as.character(idCols)
+        } else {
+            for(i in idVars) {
+                if(is.factor(idCols[ , i]))
+                    idCols[ , i] <<- as.character(idCols[ , i])
+            }
         }
     },
-
+    
     binGroupVars    = function(undo = FALSE)                                    {
         "Discretize continuous grouping variables"
         gvTypes  <- typeVec[groupVars                       ]
@@ -752,13 +738,14 @@ QuarkData$methods(
                            function(X, y) X * y,
                            y = data[ , m])
                 )
-                colnames(intList[[i]]) <- paste0(pcNames, "_", colnames(data)[m])
+                colnames(intList[[i]]) <- paste0(pcNames, "_", m)
             }
             interact <<- data.frame(intList)
             interact <<- data.frame(
                 lapply(interact,
-                       function(y, X) .lm.fit(y = y, x = X)$resid,
-                       x = as.matrix(pcAux$lin[ , pcNames]))
+                       FUN = function(y, X)
+                           .lm.fit(y = y, x = as.matrix(X))$resid,
+                       X = pcAux$lin[ , pcNames])
             )
         }
     },
@@ -767,34 +754,31 @@ QuarkData$methods(
         "Compute polynomial terms"
         dataNames <- setdiff(colnames(data), dummyVars)
         pcNames   <- setdiff(colnames(pcAux$lin), idVars)
-
-        for(p in 1 : (maxPower - 1)) {# Loop over power levels
+        
+        for(p in 2 : maxPower) {# Loop over power levels
             powerVals <- c("square", "cube", "quad")
 
             ## Compute the powered terms and orthogonalize them
             ## w.r.t. their lower-powered counterparts and the linear pcAux:
-            poly[[ powerVals[p] ]] <<-
-                apply(data[ , dataNames],
-                      2,
-                      FUN = function(dv, pp, pcAux) {
-                          .lm.fit(y = dv^pp,
+            poly[[powerVals[p - 1]]] <<- data.frame(
+                lapply(data[ , dataNames],
+                       FUN = function(dv, p, pc)
+                           lm.fit(y = dv^p,
                                   x = as.matrix(
                                       cbind(
-                                          sapply(c((pp - 1) : 1),
-                                                 function(ppp, dat) dat^ppp,
+                                          sapply(c(p : 1),
+                                                 function(pp, dat) dat^pp,
                                                  dat = dv),
-                                          pcAux)
-                                  )
-                                  )$resid
-                      },
-                      pp    = p + 1,
-                      pcAux = pcAux$lin[ , pcNames]
-                      )
-
+                                          pc)
+                                  ))$resid,
+                       p  = p,
+                       pc = pcAux$lin[ , pcNames]
+                       )       
+            )
             ## Give some sensible variable names:
-            colnames(poly[[ powerVals[p] ]]) <-
-                paste0(colnames(map$data[ , dataNames]), "_p", p + 1)
-        }# END for(p in 1 : (map$maxPower - 1))
+            colnames(poly[[powerVals[p - 1]]]) <<-
+                paste0(colnames(data[ , dataNames]), "_p", p)
+        }# END for(p in 1 : (maxPower - 1))
     },
     
     computeNonLin   = function()                                                {
@@ -812,18 +796,18 @@ QuarkData$methods(
         pcVarExp[tmp] <<- 1.0
         
         ## Explain 100% of linear and nonlinear variance?
-        if(all(!is.na(pcVarExp))) return(0)
-        
-        tmp           <-  nComps < 1
+        #if(all(!is.na(pcVarExp))) return(0)
+               
+        tmp           <-  nComps < 1 & nComps > 0
         pcVarExp[tmp] <<- nComps[tmp]
         
         ## All components counts defined in terms of variance explained?
-        if(all(!is.na(pcVarExp))) return(1)
+        #if(all(!is.na(pcVarExp))) return(1)
         
-        tmp          <-  nComps >= 1
+        tmp          <-  nComps >= 1 | nComps == 0
         pcCount[tmp] <<- nComps[tmp]
         
-        return(2) # Some component counts give explicitly
+        #return(2) # Some component counts give explicitly
     },
 
     calcRSquared    = function()                                                {
@@ -833,10 +817,10 @@ QuarkData$methods(
         ## Compute the cumulative variance explained:
         totalVar <- sum(rSquared[[lv]], na.rm = TRUE)
         
-        rSquared[[lv]][1] <- rSquared[[lv]][1] / totalVar
+        rSquared[[lv]][1] <<- rSquared[[lv]][1] / totalVar
         
         for(i in 2 : length(rSquared[[lv]]))
-            rSquared[[lv]][i] <-
+            rSquared[[lv]][i] <<-
                 rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
     },
     
@@ -850,18 +834,24 @@ QuarkData$methods(
                 for(n in noms) {
                     ## Remove empty factor levels:
                     missLevels <- setdiff(levels(data[ , n]), unique(data[ , n]))
-                    levels(data[ , n])[levels(data[ , n]) %in% missLevels] <- NA
+                    levels(data[ , n])[levels(data[ , n]) %in% missLevels] <<- NA
                     
                     ## Dummy code factor:
-                    dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
+                    #if(length(levels(data[ , n])) == 2)
+                       # dumList[[n]] <-
+                       #     as.numeric(data[ , n] == levels(data[ , n])[2])
+                    #else
+                        dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
                     
                     ## Give some meaningful variable names:
-                    colnames(dumList[[n]]) <- nameList[[n]] <-
-                        paste0(n, "_", levels(data[ , n])[-1])
+                    nameList[[n]] <- paste0(n, "_", levels(data[ , n])[-1])
                 }
-                data <<-
-                    data.frame(data[ , setdiff(colnames(data), noms)], dumList)
-                dummyVars <<- unlist(nameList)
+                
+                cn <- setdiff(colnames(data), noms)
+                
+                data           <<- data.frame(data[ , cn], dumList)
+                dummyVars      <<- unlist(nameList)
+                colnames(data) <<- c(cn, dummyVars)
             }
         }
         ## Cast ordinal factors as numeric:
@@ -877,4 +867,4 @@ QuarkData$methods(
         }
     }
     
-)# END QuarkData$methods()
+    )# END QuarkData$methods()

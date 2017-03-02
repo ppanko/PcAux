@@ -1,7 +1,7 @@
 ### Title:    QuarkData Simple Accessor and Mutator Definitions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2017-JAN-31
+### Modified: 2017-MAR-02
 ### Note:     These methods are not currently used. The following
 ###           definitions are included mostly for "future-proofing,"
 ###           so that the QuarkData class will still be valid if future
@@ -56,8 +56,6 @@ QuarkData$methods(
     setGroupVars    = function(x) { groupVars    <<- x                         },
     setDummyVars    = function(x) { dummyVars    <<- x                         },
     setPcaMemLev    = function(x) { pcaMemLev    <<- x                         },
-    setCalcInteract = function(x) { calcInteract <<- x                         },
-    setCalcPoly     = function(x) { calcPoly     <<- x                         },
     setMaxPower     = function(x) { maxPower     <<- x                         },
     setInteract     = function(x) { interact     <<- x                         },
     setCollinThresh = function(x) { collinThresh <<- x                         },
@@ -67,11 +65,16 @@ QuarkData$methods(
     setPatterns     = function(x) { patterns     <<- x                         },
     setFrozenGVars  = function(x) { frozenGVars  <<- x                         },
     setIdFills      = function(x) { idFills      <<- x                         },
-    setDummyId      = function(x) { dummyId      <<- x                         },
     setNImps        = function(x) { nImps        <<- x                         },
     setCompFormat   = function(x) { compFormat   <<- x                         },
     setMiDatasets   = function(x) { miDatasets   <<- x                         },
     setMiceObject   = function(x) { miceObject   <<- x                         },
+    setModerators   = function(x) { moderators   <<- x                         },
+    setIntMeth      = function(x) { intMeth      <<- x                         },
+    setPcVarExp     = function(x) { pcVarExp     <<- x                         },
+    setPcCount      = function(x) { pcCount      <<- x                         },
+    setIdCols       = function(x) { idCols       <<- x                         },
+
     ## Simple Accessors ##
     getData         = function()  { data                                       },
     getSeed         = function()  { seed                                       },
@@ -104,8 +107,6 @@ QuarkData$methods(
     getGroupVars    = function()  { groupVars                                  },
     getDummyVars    = function()  { dummyVars                                  },
     getPcaMemLev    = function()  { pcaMemLev                                  },
-    getCalcInteract = function()  { calcInteract                               },
-    getCalcPoly     = function()  { calcPoly                                   },
     getMaxPower     = function()  { maxPower                                   },
     getInteract     = function()  { interact                                   },
     getCollinThresh = function()  { collinThresh                               },
@@ -116,12 +117,17 @@ QuarkData$methods(
     getFrozenGVars  = function()  { frozenGVars                                },
     getIdFills      = function()  { idFills                                    },
     getImpsFails    = function()  { impFails                                   },
-    getDummyId      = function()  { dummyId                                    },
     getNImps        = function()  { nImps                                      },
     getCompFormat   = function()  { compFormat                                 },
     getMiDatasets   = function()  { miDatasets                                 },
-    getMiceObject   = function()  { miceObject                                 }
-)
+    getMiceObject   = function()  { miceObject                                 },
+    getModerators   = function(x) { moderators                                 },
+    getIntMeth      = function(x) { intMeth                                    },
+    getPcVarExp     = function(x) { pcVarExp                                   },
+    getPcCount      = function(x) { pcCount                                    },
+    getIdCols       = function(x) { idCols                                     }
+
+    )
 
 
                     
