@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-FEB-28
+### Modified:     2017-MAR-01
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -62,8 +62,8 @@ QuarkData <- setRefClass("QuarkData",
                              pcAux        = "list",
                              rSquared     = "list",
                              pcaMemLev    = "integer",
-                             calcInteract = "logical",
-                             calcPoly     = "logical",
+                             #calcInteract = "logical",
+                             #calcPoly     = "logical",
                              maxPower     = "integer",
                              interact     = "ANY",
                              poly         = "ANY",
@@ -79,10 +79,12 @@ QuarkData <- setRefClass("QuarkData",
                              compFormat   = "character",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
-                             useParallel  = "logical",
                              nProcess     = "integer",
                              moderators   = "character",
-                             intMeth      = "integer"
+                             intMeth      = "integer",
+                             pcVarExp     = "vector",
+                             pcCount      = "vector",
+                             idCols       = "ANY"
                          )# END fields
                          )# END QuarkData
 
@@ -103,9 +105,9 @@ QuarkData$methods(
         ),
         data         = data.frame(NULL),
         seed         = 0L,
-        miceIters    = 0L,
-        miceRidge    = 0.0,
-        maxNetWts    = 0L,
+        miceIters    = 10L,
+        miceRidge    = 1.0e-5,
+        maxNetWts    = 10000L,
         forcePmm     = FALSE,
         typeVec      = vector("character"),
         methVec      = vector("character"),
@@ -116,9 +118,9 @@ QuarkData$methods(
         ordVars      = vector("character"),
         idVars       = vector("character"),
         dropVars     = matrix(NA, 1, 2),
-        nomMaxLev    = 0L,
-        ordMaxLev    = 0L,
-        conMinLev    = 0L,
+        nomMaxLev    = 10L,
+        ordMaxLev    = 10L,
+        conMinLev    = 10L,
         probNoms     = vector("character"),
         probOrds     = vector("character"),
         probCons     = vector("character"),
@@ -127,19 +129,19 @@ QuarkData$methods(
         highPmVars   = vector("character"),
         emptyVars    = vector("character"),
         constants    = vector("character"),
-        minRespCount = 0L,
+        minRespCount = as.integer(floor(0.05 * nrow(data))),
         verbose      = FALSE,
         groupVars    = vector("character"),
         dummyVars    = vector("character"),
         pcaMemLev    = 0L,
-        calcInteract = FALSE,
-        calcPoly     = FALSE,
-        maxPower     = 0L,
+        #calcInteract = FALSE,
+        #calcPoly     = FALSE,
+        maxPower     = 3L,
         interact     = NULL,
         poly         = NULL,
-        collinThresh = 0.0,
-        minPredCor   = 0.0,
-        nGVarCats    = 0L,
+        collinThresh = 0.95,
+        minPredCor   = 0.1,
+        nGVarCats    = 3L,
         collinVars   = data.frame(NULL),
         patterns     = list(),
         frozenGVars  = NULL,
@@ -162,10 +164,12 @@ QuarkData$methods(
         compFormat   = "",
         miDatasets   = NULL,
         miceObject   = NULL,
-        useParallel  = FALSE,
         nProcess     = 1L,
-        moderators   = "",
-        intMeth      = 0L
+        moderators   = vector("character"),
+        intMeth      = 0L,
+        pcVarExp     = c(NA, NA),
+        pcCount      = c(NA, NA),
+        idCols       = NULL
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -199,8 +203,8 @@ QuarkData$methods(
         verbose      <<- verbose
         groupVars    <<- groupVars
         pcaMemLev    <<- pcaMemLev
-        calcInteract <<- calcInteract
-        calcPoly     <<- calcPoly
+        #calcInteract <<- calcInteract
+        #calcPoly     <<- calcPoly
         maxPower     <<- maxPower
         poly         <<- poly
         pcAux        <<- pcAux
@@ -219,10 +223,12 @@ QuarkData$methods(
         compFormat   <<- compFormat
         miDatasets   <<- miDatasets
         miceObject   <<- miceObject
-        useParallel  <<- useParallel
         nProcess     <<- nProcess
         moderators   <<- moderators
         intMeth      <<- intMeth
+        pcVarExp     <<- pcVarExp
+        pcCount      <<- pcCount
+        idCols       <<- idCols
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -255,20 +261,26 @@ QuarkData$methods(
         else                         stop("Invalid rSquared type.")
     },
 
-    setControl      = function(x, parent = "dataPrep")                          {
+    setControl      = function(x)                                               {
         "Assign the control parameters"
-        if(parent == "dataPrep") {# Populating a new QuarkData object?
-            miceIters    <<- as.integer(x$miceIters)
-            nGVarCats    <<- as.integer(x$nGVarCats)
-            minPredCor   <<- x$minPredCor
-            collinThresh <<- x$collinThresh
+        nonInts <- c("minPredCor", "collinThresh", "miceRidge")
+        
+        for(n in names(x)) {
+            if(n %in% nonInts) assign(n, x[[n]])
+            else               assign(n, as.integer(x[[n]]))
         }
-        miceRidge    <<- x$miceRidge
-        minRespCount <<- as.integer(x$minRespCount)
-        maxNetWts    <<- as.integer(x$maxNetWts)
-        nomMaxLev    <<- as.integer(x$nomMaxLev)
-        ordMaxLev    <<- as.integer(x$ordMaxLev)
-        conMinLev    <<- as.integer(x$conMinLev)
+        
+        #miceIters    <<- as.integer(x$miceIters)
+        #nGVarCats    <<- as.integer(x$nGVarCats)
+        #minPredCor   <<- x$minPredCor
+        #collinThresh <<- x$collinThresh
+        #miceRidge    <<- x$miceRidge
+        #minRespCount <<- as.integer(x$minRespCount)
+        #maxNetWts    <<- as.integer(x$maxNetWts)
+        #nomMaxLev    <<- as.integer(x$nomMaxLev)
+        #ordMaxLev    <<- as.integer(x$ordMaxLev)
+        #conMinLev    <<- as.integer(x$conMinLev)
+        #pcaMemLev    <<- as.integer(x$pcaMemLev)
     },
 
     updateImpFails   = function(x, type)                                        {
@@ -281,7 +293,17 @@ QuarkData$methods(
         if(is.null(index)) methVec        <<- x
         else               methVec[index] <<- x
     },
-
+    
+    setNComps       = function()                                                {
+        "Set the number of PcAux to extract"
+        tmp <- is.na(pcCount)
+        if(!all(tmp)) nComps[!tmp] <<- pcCount[!tmp]
+        if(any(tmp)) {
+            if(tmp[1]) nComps[1] <<- sum(rSquared$lin < pcVarExp[1]) + 1
+            if(tmp[2]) nComps[2] <<- sum(rSquared$nonLin < pcVarExp[2]) + 1
+        }
+    },
+    
     ##------------------------- "Overloaded" Accessors ------------------------##
 
     getPoly         = function(power = NULL)                                    {
@@ -318,7 +340,8 @@ QuarkData$methods(
             nomMaxLev    = nomMaxLev,
             ordMaxLev    = ordMaxLev,
             conMinLev    = conMinLev,
-            nGVarCats    = nGVarCats
+            nGVarCats    = nGVarCats,
+            pcaMemLev    = pcaMemLev
         )
     },
 
@@ -334,15 +357,11 @@ QuarkData$methods(
     countVarLevels = function()                                                 {
         "Count the levels for each column in 'data'"
         levelVec <<- as.integer(
-            do.call(c,
-                    lapply(data,
-                           FUN = function(x) length(unique(na.omit(x)))
-                           )
-                    )
+            unlist(lapply(data, function(x) length(unique(na.omit(x)))))
         )
         names(levelVec) <<- colnames(data)
     },
-
+    
     typeData       = function()                                                 {
         "Populate a vector containing each variable's type"
         cn <- colnames(data); nv <- ncol(data)
@@ -567,8 +586,7 @@ QuarkData$methods(
             setMethVec(x = "polyreg", index = tmpIndex)
        
             ## Don't impute ID or Dropped Variables:
-            tmpIndex <- names(methVec) %in% dropVars[ , 1] |
-                #names(methVec) %in% idVars
+            tmpIndex <- names(methVec) %in% dropVars[ , 1]
             setMethVec(x = "", index = tmpIndex)
          } else {
             methVec <<-
@@ -783,10 +801,80 @@ QuarkData$methods(
         "Create nonlinear terms and orthogonalize them"
         if(verbose) cat("\nComputing interaction and polynomial terms...\n")
         
-        if(calcInteract) computeInteract()
-        if(map$calcPoly) computePoly()
+        if(intMeth > 0)  computeInteract()
+        if(maxPower > 1) computePoly()
         
         if(verbose) cat("Complete.\n")
-    }
+    },
+    
+    parseNComps     = function()                                                {
+        tmp           <-  grep("max", nComps, ignore = TRUE)
+        pcVarExp[tmp] <<- 1.0
+        
+        ## Explain 100% of linear and nonlinear variance?
+        if(all(!is.na(pcVarExp))) return(0)
+        
+        tmp           <-  nComps < 1
+        pcVarExp[tmp] <<- nComps[tmp]
+        
+        ## All components counts defined in terms of variance explained?
+        if(all(!is.na(pcVarExp))) return(1)
+        
+        tmp          <-  nComps >= 1
+        pcCount[tmp] <<- nComps[tmp]
+        
+        return(2) # Some component counts give explicitly
+    },
 
+    calcRSquared    = function()                                                {
+        if(length(pcAux$lin) == 0) lv <- "lin"
+        else                       lv <- "nonLin"
+        
+        ## Compute the cumulative variance explained:
+        totalVar <- sum(rSquared[[lv]], na.rm = TRUE)
+        
+        rSquared[[lv]][1] <- rSquared[[lv]][1] / totalVar
+        
+        for(i in 2 : length(rSquared[[lv]]))
+            rSquared[[lv]][i] <-
+                rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
+    },
+    
+    castCatVars     = function()                                                {
+        "Cast factor variables to numeric formats to facilitate PCA"
+        ## Dummy code nominal factors:
+        if(!all(nomVars == "")) {
+            noms    <- colnames(data)[colnames(data) %in% nomVars]
+            if(length(noms) > 0) {
+                dumList <- nameList <- list()
+                for(n in noms) {
+                    ## Remove empty factor levels:
+                    missLevels <- setdiff(levels(data[ , n]), unique(data[ , n]))
+                    levels(data[ , n])[levels(data[ , n]) %in% missLevels] <- NA
+                    
+                    ## Dummy code factor:
+                    dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
+                    
+                    ## Give some meaningful variable names:
+                    colnames(dumList[[n]]) <- nameList[[n]] <-
+                        paste0(n, "_", levels(data[ , n])[-1])
+                }
+                data <<-
+                    data.frame(data[ , setdiff(colnames(data), noms)], dumList)
+                dummyVars <<- unlist(nameList)
+            }
+        }
+        ## Cast ordinal factors as numeric:
+        if(!all(ordVars == "")) {
+            ## Find ordinal variables that are still on the data set:
+            ords <- colnames(data)[colnames(data) %in% ordVars]
+            
+            ## Cast the ordinal variables as numeric:
+            if(length(ords) > 1)
+                data[ , ords] <<- data.frame(lapply(data[ , ords], as.numeric))
+            else
+                data[ , ords] <<- as.numeric(data[ , ords])
+        }
+    }
+    
 )# END QuarkData$methods()

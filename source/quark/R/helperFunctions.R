@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-FEB-28
+### Modified: 2017-MAR-01
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -43,37 +43,35 @@ countLevels <- function(x)
 
 
 ## Wrapper to suppress all gc() output:
-silentGC <- function()
-{
-    if(.Platform$OS.type == "unix")
-        nullFile <- "/dev/null"
-    else
-        nullFile <- "nul"
+#silentGC <- function()
+#{
+#    if(.Platform$OS.type == "unix")
+#        nullFile <- "/dev/null"
+#    else
+#        nullFile <- "nul"
+#
+#    sink(nullFile)
+#    gc()
+#    sink()
+#}# END silentGC()
 
-    sink(nullFile)
-    gc()
-    sink()
-}# END silentGC()
 
 
-
-## Create a set of dummy ID values ensured to be disjoint from
-## the observed IDs to use as temporary fill-ins for missing IDs:
+### Create a set of dummy ID values ensured to be disjoint from the observed IDs
+### to use as temporary fill-ins for missing IDs:
 createDummyIdValues <- function(x)
 {
     varType <- class(x)
-    if(varType == "numeric" | varType == "integer") {
-        idFills <- 2 * max(x, na.rm = TRUE) + c( 0 : (sum(is.na(x)) - 1) )
-    }
-    else if(varType == "character") {
-        idFills <- paste0( "dummyID", c( 1 : sum(is.na(x) ) ) )
-    }
+    if(varType == "numeric" | varType == "integer")
+        idFills <- 2 * max(x, na.rm = TRUE) + c(0 : (sum(is.na(x)) - 1))
+    else if(varType == "character")
+        idFills <- paste0("dummyID", c(1 : sum(is.na(x))))
     idFills
 }# END createDummyIdValues()
 
 
 
-## Calculate various kinds of 'correlation' coefficient:
+### Calculate various kinds of 'correlation' coefficient:
 flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
 {
     options(warn = -1)# Suppress warnings
@@ -81,10 +79,8 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
     ## Find the class of the target variables:
     varType <- map$typeVec[varNames]
 
-    if(.Platform$OS.type == "unix")
-        nullFile <- "/dev/null"
-    else
-        nullFile <- "nul"
+    if(.Platform$OS.type == "unix") nullFile <- "/dev/null"
+    else                            nullFile <- "nul"
 
     sink(nullFile)# Suppress output
 
@@ -135,9 +131,9 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
                         varType == "nominal" |
                             varType == "binary") ) {
             ## Itra-class correlation for continuous and nominal
-            nomVar <- varNames[varType == "nominal" | varType == "binary"]
+            nomVar  <- varNames[varType == "nominal" | varType == "binary"]
             contVar <- varNames[varType == "continuous"]
-            corVal <- ICCbare(x = nomVar, y = contVar, data = map$data)
+            corVal  <- ICCbare(x = nomVar, y = contVar, data = map$data)
             corType <- "icc"
         }
         else {
@@ -155,7 +151,7 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
 
     outList <- list(value = corVal)
     if(checkMat) {
-        outList$corType <- corType
+        outList$corType  <- corType
         outList$varTypes <- varType
     }
     outList
@@ -163,7 +159,7 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
 
 
 
-## Compute several measures of central tendency:
+### Compute several measures of central tendency:
 flexCenTen <- function(x)
 {
     varType <- class(x)[1]
@@ -188,39 +184,39 @@ flexCenTen <- function(x)
 
 
 ## Convert factors to dummy codes:
-factorToDummy <- function(facVar, labelStem, refLevel = NULL)
-{
-    ## Remove empty factor levels (KML 2016-JUL-30):
-    missLevels <- setdiff(levels(facVar), unique(facVar))
-    levels(facVar)[levels(facVar) %in% missLevels] <- NA
-    length(levels(facVar))
-    
-    dummyFrame <- data.frame(
-        matrix(0,
-               length(facVar),
-               length(levels(facVar))
-               )
-    )                            
-    
-    if( is.null(refLevel) ) refLevel = ncol(dummyFrame)
-    
-    for( i in 1 : nrow(dummyFrame) ) {
-        if(!is.na(facVar[i])) {
-            dummyFrame[i, as.numeric(facVar[i])] <- 1
-        }
-        else {
-          dummyFrame[i, ] <- NA
-        }
-    }
+#factorToDummy <- function(facVar, labelStem, refLevel = NULL)
+#{
+#    ## Remove empty factor levels (KML 2016-JUL-30):
+#    missLevels <- setdiff(levels(facVar), unique(facVar))
+#    levels(facVar)[levels(facVar) %in% missLevels] <- NA
+#    length(levels(facVar))
+#    
+#    dummyFrame <- data.frame(
+#        matrix(0,
+#               length(facVar),
+#               length(levels(facVar))
+#               )
+#    )                            
+#    
+#    if( is.null(refLevel) ) refLevel = ncol(dummyFrame)
+#    
+#    for( i in 1 : nrow(dummyFrame) ) {
+#        if(!is.na(facVar[i])) {
+#            dummyFrame[i, as.numeric(facVar[i])] <- 1
+#        }
+#        else {
+#          dummyFrame[i, ] <- NA
+#        }
+#    }
+#
+#    outFrame <- data.frame(dummyFrame[ , -refLevel])
+#    colnames(outFrame) <- paste0(labelStem, "_", levels(facVar)[-refLevel])
+#    outFrame
+#}# END factorToDummy()
 
-    outFrame <- data.frame(dummyFrame[ , -refLevel])
-    colnames(outFrame) <- paste0(labelStem, "_", levels(facVar)[-refLevel])
-    outFrame
-}# END factorToDummy()
 
 
-
-## Flexibly check for missing arguments:
+### Flexibly check for missing arguments:
 missCheck <- function(x)
 {
     if( missing(x) ) {
@@ -246,38 +242,46 @@ missCheck <- function(x)
 
 
 ## Scale data with minimal memory usage:
-lowMemScale <- function(inData)
-{
-    for( i in 1 : ncol(inData) ) {
-        inData[ , i] <-
-            ( inData[ , i] - mean(inData[ , i]) ) / sd(inData[ , i])
-    }
-    inData
-}
+#lowMemScale <- function(inData)
+#{
+#    for( i in 1 : ncol(inData) ) {
+#        inData[ , i] <-
+#            ( inData[ , i] - mean(inData[ , i]) ) / sd(inData[ , i])
+#    }
+#    inData
+#}
 
 
 
-## Do a simple PCA while trying to minimize memory usage:
-simplePca <- function(inData, nComps, scale = FALSE)
+### Do a simple PCA while trying to minimize memory usage:
+simplePca <- function(map, lv, scale = TRUE)
 {
     ## Scale the raw data:
     if(scale) {
-        for( i in 1 : ncol(inData) ) {
-            inData[ , i] <-
-                ( inData[ , i] - mean(inData[ , i]) ) / sd(inData[ , i])
+        for(i in 1 : ncol(map$data)) {
+            map$data[ , i] <-
+                (map$data[ , i] - mean(map$data[ , i])) / sd(map$data[ , i])
         }
     }
 
     ## Get the eigen decomposition
-    eigenOut <- eigen(cov(inData), symmetric = TRUE)
+    eigenOut <- eigen(cov(map$data), symmetric = TRUE)
 
     ## Due to numerical instability, some eigenvalues stray below zero.
     ## Replace such values with zero:
     eigenOut$values[eigenOut$values < 0.0] <- 0.0
 
-    ## NOTE: Output's labels are chosen for compatability with prcomp()
-    list(sdev = sqrt(eigenOut$values), # SD of each component
-         x = as.matrix(inData) %*% eigenOut$vectors[ , 1 : nComps]) # PC scores
+    ## Compute the proportions of variance explained:
+    map$rSquared[[lv]] <- eigenOut$values
+    map$calcRSquared()
+
+    ## Set component counts when some are defined by variance explained:
+    if(any(is.na(map$pcCount))) map$setNComp()
+    
+    nc <- ifelse(lv == "lin", 1, 2)
+    
+    ## Compute and save the PcAux scores:
+    map$pcAux[[lv]] <<- as.matrix(map$data) %*% eigenOut$vectors[ , 1 : nc]
 }# END simplePca()
 
 
@@ -393,7 +397,7 @@ warnFun <- function(type, map)
                           ".\nThese variables will be exluded from ",
                           "subsequent analyses."),
                linPcNum = {
-                   datCols <- ncol(map$data) #- length(map$idVars)
+                   datCols <- ncol(map$data)
                    nComps <- map$nComps[1]
                    paste0("The number of linear principal component ",
                           "scores that you requested (i.e., ",
@@ -406,7 +410,7 @@ warnFun <- function(type, map)
                           ".\n")
                },
                nonLinPcNum = {
-                   datCols <- ncol(map$data) #- length(map$idVars)
+                   datCols <- ncol(map$data)
                    nComps <- map$nComps[2]
                    paste0("The number of nonlinear principal component ",
                           "scores that you requested (i.e., ",
@@ -419,16 +423,9 @@ warnFun <- function(type, map)
                           ".\n")
                },
                mergeNoID =
-                   paste0("The ID variables defined in the QuarkData object (i.e., ",
-                          toString(map$idVars),
-                          ") do not exist in the raw data, so the ",
-                          "merging was accomplished via naive column-binding.\n",
-                          "Please confirm the output object's row alignment."),
-               mergeNoID2 =
-                   paste0("The ID variables defined in the QuarkData object (i.e., ",
-                          toString(map$idVars),
-                          ") do not exist in the PcAux data, so the ",
-                          "merging was accomplished via naive column-binding.\n",
+                   paste0("No ID variables are shared by the QuarkData object ",
+                          "and the raw data, so the merging was accomplished ",
+                          "via naive column-binding.\n",
                           "Please confirm the output object's row alignment."),
                mergeBadID =
                    paste0("None of the potential ID variables (i.e., ",
@@ -544,14 +541,14 @@ errFun <- function(type, ...)
                           x$quarkData$nComps[1],
                           ") cannot explain the requested ",
                           "proportion of variance (i.e., ",
-                          x$varExpLin,
+                          x$varExp[1],
                           ").\nPlease consult the output of: ",
                           "'inspect(quarkData, what = \"rSquared\")' ",
                           "for more details."),
                fewLinPcAux =
                    paste0("The number of linear component scores you ",
                           "requested (i.e., ",
-                          x$nLinear,
+                          x$nComps[1],
                           ") is greated than the number of linear component ",
                           "scores available in 'quarkData' (i.e., ",
                           x$quarkData$nComps[1],
@@ -562,14 +559,14 @@ errFun <- function(type, ...)
                           x$quarkData$nComps[2],
                           ") cannot explain the requested ",
                           "proportion of variance (i.e., ",
-                          x$varExpNonLin,
+                          x$varExp[2],
                           ").\nPlease consult the output of: ",
                           "'inspect(quarkData, what = \"rSquared\")' ",
                           "for more details."),
                fewNonLinPcAux =
                    paste0("The number of non-linear component scores you ",
                           "requested (i.e., ",
-                          x$nNonLinear,
+                          x$nComps[2],
                           ") is greated than the number of non-linear component ",
                           "scores available in 'quarkData' (i.e., ",
                           x$quarkData$nComps[2],
@@ -582,8 +579,8 @@ errFun <- function(type, ...)
 
 
 
-## Unpack the extra arguments to doSingleImputation()
-## to construct a list of debugging flags:
+### Unpack the extra arguments to doSingleImputation() to construct a list of
+### debugging flags:
 createSkipFlags <- function(...)
 {
     args <- list(...)
@@ -632,16 +629,16 @@ createSkipFlags <- function(...)
 
 
 
-## Setup the doSingleImputation calling environment
-## for imputation checking procedures:
+### Setup the doSingleImputation calling environment for imputation checking
+### procedures:
 prepImpChecks <- function()
 {
     env <- parent.frame()
     env$frozenData <- env$map$data
 }
 
-## Undo an imputation for the purposes of functionality
-## of fall-back imputation methods:
+### Undo an imputation for the purposes of functionality of fall-back
+### imputation methods:
 undoImputation <- function()
 {
     env <- parent.frame()
@@ -653,7 +650,7 @@ makePredMat <- function(map)
     options(warn = -1)
     ## Construct a predictor matrix for mice():
     predMat <- quickpred(map$data,
-                         mincor = map$minPredCor,
+                         mincor  = map$minPredCor,
                          exclude = map$idVars)
 
     ## Make sure we have fewer predictors than rows:
@@ -686,34 +683,3 @@ makePredMat <- function(map)
     options(warn = 0)
     predMat
 }# END makePredMat()
-
-#####                       #####
-##### Work on the following #####
-#####                       #####
-
-                                        #impList <- romOut
-                                        #impFrame <- impList[[1]]
-
-                                        #computeFMI <- function(impList)
-                                        #{
-                                        #  meanFrame <- do.call("rbind",
-                                        #                       lapply(impList,
-                                        #                              FUN = function(impFrame) {
-                                        #                                unlist(lapply(impFrame, flexCenTen))
-                                        #                              })
-                                        #                       )
-                                        #
-                                        #  bVec <- apply(meanFrame, 2, var)
-                                        #
-                                        #  wVec <- colMeans(
-                                        #            do.call("rbind",
-                                        #                    lapply(impList,
-                                        #                           FUN = function(x) {
-                                        #                             sd(x) / sqrt(length(x))
-                                        #                           })
-                                        #                    )
-                                        #            )
-                                        #
-                                        #  fmiVec <- bVec / (wVev + bVec)
-                                        #}
-

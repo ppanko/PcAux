@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-FEB-28
+### Modified:     2017-MAR-01
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -120,7 +120,6 @@ checkInputs <- function(parent)
 
 
 
-
 ## Check input formatting and cast variables to declared types:
 castData <- function(map, doingQuark = TRUE)
 {
@@ -141,7 +140,7 @@ castData <- function(map, doingQuark = TRUE)
     map$typeData()
 
     ## If any ID variables are factors, cast them as character objects:
-    if(doingQuark) map$idToCharacter()
+                                        #if(doingQuark) map$idToCharacter()
     if(map$verbose) cat("done.\n")
 
     ## Cast all variables to the appropriate measurement level:
@@ -149,6 +148,9 @@ castData <- function(map, doingQuark = TRUE)
     map$castData()
     if(map$verbose) cat("done.\n")
 
+    tmp <- map$getControl()
+    print(tmp)
+    
     confirmTypes <- !map$simMode
     if(confirmTypes) {
         map$checkTypes()
@@ -198,9 +200,7 @@ castData <- function(map, doingQuark = TRUE)
     }# CLOSE if(confirmTypes)
 
     if(map$verbose) cat("Complete.\n")
-    silentGC()
 }# END castData()
-
 
 
 
@@ -215,25 +215,25 @@ cleanData <- function(map, doingQuark = TRUE)
         ## Check for missing data on ID variables:
         missIdCounts <- switch(as.character(length(map$idVars)),
                                "0" = break,
-                               "1" = sum(is.na(map$data[ , map$idVars])),
-                               colSums(is.na(map$data[ , map$idVars]))
+                               "1" = sum(is.na(map$idCols)),
+                               colSums(is.na(map$idCols))
                                )
         missIds <- map$idVars[missIdCounts > 0]
-
+        
         ## If there are any missing IDs, fill them with dummy values:
         if(length(missIds) > 1) {# More than 1 incomplete ID
             map$idFills <-
-                lapply(map$data[ , missIds], FUN = createDummyIdValues)
+                lapply(map$idCols, FUN = createDummyIdValues)
             
             ## Fill missing IDs with their dummy values
             for(i in missIds)
-                map$data[ , i][is.na(map$data[ , i])] <- map$idFills[[i]]
+                map$idCols[ , i][is.na(map$idCols[ , i])] <- map$idFills[[i]]
             
         } else if(length(missIds) == 1) {# Only 1 incomplete ID
-            map$idFills <- createDummyIdValues(map$data[ , missIds])
-            map$data[ , missIds][is.na(map$data[ , missIds])] <- map$idFills
+            map$idFills <- createDummyIdValues(map$idCols[ , missIds])
+            map$idCols[ , missIds][is.na(map$idCols[ , missIds])] <- map$idFills
         }
-
+        
         rm(missIdCounts)
     }# CLOSE if(doingQuark)
 
@@ -277,14 +277,11 @@ cleanData <- function(map, doingQuark = TRUE)
                                      "romConstCols"), map)
 
     if(map$verbose) cat("Complete.\n")
-    silentGC()
 }# END cleanData()
 
 
 
-
 ## Flag variables with perfect bivariate correlations (within some epsilon):
-# revise usePaarallel
 findCollin <- function(map)
 {
     if(map$verbose) cat("\nExamining data for collinear relationships...\n")
@@ -294,7 +291,7 @@ findCollin <- function(map)
     varPairs <-
         data.frame(t(combn(colnames(map$data), 2)), stringsAsFactors = FALSE)
     ##If not using any parallel process
-    if(!map$useParallel)
+    if(map$nProcess == 1)
         linAssocFrame <- data.frame(varPairs,
                                     unlist(
                                         apply(varPairs, 1,
@@ -327,7 +324,6 @@ findCollin <- function(map)
     
     if(map$verbose) cat("Complete.\n")
 }# END findCollin()
-
 
 
 
@@ -513,7 +509,6 @@ doGroupMeanSub <- function(map)
 
 
 
-
 ## Fill a variable's missing values with appropriate group-means:
 fillWithGroupMean <- function(v, pat, patLevs) {
     for( k in 1 : length(patLevs) ) {
@@ -559,7 +554,6 @@ doGrandMeanSub <- function(map)
                     )
     }
 }# END doGrandMeanSub()
-
 
 
 
@@ -624,7 +618,6 @@ meanSubstitute <- function(map, skipList)
 
 
 
-
 doPCA <- function(map)
 {
     ## Are we extracting linear or nonlinear PC scores?
@@ -633,146 +626,80 @@ doPCA <- function(map)
             cat("\nCalculating linear principal component scores...\n")
 
         linVal <- "lin"
-        nComps <- map$nComps[1]
-
-        if(!map$simMode) {
-            ## Make sure the number of PC scores we want is less than
-            ## the number of columns in our data object:
-            datCols <- ncol(map$data) #- length(map$idVars)
-            if(nComps > datCols) {
+        
+        map$castCatVars() # Cast factor variables to numeric formats
+        
+        if(!map$simMode & !is.na(map$pcCount[1])) {
+            ## Make sure the number of PC scores we want is less than the number
+            ## of columns in our data object:
+            if(map$nComps[1] > ncol(map$data)) {
                 warnFun("linPcNum", map)
-                nComps <- map$nComps[1] <- datCols
+                nComps <- map$nComps[1] <- ncol(map$data)
             }
         }
-
-        if( !all(map$nomVars == "") ) {
-            ## Find the nominal variables:
-            nomVars <- colnames(map$data)[colnames(map$data) %in% map$nomVars]
-
-            if(length(nomVars) > 0) {
-                ## Dummy code the nominal variables:
-                dummyNomVars <-
-                    do.call("data.frame",
-                            lapply(nomVars,
-                                   FUN = function(x, map) {
-                                       factorToDummy(map$data[ , x], x)
-                                   },
-                                   map = map)
-                            )
-
-                ## Store the dummy variables' names for later:
-                map$dummyVars <- colnames(dummyNomVars)
-
-                ## Replace the factor representations of the nominal
-                ## variables with their dummy-coded versions:
-                map$data <-
-                    data.frame(map$data[ , setdiff(colnames(map$data), nomVars)],
-                               dummyNomVars)
-
-                rm(nomVars)
-                rm(dummyNomVars)
-            }
-        }
-
-        if( !all(map$ordVars == "") ) {
-            ## Find ordinal variables that are still on the data set:
-            ordVars <- colnames(map$data)[colnames(map$data) %in% map$ordVars]
-
-            ## Cast the ordinal variables as numeric:
-            if(length(ordVars) > 1) {
-                map$data[ , ordVars] <-
-                    data.frame(lapply(map$data[ , ordVars], FUN = as.numeric))
-            } else if(length(ordVars) == 1) {
-                map$data[ , ordVars] <- as.numeric(map$data[ , ordVars])
-            }
-        }
-
-        ## Note the variables we need to scale down below:
-        #scaleNames <- setdiff(colnames(map$data), map$idVars)
-        scaleNames <- colnames(map$data)
-
     } else {# We already have linear component scores
         if(map$verbose)
             cat("\nCalculating nonlinear principal component scores...\n")
-
+        
         linVal <- "nonLin"
-        nComps <- map$nComps[2]
-
+        
         ## Redefine the data object:
-        #map$data <- map$data[ , map$idVars]
-        if(map$calcInteract) map$data <- map$interact
-        if(map$calcPoly)     map$data <- data.frame(map$data, map$poly)
+        if(map$intMeth > 0)  map$data <- map$interact
+        if(map$maxPower > 1) map$data <- data.frame(map$data, map$poly)
         
         ## Note the variables we need to scale down below:
         colnames(map$data) <- c(colnames(map$interact),
                                 unlist(lapply(map$poly, colnames))
                                 )
         
-        if(!map$simMode) {
+        ## Remove the contents of the 'interact' and 'poly' fields when they are
+        ## no longer necessary:
+        map$interact <- "Removed to save resources"
+        map$poly     <- "Removed to save resources"
+        
+        if(!map$simMode & !is.na(map$pcCount[2])) {
             ## Make sure the number of PC scores we want is less than
             ## the number of columns in our data object:
-            #datCols <- ncol(map$data) - length(map$idVars)
-            if(nComps > ncol(map$data)) {
+            if(map$nComps[2] > ncol(map$data)) {
                 warnFun("nonLinPcNum", map)
                 nComps <- map$nComps[2] <- ncol(map$data)
             }
         }
-        
-        ## Remove the contents of the 'interact' and 'poly'
-        ## fields when they are no longer necessary:
-        map$interact <- "Removed to save resources"
-        map$poly     <- "Removed to save resources"
-    }# CLOSE if( is.null(map$pcAux$lin) )
-
+    }# CLOSE if(length(map$pcAux$lin) == 0)
+    
     ## Execute the principal component analysis:
     if(map$pcaMemLev == 0) {
         ## Higher numerical accuracy, but more memory usage
         pcaOut <- prcomp(map$data, scale = TRUE, retx  = TRUE)
+
+        ## Save the components' variances and compute variance explained:
+        map$rSquared[[linVal]] <- pcaOut$sdev
+        map$calcRSquared()
+
+        ## Set component counts when some are defined in terms of variance
+        ## explained:
+        if(any(is.na(map$pcCount))) map$setNComps()
+
+        ## Extract the principal component scores:
+        map$pcAux[[linVal]] <- data.frame(map$idCols, pcaOut$x[ , 1 : nComps])
     } else if(map$pcaMemLev == 1) {
         ## Save memory at the expense of numerical accuracy
-        map$data <- lowMemScale(map$data)
-        pcaOut   <- simplePca(inData = map$data, nComps = nComps)
+        pcaOut <- simplePca(map = map, lv = linVal, scale = TRUE)
     } else {
         errFun("badPcaMemLev", map = map)
     }
-    
-    ## Extract the principal component scores:
-    map$pcAux[[linVal]] <-
-        data.frame(map$idCols, pcaOut$x[ , 1 : nComps])
-    
+        
     ## Remove the contents of the 'data' field when they're no longer needed:
     if(linVal == "nonLin") map$data <- "Removed to save resources"
 
     ## Give some informative column names:
-    if(linVal == "lin") 
-        colnames(map$pcAux[[linVal]]) <- c(map$idVars,
-                                           paste0("linPC", c(1 : nComps) )
-                                           )
-    else
-        colnames(map$pcAux[[linVal]]) <- c(map$idVars,
-                                           paste0("nonLinPC", c(1 : nComps) )
-                                           )
-    
-    ## Save the components' variances:
-    map$rSquared[[linVal]] <- pcaOut$sdev
-
-    rm(pcaOut) # clear some memory
-    #rm(scaleNames)
-
-    ## Compute the cumulative variance explained:
-    totalVar <- sum(map$rSquared[[linVal]], na.rm = TRUE)
-    
-    map$rSquared[[linVal]][1] <- map$rSquared[[linVal]][1] / totalVar
-    
-    for(i in 2 : length(map$rSquared[[linVal]])) {
-        map$rSquared[[linVal]][i] <-
-            map$rSquared[[linVal]][i - 1] +
-            (map$rSquared[[linVal]][i] / totalVar)
-    }
+    if(linVal == "lin") colnames(map$pcAux[[linVal]]) <-
+                            c(map$idVars, paste0("linPC", c(1 : nComps)))
+    else                colnames(map$pcAux[[linVal]]) <-
+                            c(map$idVars, paste0("nonLinPC", c(1 : nComps)))
     
     if(map$verbose) cat("Complete.\n")
 }# END doPCA()
-
 
 
 

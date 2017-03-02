@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-FEB-28
+### Modified: 2017-MAR-01
 ### Purpose:  Use the principal component auxiliaries produced by createPcAux()
 ###           to conduct MI.
 
@@ -28,15 +28,11 @@ miWithPcAux <- function(rawData,
                         ordVars        = NULL,
                         idVars         = NULL,
                         dropVars       = "useExtant",
-                        nLinear        = NULL,
-                        nNonLinear     = NULL,
-                        varExpLin      = NULL,
-                        varExpNonLin   = NULL,
+                        nComps         = NULL,
                         completeFormat = "list",
                         mySeed         = 235711L,
                         simMode        = FALSE,
                         forcePmm       = FALSE,
-                        useParallel    = FALSE,
                         nProcess       = 1L,
                         verbose        = !simMode,
                         control)
@@ -52,7 +48,7 @@ miWithPcAux <- function(rawData,
     
     if(!missCheck(idVars)) quarkData$idVars <- idVars
     else                   idVars           <- quarkData$idVars
-
+    
     if(length(dropVars) == 1 && dropVars == "useExtant") {
         tmp <- quarkData$dropVars[quarkData$dropVars[ , 2] == "user_defined", ]
         if(class(tmp) != "matrix") tmp <- matrix(tmp, 1, 2)
@@ -68,17 +64,14 @@ miWithPcAux <- function(rawData,
         quarkData$dropVars <- cbind("NONE_DEFINED", "user_defined")
         dropVars <- NULL
     }
-    
+
     ## Check inputs' validity:
     checkInputs(parent = "rom")
     
     ## Combine the principal component auxiliaries with the raw data:
-    mergeOut <- mergePcAux(quarkData    = quarkData,
-                           rawData      = rawData,
-                           nLinear      = nLinear,
-                           nNonLinear   = nNonLinear,
-                           varExpLin    = varExpLin,
-                           varExpNonLin = varExpNonLin)
+    mergeOut <- mergePcAux(quarkData = quarkData,
+                           rawData   = rawData,
+                           nComps    = nComps)
     
     ## Populate new fields in the extant QuarkData object:
     quarkData$data       <- mergeOut$data
@@ -88,29 +81,25 @@ miWithPcAux <- function(rawData,
     quarkData$compFormat <- completeFormat
     quarkData$forcePmm   <- forcePmm
     quarkData$verbose    <- verbose
-    quarkData$nComps     <- c(mergeOut$nLinear, mergeOut$nNonLinear)
-      
-    if(quarkData$nComps[1] == 0) errFun("noLinPc", doingQuark = FALSE)
     
     ## Make sure the control list is fully populated:
-    conDefault <- list(miceRidge    = 1e-5,
-                       minRespCount = as.integer(floor(0.05 * nrow(rawData))),
-                       maxNetWts    = 10000L,
-                       nomMaxLev    = 10L,
-                       ordMaxLev    = 10L,
-                       conMinLev    = 10L)
+    #conDefault <- list(miceRidge    = 1e-5,
+    #                   minRespCount = as.integer(floor(0.05 * nrow(rawData))),
+    #                   maxNetWts    = 10000L,
+    #                   nomMaxLev    = 10L,
+    #                   ordMaxLev    = 10L,
+    #                   conMinLev    = 10L)
     
-    if(missCheck(control)) {
-        quarkData$setControl(conDefault, parent = "rom")
-    } else {
-        for( i in names(conDefault) ) {
-            if( i %in% names(control) ) {
-                conDefault[[i]] <- control[[i]]
-            }
-        }
-        quarkData$setControl(conDefault, parent = "rom")
-    }
-    rm(conDefault)
+    if(!missCheck(control)) quarkData$setControl(x = control)
+    #} else {
+    #    for( i in names(conDefault) ) {
+    #        if( i %in% names(control) ) {
+    #            conDefault[[i]] <- control[[i]]
+    #        }
+    #    }
+    #    quarkData$setControl(conDefault, parent = "rom")
+    #}
+    #rm(conDefault)
     
     ## Cast the variables to their appropriate types:
     castData(map = quarkData, doingQuark = FALSE)
@@ -147,7 +136,7 @@ miWithPcAux <- function(rawData,
     ## Multiply impute the missing data in 'mergedData':
     if(verbose) cat("--Imputing missing values...\n")
     
-    if(!useParallel) {# Impute in serial
+    if(nProcess == 1) {# Impute in serial
         quarkData$miceObject <- try(
             mice(quarkData$data,
                  m               = nImps,
@@ -156,7 +145,8 @@ miWithPcAux <- function(rawData,
                  method          = quarkData$methVec,
                  printFlag       = verbose,
                  ridge           = quarkData$miceRidge,
-                 seed            = mySeed),
+                 seed            = mySeed,
+                 nnet.MaxNWts    = quarkData$maxNetWts),
             silent = TRUE)
         
         if(class(quarkData$miceObject) != "try-error") {
@@ -188,3 +178,4 @@ miWithPcAux <- function(rawData,
     
     quarkData
 }# END miWithPcAux()
+    
