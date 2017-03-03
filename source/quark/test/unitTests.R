@@ -24,6 +24,19 @@ library(quark)
 library(mvtnorm)
 source("makeTestData.R")
 
+
+## Test:   Don't specify any ID variables
+## Result: Successful Execution
+quarkData <- prepData(rawData  = testData,
+                      nomVars  = c("nom1", "nom2"),
+                      ordVars  = c("ord1", "ord2"),
+                      dropVars = c("y1", "y2", "z2", "id1", "id2")
+                      )
+
+pcAuxOut <- createPcAux(quarkData = quarkData)
+
+
+
 ##### DATA PREP TESTING #####
 
 ## Test:   Normal usage with one ID
@@ -296,18 +309,65 @@ pcAuxOut <- createPcAux(quarkData    = tmp,
                         interactType = 0,
                         maxPolyPow   = 1)
 
-#### PICK UP HERE
 
 
+
+
+
+#######################
+#### PICK UP HERE #####
+#######################
+
+
+
+undebug(createPcAux)
 
 ## Test:   Don't specify any ID variables
 ## Result: Successful Execution
 quarkData <- prepData(rawData  = testData,
                       nomVars  = c("nom1", "nom2"),
                       ordVars  = c("ord1", "ord2"),
-                      dropVars = c("y1", "y2", "z2")
+                      dropVars = c("y1", "y2", "z2", "id1", "id2")
                       )
+
+head(quarkData$data)
+
+setdiff(colnames(quarkData$data), quarkData$idVars)
+
+tmp <- head(quarkData$data[ , colnames(quarkData$data)])
+
+class(tmp)
+
+
 pcAuxOut <- createPcAux(quarkData = quarkData)
+
+
+
+
+
+
+
+
+
+x <- data.frame(matrix(rnorm(30), 10, 3))
+y <- x*2
+
+z <- x[ , 1]
+w <- x[ , -1]
+
+class(z)
+class(w)
+
+n <- c("X2", "X3")
+m <- "X1"
+
+tmp <- data.frame(
+    lapply(x[ , n], function(xx, yy) xx * yy, yy = x[ , m])
+)
+
+tmp
+
+data.frame(tmp)
 
 ## Test:   Don't specify any dropped variables
 ## Result: Successful execution

@@ -733,20 +733,34 @@ QuarkData$methods(
         } else if(intMeth == 3) {# Interact all raw variables with linear pcAux
             for(m in colnames(data)) {
                 i <- i + 1
-                intList[[i]] <- data.frame(
-                    lapply(pcAux$lin[ , pcNames],
-                           function(X, y) X * y,
-                           y = data[ , m])
-                )
+                #intList[[i]] <- data.frame(
+                #    lapply(pcAux$lin[ , pcNames],
+                #           function(X, y) X * y,
+                #           y = data[ , m])
+                #)
+                intList[[i]] <- apply(as.matrix(pcAux$lin[ , pcNames]),
+                                      2,
+                                      function(x, y) x * y,
+                                      y = data[ , m]
+                                      )
                 colnames(intList[[i]]) <- paste0(pcNames, "_", m)
             }
-            interact <<- data.frame(intList)
-            interact <<- data.frame(
-                lapply(interact,
-                       FUN = function(y, X)
-                           .lm.fit(y = y, x = as.matrix(X))$resid,
-                       X = pcAux$lin[ , pcNames])
-            )
+            interact <<- do.call("cbind", intList)
+            
+            print(pcNames)
+            print("\n")
+            print(head(interact))
+            print("\n")
+            print(head(as.matrix(pcAux$lin[ , pcNames])))
+            print("\nHello")
+            print(head(pcAux$lin))
+            print("\nGoodbye")
+            
+            interact <<- apply(as.matrix(interact),
+                               2,
+                               FUN = function(y, X)
+                                   .lm.fit(y = y, x = as.matrix(X))$resid,
+                               X = pcAux$lin[ , pcNames])
         }
     },
     

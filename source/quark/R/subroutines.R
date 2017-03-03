@@ -674,10 +674,12 @@ doPCA <- function(map)
         if(any(is.na(map$pcCount))) map$setNComps()
 
         ## Extract the principal component scores:
-        map$pcAux[[linVal]] <-
-            data.frame(map$idCols,
-                       pcaOut$x[ , 1 : map$nComps[ifelse(linVal == "lin", 1, 2)]]
-                       )
+        pcType <- ifelse(linVal == "lin", 1, 2)
+        if(is.null(map$idCols))
+            map$pcAux[[linVal]] <- pcaOut$x[ , 1 : map$nComps[pcType]]
+        else
+            map$pcAux[[linVal]] <-
+                data.frame(map$idCols, pcaOut$x[ , 1 : map$nComps[pcType]])
     } else if(map$pcaMemLev == 1) {
         ## Save memory at the expense of numerical accuracy
         pcaOut <- simplePca(map = map, lv = linVal, scale = TRUE)
@@ -689,21 +691,12 @@ doPCA <- function(map)
     if(linVal == "nonLin") map$data <- "Removed to save resources"
 
     ## Give some informative column names:
-    if(linVal == "lin")
-        colnames(map$pcAux[[linVal]]) <-
-            c(map$idVars,
-              paste0("linPC",
-                     c(1 : map$nComps[ifelse(linVal == "lin", 1, 2)])
-                     )
-              )
-    else
-        colnames(map$pcAux[[linVal]]) <-
-            c(map$idVars,
-              paste0("nonLinPC",
-                     c(1 : map$nComps[ifelse(linVal == "lin", 1, 2)])
-                     )
-              )
-    
+    colnames(map$pcAux[[linVal]]) <-
+        c(map$idVars,
+          paste0(ifelse(linVal == "lin", "linPC", "nonLinPC"),
+                 c(1 : map$nComps[ifelse(linVal == "lin", 1, 2)])
+                 )
+          )    
     if(map$verbose) cat("Complete.\n")
 }# END doPCA()
 

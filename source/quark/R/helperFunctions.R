@@ -278,10 +278,18 @@ simplePca <- function(map, lv, scale = TRUE)
     ## Set component counts when some are defined by variance explained:
     if(any(is.na(map$pcCount))) map$setNComp()
     
-    nc <- ifelse(lv == "lin", 1, 2)
+    nc <- ifelse(lv == "lin", map$nComps[1], map$nComps[2])
     
     ## Compute and save the PcAux scores:
-    map$pcAux[[lv]] <<- as.matrix(map$data) %*% eigenOut$vectors[ , 1 : nc]
+    if(is.null(map$idCols))
+        map$pcAux[[lv]] <- data.frame(
+            as.matrix(map$data) %*% eigenOut$vectors[ , 1 : nc]
+        )
+    else
+        map$pcAux[[lv]] <- data.frame(
+            map$idCols,
+            as.matrix(map$data) %*% eigenOut$vectors[ , 1 : nc]
+        )
 }# END simplePca()
 
 
