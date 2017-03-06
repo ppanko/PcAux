@@ -1,7 +1,7 @@
 ### Title:    QuarkData Simple Accessor and Mutator Definitions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2017-MAR-02
+### Modified: 2017-MAR-06
 ### Note:     These methods are not currently used. The following
 ###           definitions are included mostly for "future-proofing,"
 ###           so that the QuarkData class will still be valid if future
@@ -33,7 +33,7 @@ QuarkData$methods(
     setMaxNetWts    = function(x) { maxNetWts    <<- x                         },
     setForcePmm     = function(x) { forcePmm     <<- x                         },
     setTypeVec      = function(x) { typeVec      <<- x                         },
-    setNComps       = function(x) { nComps       <<- x                         },
+    #setNComps       = function(x) { nComps       <<- x                         },
     setRespCounts   = function(x) { respCounts   <<- x                         },
     setInitialPm    = function(x) { initialPm    <<- x                         },
     setNomVars      = function(x) { nomVars      <<- x                         },
@@ -71,8 +71,8 @@ QuarkData$methods(
     setMiceObject   = function(x) { miceObject   <<- x                         },
     setModerators   = function(x) { moderators   <<- x                         },
     setIntMeth      = function(x) { intMeth      <<- x                         },
-    setPcVarExp     = function(x) { pcVarExp     <<- x                         },
-    setPcCount      = function(x) { pcCount      <<- x                         },
+    #setPcVarExp     = function(x) { pcVarExp     <<- x                         },
+    #setPcCount      = function(x) { pcCount      <<- x                         },
     setIdCols       = function(x) { idCols       <<- x                         },
 
     ## Simple Accessors ##
@@ -123,8 +123,8 @@ QuarkData$methods(
     getMiceObject   = function()  { miceObject                                 },
     getModerators   = function(x) { moderators                                 },
     getIntMeth      = function(x) { intMeth                                    },
-    getPcVarExp     = function(x) { pcVarExp                                   },
-    getPcCount      = function(x) { pcCount                                    },
+    #getPcVarExp     = function(x) { pcVarExp                                   },
+    #getPcCount      = function(x) { pcCount                                    },
     getIdCols       = function(x) { idCols                                     }
 
     )

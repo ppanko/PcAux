@@ -1,7 +1,7 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2017-MAR-01
+### Modified: 2017-MAR-06
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -169,8 +169,9 @@ mergePcAux <- function(quarkData,
         if(any(check)) {# At least one viable ID variable
             
             ## Arbitrarily select an acceptable ID variable to use for matching:
-            useId  <- idVars[check][1]
-            dataId <- rawData[ , useId]
+            useId    <- idVars[check][1]
+            dataId   <- rawData[ , useId]
+            extraIds <- setdiff(idVars, useId)
             
             ## Temporarily cast factor-valued raw data IDs as character:
             check <- class(dataId) == "factor" | class(dataId) == "ordered"
@@ -191,14 +192,16 @@ mergePcAux <- function(quarkData,
             badId <- TRUE
         }
     }
-
+    
     ## Merge the PcAux scores onto the raw data:
-    if(badId) outData <- data.frame(rawData, quarkData$pcAux)
-    else      outData <-
-                  merge(rawData,
-                        merge(quarkData$pcAux$lin, quarkData$pcAux$nonLin),
-                        by = useId)
-    data = outData
+    if(badId) {
+        outData <- data.frame(rawData, quarkData$pcAux)
+    } else      {
+        tmp <- merge(quarkData$pcAux$lin, quarkData$pcAux$nonLin)
+        outData <-
+            merge(rawData, tmp[ , setdiff(colnames(tmp), extraIds)], by = useId)
+    }
+    outData
 }# END mergePcAux()
 
 

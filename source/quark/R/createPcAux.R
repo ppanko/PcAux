@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-01
+### Modified: 2017-MAR-06
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -38,7 +38,7 @@ createPcAux <- function(quarkData,
     if(!simMode) checkInputs(parent = "quark")
 
     ## Add elements to an extant instance of the QuarkData class:
-    quarkData$nComps   <- as.integer(nComps)
+    quarkData$nComps   <- nComps
     quarkData$forcePmm <- forcePmm
     quarkData$intMeth  <- as.integer(interactType)
     quarkData$maxPower <- as.integer(maxPolyPow)
@@ -85,10 +85,15 @@ createPcAux <- function(quarkData,
     }
 
     ## Parse the nComps argument:
-    quarkData$parseNComps()
+    #parseCheck <- any(is.infinite(nComps)) || any(nComps > 0 & nComps < 1)
+    #if(parseCheck) quarkData$parseNComps()
+
+    #print(quarkData$nComps)
+    #print(quarkData$pcVarExp)
+    #print(quarkData$pcCount)
     
     ## Construct interactions from raw variables?
-    if(quarkData$intMeth == 1) quarkData$computeNonLin()
+                                        #if(quarkData$intMeth == 1) quarkData$computeNonLin()
     
     ## Extract the linear principal component scores:
     doPCA(map = quarkData)

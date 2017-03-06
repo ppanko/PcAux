@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-02
+### Modified:     2017-MAR-06
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -613,16 +613,25 @@ meanSubstitute <- function(map, skipList)
 
 doPCA <- function(map)
 {
+    
     ## Are we extracting linear or nonlinear PC scores?
-    if(length(map$pcAux$lin) == 0) {
+    if(length(map$pcAux$lin) == 0) {linVal <- "lin";    pcType <- 1}
+    else                           {linVal <- "nonLin"; pcType <- 2}
+    
+    ## Do we need to parse the nComps argument?
+    parseCheck <- is.infinite(map$nComps[pcType]) |
+        (map$nComps[pcType] < 1 & map$nComps[pcType] > 0)
+    
+    if(linVal == "lin") {
         if(map$verbose)
             cat("\nCalculating linear principal component scores...\n")
-
-        linVal <- "lin"
         
         map$castCatVars() # Cast factor variables to numeric formats
         
-        if(!map$simMode & !is.na(map$pcCount[1])) {
+        ## Construct interactions from raw variables?
+        if(map$intMeth == 1) map$computeInteract()
+        
+        if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than the number
             ## of columns in our data object:
             if(map$nComps[1] > ncol(map$data)) {
@@ -633,8 +642,6 @@ doPCA <- function(map)
     } else {# We already have linear component scores
         if(map$verbose)
             cat("\nCalculating nonlinear principal component scores...\n")
-        
-        linVal <- "nonLin"
         
         ## Redefine the data object:
         if(map$intMeth > 0)  map$data <- map$interact
@@ -650,7 +657,7 @@ doPCA <- function(map)
         map$interact <- "Removed to save resources"
         map$poly     <- "Removed to save resources"
         
-        if(!map$simMode & !is.na(map$pcCount[2])) {
+        if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than
             ## the number of columns in our data object:
             if(map$nComps[2] > ncol(map$data)) {
@@ -659,22 +666,21 @@ doPCA <- function(map)
             }
         }
     }# CLOSE if(length(map$pcAux$lin) == 0)
-    
+
     ## Execute the principal component analysis:
     if(map$pcaMemLev == 0) {
         ## Higher numerical accuracy, but more memory usage
         pcaOut <- prcomp(map$data, scale = TRUE, retx  = TRUE)
-
+       
         ## Save the components' variances and compute variance explained:
         map$rSquared[[linVal]] <- pcaOut$sdev
         map$calcRSquared()
-       
+
         ## Set component counts when some are defined in terms of variance
         ## explained:
-        if(any(is.na(map$pcCount))) map$setNComps()
-
+        if(parseCheck) map$setNComps(type = pcType)
+                
         ## Extract the principal component scores:
-        pcType <- ifelse(linVal == "lin", 1, 2)
         if(is.null(map$idCols))
             map$pcAux[[linVal]] <- pcaOut$x[ , 1 : map$nComps[pcType]]
         else

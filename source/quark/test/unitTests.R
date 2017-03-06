@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for Quark
 ### Author:   Kyle M. Lang
 ### Created:  2015-NOV-01
-### Modified: 2017-MAR-02
+### Modified: 2017-MAR-06
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -23,18 +23,6 @@ rm(list = ls(all = TRUE))
 library(quark)
 library(mvtnorm)
 source("makeTestData.R")
-
-
-## Test:   Don't specify any ID variables
-## Result: Successful Execution
-quarkData <- prepData(rawData  = testData,
-                      nomVars  = c("nom1", "nom2"),
-                      ordVars  = c("ord1", "ord2"),
-                      dropVars = c("y1", "y2", "z2", "id1", "id2")
-                      )
-
-pcAuxOut <- createPcAux(quarkData = quarkData)
-
 
 
 ##### DATA PREP TESTING #####
@@ -148,6 +136,18 @@ quarkData <- prepData(rawData     = testData,
                       groupVars   = c("nom1", "nom2", "ord1"),
                       useParallel = TRUE,
                       nProcess    = 4L)
+
+## Test:   Specify key moderators variables
+## Result: Successful execution
+quarkData <- prepData(rawData    = testData,
+                      moderators = c("x1", "nom1", "ord1"),
+                      nomVars    = c("nom1", "nom2"),
+                      ordVars    = c("ord1", "ord2"),
+                      idVars     = c("id1", "id2"),
+                      dropVars   = c("y1", "y2", "z2"),
+                      groupVars  = c("nom1", "nom2", "ord1")
+                      )
+frozenQuarkData3 <- quarkData$copy()
 
 
 ##### PCAUX CREATION TESTING #####
@@ -309,19 +309,6 @@ pcAuxOut <- createPcAux(quarkData    = tmp,
                         interactType = 0,
                         maxPolyPow   = 1)
 
-
-
-
-
-
-#######################
-#### PICK UP HERE #####
-#######################
-
-
-
-undebug(createPcAux)
-
 ## Test:   Don't specify any ID variables
 ## Result: Successful Execution
 quarkData <- prepData(rawData  = testData,
@@ -329,45 +316,7 @@ quarkData <- prepData(rawData  = testData,
                       ordVars  = c("ord1", "ord2"),
                       dropVars = c("y1", "y2", "z2", "id1", "id2")
                       )
-
-head(quarkData$data)
-
-setdiff(colnames(quarkData$data), quarkData$idVars)
-
-tmp <- head(quarkData$data[ , colnames(quarkData$data)])
-
-class(tmp)
-
-
 pcAuxOut <- createPcAux(quarkData = quarkData)
-
-
-
-
-
-
-
-
-
-x <- data.frame(matrix(rnorm(30), 10, 3))
-y <- x*2
-
-z <- x[ , 1]
-w <- x[ , -1]
-
-class(z)
-class(w)
-
-n <- c("X2", "X3")
-m <- "X1"
-
-tmp <- data.frame(
-    lapply(x[ , n], function(xx, yy) xx * yy, yy = x[ , m])
-)
-
-tmp
-
-data.frame(tmp)
 
 ## Test:   Don't specify any dropped variables
 ## Result: Successful execution
@@ -433,13 +382,93 @@ pcAuxOut  <- createPcAux(quarkData = quarkData)
 
 frozenPcAuxOut8 <- pcAuxOut$copy()
 
+## Test:   Specify interactions among observed variables
+## Result: Successful execution
+tmp      <- frozenQuarkData3$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 1)
+
+## Test:   Specify interactions among observed variables without polynomials
+## Result: Successful execution
+tmp      <- frozenQuarkData3$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        nComps       = c(5, 0),
+                        interactType = 1)
+
+## Test:   Specify interactions between key moderators and PcAux
+## Result: Successful execution
+tmp      <- frozenQuarkData3$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 2)
+
+## Test:   Specify moderators but don't use them
+## Result: Successful execution
+tmp      <- frozenQuarkData3$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3)
+
+## Test:   Specify number of PcAux in terms of variance explained
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(0.5, 0.5)
+                        )
+
+## Test:   Specify number of PcAux in terms of variance explained
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(0.5, 0.5)
+                        )
+
+## Test:   Specify number of PcAux in mixed terms
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(5, 0.5)
+                        )
+
+## Test:   Specify number of PcAux in mixed terms 2
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(0.5, 5)
+                        )
+
+## Test:   Specify number of PcAux with special keyword
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(Inf, Inf)
+                        )
+
+## Test:   Specify number of PcAux in mixed terms 3
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(Inf, 5)
+                        )
+
+## Test:   Specify number of PcAux in mixed terms 4
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(0.75, Inf)
+                        )
 
 ##### IMPUTATION TESTING #####
 
 
 ## Test:   Ordinary usage
 ## Result: Successful execution
-tmp    <- frozenPcAuxOut1$copy()
+tmp   <- frozenPcAuxOut1$copy()
 miOut <- miWithPcAux(rawData   = testData,
                      quarkData = tmp,
                      nImps     = 5L)

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-01
+### Modified:     2017-MAR-06
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -47,7 +47,7 @@ prepData <- function(rawData,
                            seed     = as.integer(mySeed),
                            nProcess = as.integer(nProcess),
                            verbose  = verbose)
-    
+
     quarkData$setCall(match.call(), parent = "prepData")
     
     ## Make sure the control list is fully populated:
@@ -86,10 +86,14 @@ prepData <- function(rawData,
     if(!missCheck(groupVars))  quarkData$groupVars  <- groupVars
     if(!missCheck(nomVars))    quarkData$nomVars    <- nomVars
     if(!missCheck(ordVars))    quarkData$ordVars    <- ordVars
-    if(!missCheck(moderators)) quarkData$moderators <- moderators
+    if(!missCheck(moderators))
+        quarkData$moderators <-
+            list(raw   = moderators,
+                 coded = setdiff(moderators, quarkData$nomVars)
+                 )
     
 ### Pre-process the data ###
-
+    
     ## Cast the variables to their declared types:
     castData(map = quarkData)
 

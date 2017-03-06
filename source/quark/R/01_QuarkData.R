@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-02
+### Modified:     2017-MAR-06
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -78,10 +78,10 @@ QuarkData <- setRefClass("QuarkData",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
                              nProcess     = "integer",
-                             moderators   = "character",
+                             moderators   = "list",
                              intMeth      = "integer",
-                             pcVarExp     = "vector",
-                             pcCount      = "vector",
+                             #pcVarExp     = "vector",
+                             #pcCount      = "vector",
                              idCols       = "ANY"
                          )# END fields
                          )# END QuarkData
@@ -161,10 +161,10 @@ QuarkData$methods(
         miDatasets   = NULL,
         miceObject   = NULL,
         nProcess     = 1L,
-        moderators   = vector("character"),
+        moderators   = list(raw = NULL, coded = NULL),
         intMeth      = 0L,
-        pcVarExp     = c(NA, NA),
-        pcCount      = c(NA, NA),
+        #pcVarExp     = c(NA, NA),
+        #pcCount      = c(NA, NA),
         idCols       = NULL
     )                                                                           {
         "Initialize an object of class QuarkData"
@@ -220,8 +220,8 @@ QuarkData$methods(
         nProcess     <<- nProcess
         moderators   <<- moderators
         intMeth      <<- intMeth
-        pcVarExp     <<- pcVarExp
-        pcCount      <<- pcCount
+        #pcVarExp     <<- pcVarExp
+        #pcCount      <<- pcCount
         idCols       <<- idCols
     },
 
@@ -276,13 +276,14 @@ QuarkData$methods(
         else               methVec[index] <<- x
     },
     
-    setNComps       = function()                                                {
+    setNComps       = function(type)                                            {
         "Set the number of PcAux to extract"
-        tmp <- is.na(pcCount)
-        if(!all(tmp)) nComps[!tmp] <<- pcCount[!tmp]
-        if(any(tmp)) {
-            if(tmp[1]) nComps[1] <<- sum(rSquared$lin < pcVarExp[1]) + 1
-            if(tmp[2]) nComps[2] <<- sum(rSquared$nonLin < pcVarExp[2]) + 1
+        r2 <- rSquared[[type]]
+        if(is.infinite(nComps[type])) {
+            tmp          <-  which(r2[-length(r2)] == r2[-1])
+            nComps[type] <<- ifelse(length(tmp) == 0, length(r2), tmp[1])
+        } else {
+            nComps[type] <<- sum(rSquared[[type]] < nComps[type]) + 1
         }
     },
     
@@ -700,68 +701,41 @@ QuarkData$methods(
     
     computeInteract = function()                                                {
         "Calculate interaction terms"
-        pcNames   <- setdiff(colnames(pcAux$lin), idVars)
-        mIndex    <- which(colnames(data) %in% moderators)
-        intList   <- list()
-        i         <- 0
-        if(intMeth == 1) {# Interact all raw variables with key moderators
-            for(m in mIndex) {
-                i <- i + 1
-                intList[[i]] <- data.frame(
-                    lapply(data[ , -m], function(X, y) X * y, y = data[ , m])
-                )
-                colnames(intList[[i]]) <-
-                    paste0(colnames(data)[-m], "_", colnames(data)[m])
+        if(length(pcAux$lin) > 0) # Do we have linear PcAux?
+            pcNames   <- setdiff(colnames(pcAux$lin), idVars)
+        if(intMeth < 3)           # Interactions involving key moderators
+            mIndex    <- which(colnames(data) %in% moderators$coded)
+        else                      # All observed variables as moderators
+            mIndex <- colnames(data)
+
+        intList <- list()
+        i       <- 0
+        for(m in mIndex) {
+            i <- i + 1
+            if(intMeth == 1) {# Interactions all among observed variables
+                X     <- data[ , -m]
+                y     <- data[ , m]
+                stems <- colnames(data)[-m]
+            } else {          # Interactions involve PcAux
+                X     <- as.matrix(pcAux$lin[ , pcNames])
+                y     <- data[ , m]
+                stems <- pcNames
             }
-            interact <<- data.frame(intList)
-        } else if(intMeth == 2) {# Interact key moderators with linear pcAux
-            for(m in mIndex) {
-                i <- i + 1
-                intList[[i]] <- data.frame(
-                    lapply(pcAux$lin[ , pcNames],
-                           function(X, y) X * y,
-                           y = data[ , m])
-                )
-                colnames(intList[[i]]) <- paste0(pcNames, "_", colnames(data)[m])
-            }
-            interact <<- data.frame(intList)
-            interact <<- data.frame(
-                lapply(interact,
-                       function(y, X) .lm.fit(y = y, x = X)$resid,
-                       x = as.matrix(pcAux$lin[ , pcNames]))
-            )
-        } else if(intMeth == 3) {# Interact all raw variables with linear pcAux
-            for(m in colnames(data)) {
-                i <- i + 1
-                #intList[[i]] <- data.frame(
-                #    lapply(pcAux$lin[ , pcNames],
-                #           function(X, y) X * y,
-                #           y = data[ , m])
-                #)
-                intList[[i]] <- apply(as.matrix(pcAux$lin[ , pcNames]),
-                                      2,
-                                      function(x, y) x * y,
-                                      y = data[ , m]
-                                      )
-                colnames(intList[[i]]) <- paste0(pcNames, "_", m)
-            }
-            interact <<- do.call("cbind", intList)
-            
-            print(pcNames)
-            print("\n")
-            print(head(interact))
-            print("\n")
-            print(head(as.matrix(pcAux$lin[ , pcNames])))
-            print("\nHello")
-            print(head(pcAux$lin))
-            print("\nGoodbye")
-            
-            interact <<- apply(as.matrix(interact),
-                               2,
-                               FUN = function(y, X)
-                                   .lm.fit(y = y, x = as.matrix(X))$resid,
-                               X = pcAux$lin[ , pcNames])
+
+            ## Compute interactiosn terms and give them good names:
+            intList[[i]] <- apply(X, 2, function(x, y) x * y, y = y)
+            colnames(intList[[i]]) <-
+                paste0(stems, "_", ifelse(intMeth == 3, m, colnames(data)[m]))
         }
+        interact <<- do.call("cbind", intList)
+
+        ## If any PcAux are involved, orthogonalize the interaction terms w.r.t.
+        ## the linear PcAux scores:
+        if(intMeth > 1)
+            for(v in 1 : ncol(interact))
+                interact[ , v] <<-
+                    .lm.fit(y = interact[ , v],
+                            x = as.matrix(pcAux$lin[ , pcNames]))$resid
     },
     
     computePoly     = function()                                                {
@@ -771,7 +745,7 @@ QuarkData$methods(
         
         for(p in 2 : maxPower) {# Loop over power levels
             powerVals <- c("square", "cube", "quad")
-
+            
             ## Compute the powered terms and orthogonalize them
             ## w.r.t. their lower-powered counterparts and the linear pcAux:
             poly[[powerVals[p - 1]]] <<- data.frame(
@@ -789,6 +763,7 @@ QuarkData$methods(
                        pc = pcAux$lin[ , pcNames]
                        )       
             )
+            
             ## Give some sensible variable names:
             colnames(poly[[powerVals[p - 1]]]) <<-
                 paste0(colnames(data[ , dataNames]), "_p", p)
@@ -799,31 +774,23 @@ QuarkData$methods(
         "Create nonlinear terms and orthogonalize them"
         if(verbose) cat("\nComputing interaction and polynomial terms...\n")
         
-        if(intMeth > 0)  computeInteract()
+        if(intMeth > 1)  computeInteract()
         if(maxPower > 1) computePoly()
         
         if(verbose) cat("Complete.\n")
     },
     
-    parseNComps     = function()                                                {
-        tmp           <-  grep("max", nComps, ignore = TRUE)
-        pcVarExp[tmp] <<- 1.0
-        
-        ## Explain 100% of linear and nonlinear variance?
-        #if(all(!is.na(pcVarExp))) return(0)
-               
-        tmp           <-  nComps < 1 & nComps > 0
-        pcVarExp[tmp] <<- nComps[tmp]
-        
-        ## All components counts defined in terms of variance explained?
-        #if(all(!is.na(pcVarExp))) return(1)
-        
-        tmp          <-  nComps >= 1 | nComps == 0
-        pcCount[tmp] <<- nComps[tmp]
-        
-        #return(2) # Some component counts give explicitly
-    },
-
+    #parseNComps     = function()                                                {                
+    #    tmp           <-  is.infinite(nComps)
+    #    pcVarExp[tmp] <<- 1.0
+    #    
+    #    tmp           <-  nComps < 1 & nComps > 0
+    #    pcVarExp[tmp] <<- nComps[tmp]
+    #    
+    #    #tmp          <-  is.finite(nComps) & nComps >= 1 | nComps == 0
+    #    #pcCount[tmp] <<- nComps[tmp]
+    #},
+    
     calcRSquared    = function()                                                {
         if(length(pcAux$lin) == 0) lv <- "lin"
         else                       lv <- "nonLin"
@@ -859,6 +826,10 @@ QuarkData$methods(
                     
                     ## Give some meaningful variable names:
                     nameList[[n]] <- paste0(n, "_", levels(data[ , n])[-1])
+                    
+                    ## Store names of any dummy-coded moderators:
+                    if(n %in% moderators$raw)
+                        moderators$coded <<- c(moderators$coded, nameList[[n]])
                 }
                 
                 cn <- setdiff(colnames(data), noms)
