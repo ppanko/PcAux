@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-01
+### Modified: 2017-MAR-07
 ### Purpose:  Use the principal component auxiliaries produced by createPcAux()
 ###           to conduct MI.
 
@@ -37,41 +37,40 @@ miWithPcAux <- function(rawData,
                         verbose        = !simMode,
                         control)
 {
-    quarkData$setCall(match.call(), parent = "rom")
+    quarkData$setCall(match.call(), parent = "miWithPcAux")
     
     ## Get variable types:
-    if(!missCheck(nomVars)) quarkData$nomVars <- nomVars
-    else                    nomVars           <- quarkData$nomVars
-    
-    if(!missCheck(ordVars)) quarkData$ordVars <- ordVars
-    else                    ordVars           <- quarkData$ordVars
-    
-    if(!missCheck(idVars)) quarkData$idVars <- idVars
-    else                   idVars           <- quarkData$idVars
-    
+    if(!missCheck(nomVars)) {
+        quarkData$nomVars        <- nomVars
+        quarkData$dropVars[ , 1] <- setdiff(quarkData$dropVars[ , 1], nomVars)
+    }
+    if(!missCheck(ordVars)) {
+        quarkData$ordVars        <- ordVars
+        quarkData$dropVars[ , 1] <- setdiff(quarkData$dropVars[ , 1], ordVars)
+    }
+    if(!missCheck(idVars)) {
+        quarkData$idVars         <- idVars
+        quarkData$dropVars[ , 1] <- setdiff(quarkData$dropVars[ , 1], idVars)
+    }
     if(length(dropVars) == 1 && dropVars == "useExtant") {
         tmp <- quarkData$dropVars[quarkData$dropVars[ , 2] == "user_defined", ]
         if(class(tmp) != "matrix") tmp <- matrix(tmp, 1, 2)
         quarkData$dropVars <- tmp
-        if(tmp[1, 1] == "NONE_DEFINED") {
-            dropVars <- NULL
-        } else {
-            dropVars <- tmp[ , 1]
-        }
     } else if(!missCheck(dropVars)) {
         quarkData$dropVars <- cbind(dropVars, "user_defined")
+        quarkData$nomVars  <- setdiff(quarkData$nomVars, dropVars)
+        quarkData$ordVars  <- setdiff(quarkData$ordVars, dropVars)
+        quarkData$idVars   <- setdiff(quarkData$idVars, dropVars)
     } else {
         quarkData$dropVars <- cbind("NONE_DEFINED", "user_defined")
-        dropVars <- NULL
     }
 
     ## Check inputs' validity:
-    checkInputs(parent = "rom")
+    checkInputs(parent = "miWithPcAux")
     
     ## Combine the principal component auxiliaries with the raw data:
-    mergeOut <- mergePcAux(quarkData = quarkData,
-                           rawData   = rawData,
-                           nComps    = nComps)
+    mergeOut <-
+        mergePcAux(quarkData = quarkData, rawData = rawData, nComps = nComps)
     
     ## Populate new fields in the extant QuarkData object:
     quarkData$data       <- mergeOut
@@ -81,40 +80,20 @@ miWithPcAux <- function(rawData,
     quarkData$compFormat <- completeFormat
     quarkData$forcePmm   <- forcePmm
     quarkData$verbose    <- verbose
-    
-    ## Make sure the control list is fully populated:
-    #conDefault <- list(miceRidge    = 1e-5,
-    #                   minRespCount = as.integer(floor(0.05 * nrow(rawData))),
-    #                   maxNetWts    = 10000L,
-    #                   nomMaxLev    = 10L,
-    #                   ordMaxLev    = 10L,
-    #                   conMinLev    = 10L)
-    
-    if(!missCheck(control)) quarkData$setControl(x = control)
-    #} else {
-    #    for( i in names(conDefault) ) {
-    #        if( i %in% names(control) ) {
-    #            conDefault[[i]] <- control[[i]]
-    #        }
-    #    }
-    #    quarkData$setControl(conDefault, parent = "rom")
-    #}
-    #rm(conDefault)
 
-    #print(head(quarkData$data))
+    ## Make sure the control list is fully populated:
+    if(!missCheck(control)) quarkData$setControl(x = control)
     
     ## Cast the variables to their appropriate types:
     castData(map = quarkData, doingQuark = FALSE)
     
-    if(!simMode)
-        ## Check and clean the data:
-        cleanData(map = quarkData, doingQuark = FALSE)
-
+    ## Check and clean the data:
+    if(!simMode) cleanData(map = quarkData, doingQuark = FALSE)
+    
     ## Check for and treat any single nominal variables that are missing
     ## only one datum
-    singleMissNom <- with(quarkData,
-                          (nrow(data) - respCounts == 1) &
-                              (typeVec == "binary" | typeVec == "nominal")
+    singleMissNom <- with(quarkData, (nrow(data) - respCounts == 1) &
+                                     (typeVec == "binary" | typeVec == "nominal")
                           )
     if(any(singleMissNom))
         quarkData$fillNomCell(colnames(quarkData$data[singleMissNom]))
@@ -123,9 +102,8 @@ miWithPcAux <- function(rawData,
     
     ## Construct a predictor matrix for mice():
     if(verbose) cat("--Constructing predictor matrix...")
-    predMat <- makePredMatrix(quarkData$data,
-                              quarkData$nComps[1],
-                              quarkData$nComps[2])
+    predMat <-
+        makePredMatrix(quarkData$data, quarkData$nComps[1], quarkData$nComps[2])
     if(verbose) cat("done.\n")
     
     ## Specify a vector of elementary imputation methods:
@@ -165,10 +143,10 @@ miWithPcAux <- function(rawData,
         clusterEvalQ(myCluster, library(mice))
         
         quarkData$miDatasets <- parLapply(myCluster,
-                                         X       = c(1 : nImps),
-                                         fun     = parallelMice,
-                                         predMat = predMat,
-                                         map     = quarkData)
+                                          X       = c(1 : nImps),
+                                          fun     = parallelMice,
+                                          predMat = predMat,
+                                          map     = quarkData)
         
         stopCluster(myCluster)
         

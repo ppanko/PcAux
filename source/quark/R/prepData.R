@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-06
+### Modified:     2017-MAR-07
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -51,41 +51,19 @@ prepData <- function(rawData,
     quarkData$setCall(match.call(), parent = "prepData")
     
     ## Make sure the control list is fully populated:
-    #conDefault <- list(miceIters    = 10L,
-    #                   miceRidge    = 1e-5,
-    #                   collinThresh = 0.95,
-    #                   minRespCount = as.integer(
-    #                       floor(0.05 * nrow(rawData))
-    #                   ),
-    #                   minPredCor   = 0.1,
-    #                   maxNetWts    = 10000L,
-    #                   nomMaxLev    = 10L,
-    #                   ordMaxLev    = 10L,
-    #                   conMinLev    = 10L,
-    #                   nGVarCats    = 3L)
-    
     if(!missCheck(control)) quarkData$setControl(x = control)
-    #} else {
-    #    for( i in names(conDefault) ) {
-    #        if( i %in% names(control) ) {
-    #            conDefault[[i]] <- control[[i]]
-    #        }
-    #    }
-    #    quarkData$setControl(conDefault)
-    #}
-    #rm(conDefault)
-
-    ## Check for special variable arguments and fill the
-    ## appropriate slots in the quarkData object:
+    
+    ## Check for special variable arguments and fill the appropriate slots in the
+    ## quarkData object:
     if(!missCheck(idVars)) {
         quarkData$idVars <- idVars
         quarkData$idCols <- as.data.frame(quarkData$data[ , idVars])
         quarkData$data   <-
             quarkData$data[ , setdiff(colnames(quarkData$data), idVars)]
     }
-    if(!missCheck(groupVars))  quarkData$groupVars  <- groupVars
-    if(!missCheck(nomVars))    quarkData$nomVars    <- nomVars
-    if(!missCheck(ordVars))    quarkData$ordVars    <- ordVars
+    if(!missCheck(groupVars))  quarkData$groupVars <- groupVars
+    if(!missCheck(nomVars))    quarkData$nomVars   <- nomVars
+    if(!missCheck(ordVars))    quarkData$ordVars   <- ordVars
     if(!missCheck(moderators))
         quarkData$moderators <-
             list(raw   = moderators,

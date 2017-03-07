@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-06
+### Modified:     2017-MAR-07
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -80,8 +80,6 @@ QuarkData <- setRefClass("QuarkData",
                              nProcess     = "integer",
                              moderators   = "list",
                              intMeth      = "integer",
-                             #pcVarExp     = "vector",
-                             #pcCount      = "vector",
                              idCols       = "ANY"
                          )# END fields
                          )# END QuarkData
@@ -163,8 +161,6 @@ QuarkData$methods(
         nProcess     = 1L,
         moderators   = list(raw = NULL, coded = NULL),
         intMeth      = 0L,
-        #pcVarExp     = c(NA, NA),
-        #pcCount      = c(NA, NA),
         idCols       = NULL
     )                                                                           {
         "Initialize an object of class QuarkData"
@@ -220,17 +216,15 @@ QuarkData$methods(
         nProcess     <<- nProcess
         moderators   <<- moderators
         intMeth      <<- intMeth
-        #pcVarExp     <<- pcVarExp
-        #pcCount      <<- pcCount
         idCols       <<- idCols
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
     setCall         = function(x, parent)                                       {
-        if     (parent == "prepData") call[[1]] <<- x
-        else if(parent == "quark"   ) call[[2]] <<- x
-        else if(parent == "rom"     ) call[[3]] <<- x
-        else                          stop("Invalid 'parent' argument.")
+        if     (parent == "prepData"        ) call[[1]] <<- x
+        else if(parent == "createPcAux"     ) call[[2]] <<- x
+        else if(parent == "miWithPcAux"     ) call[[3]] <<- x
+        else                                  stop("Invalid 'parent' argument.")
     },
 
     setPoly         = function(x, power = NULL)                                 {
@@ -279,16 +273,19 @@ QuarkData$methods(
     setNComps       = function(type)                                            {
         "Set the number of PcAux to extract"
         r2 <- rSquared[[type]]
-        if(is.infinite(nComps[type])) {
+        nc <- nComps[type]
+        if(is.infinite(nc)) {
             tmp          <-  which(r2[-length(r2)] == r2[-1])
             nComps[type] <<- ifelse(length(tmp) == 0, length(r2), tmp[1])
+        } else if(nc < 1 & nc > 0) {
+            nComps[type] <<- sum(r2 < nc) + 1
         } else {
-            nComps[type] <<- sum(rSquared[[type]] < nComps[type]) + 1
+            nComps[type] <<- length(r2)
         }
     },
     
     ##------------------------- "Overloaded" Accessors ------------------------##
-
+    
     getPoly         = function(power = NULL)                                    {
         "Retrieve the polynomial expansions of 'data'"
         if(is.null(power)) return(poly         )
@@ -648,8 +645,8 @@ QuarkData$methods(
         gVarCheck <- any(typeVec[groupVars] == "continuous")
         if(gVarCheck) binGroupVars()
 
-        ## 'patterns' list a list of vectors made up of
-        ## cross-tabulated grouping variables:
+        ## 'patterns' list a list of vectors made up of cross-tabulated grouping
+        ## variables:
         patterns <<-
             lapply(c(length(groupVars) : 2),
                    FUN = function(x, data) {
@@ -746,8 +743,8 @@ QuarkData$methods(
         for(p in 2 : maxPower) {# Loop over power levels
             powerVals <- c("square", "cube", "quad")
             
-            ## Compute the powered terms and orthogonalize them
-            ## w.r.t. their lower-powered counterparts and the linear pcAux:
+            ## Compute the powered terms and orthogonalize them w.r.t. their
+            ## lower-powered counterparts and the linear pcAux:
             poly[[powerVals[p - 1]]] <<- data.frame(
                 lapply(data[ , dataNames],
                        FUN = function(dv, p, pc)
@@ -780,18 +777,8 @@ QuarkData$methods(
         if(verbose) cat("Complete.\n")
     },
     
-    #parseNComps     = function()                                                {                
-    #    tmp           <-  is.infinite(nComps)
-    #    pcVarExp[tmp] <<- 1.0
-    #    
-    #    tmp           <-  nComps < 1 & nComps > 0
-    #    pcVarExp[tmp] <<- nComps[tmp]
-    #    
-    #    #tmp          <-  is.finite(nComps) & nComps >= 1 | nComps == 0
-    #    #pcCount[tmp] <<- nComps[tmp]
-    #},
-    
     calcRSquared    = function()                                                {
+        "Compute the proportion of variance explained by PcAux"
         if(length(pcAux$lin) == 0) lv <- "lin"
         else                       lv <- "nonLin"
         
@@ -816,13 +803,9 @@ QuarkData$methods(
                     ## Remove empty factor levels:
                     missLevels <- setdiff(levels(data[ , n]), unique(data[ , n]))
                     levels(data[ , n])[levels(data[ , n]) %in% missLevels] <<- NA
-                    
-                    ## Dummy code factor:
-                    #if(length(levels(data[ , n])) == 2)
-                       # dumList[[n]] <-
-                       #     as.numeric(data[ , n] == levels(data[ , n])[2])
-                    #else
-                        dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
+
+                    ## Create dummy codes:
+                    dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
                     
                     ## Give some meaningful variable names:
                     nameList[[n]] <- paste0(n, "_", levels(data[ , n])[-1])
@@ -852,4 +835,4 @@ QuarkData$methods(
         }
     }
     
-    )# END QuarkData$methods()
+)# END QuarkData$methods()

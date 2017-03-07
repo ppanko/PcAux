@@ -1,7 +1,7 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2017-MAR-06
+### Modified: 2017-MAR-07
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -60,34 +60,34 @@ copy of the Program in return for a fee.
 
 ### Merge the Principal Component Auxiliaries with the raw data from which they
 ### were created:
-mergePcAux <- function(quarkData,
-                       rawData,
-                       nComps  = NULL,
-                       verbose = TRUE)
+mergePcAux <- function(quarkData, rawData, nComps = NULL, verbose = TRUE)
 {
     idVars <- quarkData$idVars
+    varExp <- c(NA, NA)
     
-    ## If no explicit number of components is defined, use all available:
     if(missCheck(nComps)) {
+        ## If no explicit number of components is defined, use all available:
         nComps <- quarkData$nComps
-    } else {# Ascertain the number of components to use
-        tmp         <- grep("max", nComps, ignore.case = TRUE)
-        varExp[tmp] <- 1.0
-        
-        if(any(is.na(varExp))) {
-            tmp         <- nComps < 1
-            varExp[tmp] <- nComps[tmp]
+    } else {
+        ## Ascertain the number of components to use:
+        for(i in c(1, 2)) {
+            r2 <- quarkData$rSquared[[i]]
+            nc <- nComps[i]
+            if(is.infinite(nc)) {
+                tmp       <-  which(r2[-length(r2)] == r2[-1])
+                nComps[i] <- ifelse(length(tmp) == 0, length(r2), tmp[1])
+            } else if(nc < 1 & nc > 0) {
+                varExp[i] <- nComps[i]
+                nComps[i] <- sum(r2 < nc) + 1
+            } else if(nc < 0) {
+                nComps[i] <- length(r2)
+            }
         }
         
-        if(!is.na(varExp[1])) nComps[1] <-
-                                  sum(quarkData$rSquared$lin < varExp[1]) + 1
-        if(!is.na(varExp[2])) nComps[2] <-
-                                  sum(quarkData$rSquared$nonLin < varExp[2]) + 1
-
         ## Must use at least 1 linear PcAux
         check <- nComps[1] == 0
         if(check) errFun("noLinPc", doingQuark = FALSE)
-
+        
         ## Make sure non-linear PcAux are available, if requested
         check <- quarkData$nComps[2] == 0 & nComps[2] > 0
         if(check) errFun("missingNonLinPc")
@@ -103,23 +103,19 @@ mergePcAux <- function(quarkData,
                            ifelse(nComps[1] > 1,
                                   "scores explain ",
                                   "score explains "),
-                           round(quarkData$rSquared$lin[nComps[1]], 3),
-                           " of the variance in 'rawData.'")
+                           round(100 * quarkData$rSquared$lin[nComps[1]]),
+                           "% of the variance in 'rawData.'")
                 )
             }
         } else {
             if(is.na(varExp[1])) # Argument -> Component counts
-                errFun("fewLinPcAux",
-                       quarkData = quarkData,
-                       nComps    = nComps)
-            else # Argument -> Variance explained
-                errFun("linPcAuxVarExp",
-                       quarkData = quarkData,
-                       varExp    = varExp)    
+                errFun("fewLinPcAux", quarkData = quarkData, nComps = nComps)
+            else                 # Argument -> Variance explained
+                errFun("linVarExp", quarkData = quarkData, varExp = varExp)    
         }
         
         ## Requesting a legal number of non-linear components?
-        check <- nComps[2] > 0 & nComps[2] <= quarkData$nComps[2]
+        check <- nComps[2] <= quarkData$nComps[2]
         if(check) {
             if(verbose) {# How much variance is explained?
                 print(
@@ -129,20 +125,16 @@ mergePcAux <- function(quarkData,
                            ifelse(nComps[2] > 1,
                                   "scores explain ",
                                   "score explains "),
-                           round(quarkData$rSquared$nonLin[nComps[2]], 3),
-                           " of the variance in the nonlinear ",
+                           round(100 * quarkData$rSquared$nonLin[nComps[2]]),
+                           "% of the variance in the nonlinear ",
                            "expansion of 'rawData.'")
                 )
             }
         } else {
-            if(is.na(varExp[1])) # Argument -> Component counts
-                errFun("fewNonLinPcAux",
-                       quarkData = quarkData,
-                       nComps    = nComps)
-            else # Argument -> Variance explained
-                errFun("nonLinPcAuxVarExp",
-                       quarkData = quarkData,
-                       varExp    = varExp)    
+            if(is.na(varExp[2])) # Argument -> Component counts
+                errFun("fewNonLinPcAux", quarkData = quarkData, nComps = nComps)
+            else                 # Argument -> Variance explained
+                errFun("nonLinVarExp", quarkData = quarkData, varExp = varExp)    
         }
     }# CLOSE if(missCheck(nComps))
 
@@ -195,7 +187,8 @@ mergePcAux <- function(quarkData,
     
     ## Merge the PcAux scores onto the raw data:
     if(badId) {
-        outData <- data.frame(rawData, quarkData$pcAux)
+        outData <-
+            data.frame(rawData, quarkData$pcAux$lin, quarkData$pcAux$nonLin)
     } else      {
         tmp <- merge(quarkData$pcAux$lin, quarkData$pcAux$nonLin)
         outData <-
@@ -210,9 +203,7 @@ mergePcAux <- function(quarkData,
 ### Make a predictor matrix suitable for use by mice() that designated subset of
 ### the principle component auxiliaries produced by quark() as the imputation
 ### model predictors:
-makePredMatrix <- function(mergedData,
-                           nLinear    = NULL,
-                           nNonLinear = NULL)
+makePredMatrix <- function(mergedData, nLinear = NULL, nNonLinear = NULL)
 {
     if(missCheck(nLinear))
         nLinear <- length(grep("linPC", colnames(mergedData)))

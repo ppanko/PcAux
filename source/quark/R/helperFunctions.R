@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-02
+### Modified: 2017-MAR-07
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -493,14 +493,14 @@ errFun <- function(type, ...)
                           "correspond to variables that do ",
                           "not exist in the data object.\n",
                           "The problematic variables are: ",
-                          toString(x$varNames[x$checkVec]),
+                          toString(x$varNames[x$check]),
                           ".\n"),
                dropVarOverlap =
                    paste0("The set of variable names supplied ",
                           "for the 'dropVars' argument overlaps ",
                           "with the variable names supplied for other ",
                           "arguments.\nThe problematic variables are: ",
-                          toString(unique(x$varNames2[x$checkVec2])),
+                          toString(unique(x$varNames[x$check])),
                           ".\nPlease ensure that 'dropVars' and ",
                           "c('idVars', 'nomVars', 'ordVars', 'groupVars') ",
                           "are disjoint sets.\n"),
@@ -515,7 +515,7 @@ errFun <- function(type, ...)
                           "for the 'idVars' argument overlaps ",
                           "with the variable names supplied for other ",
                           "arguments.\nThe problematic variables are: ",
-                          toString(unique(x$varNames3[x$checkVec3])),
+                          toString(unique(x$varNames[x$check])),
                           ".\nPlease ensure that 'idVars' and ",
                           tmpVec,
                           "are disjoint sets.\n")
@@ -543,7 +543,7 @@ errFun <- function(type, ...)
                           "does not contain any non-linear principal ",
                           "component scores.\n Please adjust your ",
                           "analysis accordingly.\n"),
-               linPcAuxVarExp =
+               linVarExp =
                    paste0("The number of available linear ",
                           "component scores (i.e., ",
                           x$quarkData$nComps[1],
@@ -561,7 +561,7 @@ errFun <- function(type, ...)
                           "scores available in 'quarkData' (i.e., ",
                           x$quarkData$nComps[1],
                           ").\nPlease adjust your analysis accordingly.\n"),
-               nonLinPcAuxVarExp =
+               nonLinVarExp =
                    paste0("The number of available non-linear ",
                           "component scores (i.e., ",
                           x$quarkData$nComps[2],

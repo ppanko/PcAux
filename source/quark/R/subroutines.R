@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-06
+### Modified:     2017-MAR-07
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -20,21 +20,19 @@
 ### along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-checkInputs <- function(parent)
-{
-
+checkInputs <- function(parent) {
     ## Get access to objects defined in quark():
     env <- parent.frame()
     if(env$verbose) cat("\nChecking inputs' validity...\n")
 
     if(parent == "prepData") {
         ## Check the data object:
-        if( missCheck(env$rawData) ) {
+        if(missCheck(env$rawData)) {
             errFun("noData")
         } else {
             ## Make sure the data object is a data.frame:
-            if( !is.data.frame(env$rawData) ) {
-                if( is.matrix(env$rawData) ) {
+            if(!is.data.frame(env$rawData)) {
+                if(is.matrix(env$rawData)) {
                     env$rawData <- as.data.frame(env$rawData)
                 } else {
                     errFun("badDataType")
@@ -43,33 +41,29 @@ checkInputs <- function(parent)
         }
         ## Check the existance of all designated variables:
         varNames <- with(env, c(idVars, nomVars, ordVars, groupVars, dropVars))
-        checkVec <- !varNames %in% colnames(env$rawData)
-        if(any(checkVec)) {
-            errFun("missingVars",
-                   varNames = varNames,
-                   checkVec = checkVec)
-        }
-        ## Check for a non-empty intersection between
-        ## 'dropVars' and the other arguments:
-        varNames2 <- with(env, c(idVars, nomVars, ordVars, groupVars))
-        checkVec2 <- varNames2 %in% env$dropVars
-        if(any(checkVec2))
-            errFun("dropVarOverlap",
-                   varNames2 = varNames2,
-                   checkVec2 = checkVec2)
+        check    <- !varNames %in% colnames(env$rawData)
+        if(any(check))
+            errFun("missingVars", varNames = varNames, check = check)
+        
+        ## Check for a non-empty intersection between 'dropVars' and the other
+        ## arguments:
+        varNames <- with(env, c(idVars, nomVars, ordVars, groupVars))
+        check    <- varNames %in% env$dropVars
+        if(any(check))
+            errFun("dropVarOverlap", varNames = varNames, check = check)
 
-        ## Check for a non-empty intersection between
-        ## 'idVars' and the other arguments:
-        varNames3 <- with(env, c(nomVars, ordVars, groupVars, dropVars))
-        checkVec3 <- varNames3 %in% env$idVars
-        if(any(checkVec3))
+        ## Check for a non-empty intersection between 'idVars' and the other
+        ## arguments:
+        varNames <- with(env, c(nomVars, ordVars, groupVars, dropVars))
+        check    <- varNames %in% env$idVars
+        if(any(check))
             errFun("idOverlap",
-                   varNames3 = varNames3,
-                   checkVec3 = checkVec3,
+                   varNames   = varNames,
+                   check      = check,
                    doingQuark = TRUE)
     }
 
-    if(parent == "quark") {
+    if(parent == "createPcAux") {
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
@@ -83,43 +77,39 @@ checkInputs <- function(parent)
         if(checkVal) errFun("nonLinOptionClash", nNonLinear = env$nComps[2])
     }
 
-    if(parent == "rom") {
+    if(parent == "miWithPcAux") {
         ## Check the existance of all designated variables:
-        varNames <- with(env, c(idVars, nomVars, ordVars, dropVars))
+        varNames <-
+            with(env$quarkData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
+        
         varNames <- setdiff(varNames, "NONE_DEFINED")
-        checkVec <- !varNames %in% colnames(env$rawData)
-        if(any(checkVec))
-            errFun("missingVars",
-                   varNames = varNames,
-                   checkVec = checkVec)
-
-        ## Check for a non-empty intersection between
-        ## 'dropVars' and the other arguments:
-        varNames2 <- with(env, c(idVars, nomVars, ordVars))
-        checkVec2 <- varNames2 %in% env$dropVars
-        if(any(checkVec2))
-            errFun("dropVarOverlap",
-                   varNames2 = varNames2,
-                   checkVec2 = checkVec2)
-
-        ## Check for a non-empty intersection between
-        ## 'idVars' and the other arguments:
-        varNames3 <- with(env, c(nomVars, ordVars, dropVars))
-        checkVec3 <- varNames3 %in% env$idVars
-        if(any(checkVec3))
+        check    <- !varNames %in% colnames(env$rawData)
+        if(any(check))
+            errFun("missingVars", varNames = varNames, check = check)
+        
+        ## Check for a non-empty intersection between newly specified 'dropVars'
+        ## and the other newly specified arguments:
+        varNames <- with(env, c(idVars, nomVars, ordVars))
+        check    <- varNames %in% env$dropVars
+        if(length(check) > 0 && any(check))
+            errFun("dropVarOverlap", varNames = varNames, check = check)
+        
+        ## Check for a non-empty intersection between 'idVars' and the other
+        ## arguments:
+        varNames <- with(env$quarkData, c(nomVars, ordVars, dropVars))
+        check    <- varNames %in% env$quarkData$idVars
+        if(any(check))
             errFun("idOverlap",
-                   varNames3  = varNames3,
-                   checkVec3  = checkVec3,
+                   varNames   = varNames,
+                   check      = check,
                    doingQuark = FALSE)
     }
     if(env$verbose) cat("Complete.\n")
 }# END checkInputs()
 
 
-
 ## Check input formatting and cast variables to declared types:
-castData <- function(map, doingQuark = TRUE)
-{
+castData <- function(map, doingQuark = TRUE) {
     if(map$verbose) cat("\nChecking data and information provided...\n")
 
     nVars <- ncol(map$data)
@@ -190,7 +180,7 @@ castData <- function(map, doingQuark = TRUE)
                 cat("\nAs you wish.\n")
             }
         }
-
+        
     }# CLOSE if(confirmTypes)
 
     if(map$verbose) cat("Complete.\n")
@@ -198,10 +188,9 @@ castData <- function(map, doingQuark = TRUE)
 
 
 
-## Find and (possibly) remove problematic data columns
-## i.e., variables with few or no observations and constants:
-cleanData <- function(map, doingQuark = TRUE)
-{
+## Find and (possibly) remove problematic data columns (i.e., variables with few
+## or no observations and constants):
+cleanData <- function(map, doingQuark = TRUE) {
     if(map$verbose)
         cat("\nFinding and addressing problematic data columns...\n")
 
@@ -264,19 +253,17 @@ cleanData <- function(map, doingQuark = TRUE)
     }
 
     if(haveEmptyVars) warnFun("emptyVars", map)
-
-    if(haveConstCols) warnFun(ifelse(doingQuark,
-                                     "quarkConstCols",
-                                     "romConstCols"), map)
-
+    
+    if(haveConstCols)
+        warnFun(ifelse(doingQuark, "quarkConstCols", "romConstCols"), map)
+    
     if(map$verbose) cat("Complete.\n")
 }# END cleanData()
 
 
 
 ## Flag variables with perfect bivariate correlations (within some epsilon):
-findCollin <- function(map)
-{
+findCollin <- function(map) {
     if(map$verbose) cat("\nExamining data for collinear relationships...\n")
     
     ## Get all unique variable pairings:
@@ -321,27 +308,24 @@ findCollin <- function(map)
 
 
 ## Do the initial single imputation:
-doSingleImputation <- function(map, ...)
-{
+doSingleImputation <- function(map) {
     if(map$verbose) cat("\nDoing initial, single imputation...\n")
-
-    extraArgs <- list(...)
-    ## Prepare for debugging checks when extra arguments are supplied
-    if(length(extraArgs) > 0) prepImpChecks()
-    skipList      <- createSkipFlags(...)
-    skipFirstPass <- map$forcePmm | skipList$firstPass
-
-    if(!skipFirstPass) {
-        ## Construct a design matrix of predictors:
-        if(map$verbose) cat("--Constructing predictor matrix...")
-        predMat <- makePredMat(map = map)
-        if(map$verbose) cat("done.\n")
-
+    if(map$verbose & map$forcePmm) cat("PMM forced by user.\n")
+    
+    ## Construct a design matrix of predictors:
+    if(map$verbose) cat("--Constructing predictor matrix...")
+    predMat <- makePredMat(map = map)
+    if(map$verbose) cat("done.\n")
+    
+    passCount <- ifelse(map$forcePmm, 1, 0)
+    while(passCount < 2) {
+        passCount <- passCount + 1
+        
         ## Specify a vector of elementary imputation methods:
         if(map$verbose) cat("--Creating method vector...")
         map$createMethVec()
         if(map$verbose) cat("done.\n")
-
+        
         ## Initially fill-in the data with a single imputation:
         if(map$verbose) cat("--Filling missing values...")
         map$data <- try(
@@ -356,126 +340,75 @@ doSingleImputation <- function(map, ...)
                  ridge           = map$miceRidge),
             silent = TRUE)
         if(map$verbose) cat("done.\n")
-
-        rm(predMat)
-    }# CLOSE if(!skipFirstPass)
-
-    if(class(map$data) != "try-error") {# mice() didn't crash
-        ## Fill missing values with the imputations
-        if(!skipFirstPass) map$data <- complete(map$data)
-
+        
+        if(class(map$data) != "try-error") # mice() didn't crash
+            ## Fill missing values with the imputations
+            map$data <- complete(map$data)
+        else
+            errFun("miceCrash", map = map)
+        
         ## Check for any remaining missing data:
         ## NOTE: map$respCounts now contains counts of missing data
         map$countResponses(countMissing = TRUE)
-
-### If there are any more missing data, try to fill
-### them through more robust imputation schemes:
-
-        if( any(map$respCounts > 0) ) {# Any more missing data?
-
-            ## Store names of un-imputed variables:
-            if(map$forcePmm) badImps <- "Skipped by User"
-            else             badImps <- colnames(map$data)[map$respCounts > 0]
-
-            map$updateImpFails(x = badImps, type = "firstPass")
-
-            if(map$forcePmm) {
-                if(map$verbose) cat("PMM forced by user.\n")
-            } else {
-                warnFun("firstImpFail", map)
-            }
-
-            if(skipFirstPass) {
-                if(map$verbose) cat("--Constructing predictor matrix...")
-                predMat <- makePredMat(map = map)
-                if(map$verbose) cat("done.\n")
-            }
-
-            ## Create a new method vector:
-            if(map$verbose) cat("--Creating method vector...")
-            if(map$forcePmm) {
-                map$createMethVec()
-            } else {
-                map$methVec <- rep("", ncol(map$data))
-                map$setMethVec(x = "pmm", index = map$respCounts > 0)
-            }
-            if(map$verbose) cat("done.\n")
-
-            ## Try mice() with PMM:
-            if(map$verbose) cat("--Filling missing values...")
-            map$data <- try(
-                mice(data            = map$data,
-                     maxit           = map$miceIters,
-                     m               = 1L,
-                     predictorMatrix = predMat,
-                     method          = map$methVec,
-                     printFlag       = FALSE,
-                     seed            = map$seed,
-                     nnet.MaxNWts    = map$maxNetWts,
-                     ridge           = map$miceRidge),
-                silent = TRUE)
-            if(map$verbose) cat("done.\n")
-
-            rm(predMat)
-
-            if(class(map$data) != "try-error") {# mice() didn't crash
-                map$data <- complete(map$data)# Fill the missing values
-
-                ## Undo the PMM-based imputation to check mean substitution:
-                if(skipList$pmm) undoImputation()
-
-                ## Check again for any remaining missing data:
-                map$countResponses(countMissing = TRUE)
-
-                if( any(map$respCounts > 0) ) {# Any more missing data?
-                    ## Store the names of un-imputed variables:
-                    map$updateImpFails(colnames(map$data)[map$respCounts > 0],
-                                       type = "pmm")
-                    warnFun("pmmFail", map)
-
-                    ## Try Group-Mean / Global-Mean Substitution:
-                    meanSubstitute(map, skipList = skipList)
-                }# CLOSE if( any(map$respCounts > 0) )
-
-            } else {# mice:pmm() has crashed
-                errFun("pmmCrash", map = map)
-            }
-
-        } else {# All is well :)
+        
+        if(all(map$respCounts == 0)) {# All is well :)
+            passCount <- 2
             if(map$verbose)
                 cat("All variable successfully imputed in first pass.\n")
-        } # CLOSE if( any(map$respCounts > 0) )
+            return(0)
+        } else {
+            ## Store names of un-imputed variables:
+            map$updateImpFails(x    = colnames(map$data)[map$respCounts > 0],
+                               type = switch(passCount, "firstPass", "pmm")
+                               )
+            warnFun(switch(passCount, "firstImpFail", "pmmFail"), map)
+        }
+    }# CLOSE while(passCount < 2)
+    
+    rm(predMat)
+    
+    ## If there are any more missing data, fill them through mean substitution:
+    meanSubstitute(map)
 
-    } else {# First-pass mice() has crashed
-        errFun("miceCrash", map = map)
-    }
-
+    ## Do a final check for remaining missing values:
+    map$countResponses(countMissing = TRUE)
+    
+    if(any(map$respCounts > 0)) {
+        ## If any missingness remains exclude the incomplete columns:
+        map$updateImpFails(
+                colnames(map$data)[map$respCounts > 0], type = "grandMean"
+            )
+        warnFun("grandMeanFail", map)
+        
+        map$removeVars(x      = colnames(map$data)[map$respCounts > 0],
+                       reason = "imp_fail")
+    }# CLOSE if( any(map$respCounts > 0) )
+    
     if(map$verbose) cat("Complete.\n")
 }# END doSingleImputation()
 
-
-
+     
+  
 ## Implement group-mean substitution:
-doGroupMeanSub <- function(map)
-{
+doGroupMeanSub <- function(map) {
     ## Construct the grouping patterns:
     map$createPatterns()
 
     for(j in 1 : 2) {
         if(j == 2) {
-            ## If the initial group-mean substition isn't fully
-            ## successful reverse the order of the grouping
-            ## variables and recreate the patterns
+            ## If the initial group-mean substition isn't fully successful,
+            ## reverse the order of the grouping variables and recreate the
+            ## patterns
             map$groupVars <- rev(map$groupVars)
             map$createPatterns()
         }
 
-        for( i in 1 : length(map$patterns) ) {
+        for(i in 1 : length(map$patterns)) {
             ## Find the unique grouping patterns
             patLevels <- unique(map$patterns[[i]])
 
             ## Fill the missing data with approprite group means:
-            if(sum(map$respCounts > 0) > 1) {
+            if(sum(map$respCounts > 0) > 1) 
                 map$data[ , map$respCounts > 0] <-
                     data.frame(
                         lapply(map$data[ , map$respCounts > 0],
@@ -483,60 +416,53 @@ doGroupMeanSub <- function(map)
                                pat     = map$patterns[[i]],
                                patLevs = patLevels)
                     )
-            } else {
+            else 
                 map$data[ , map$respCounts > 0] <-
                     fillWithGroupMean(map$data[ , map$respCounts > 0],
                                       pat     = map$patterns[[i]],
                                       patLevs = patLevels)
-            }
-
+            
             map$countResponses(countMissing = TRUE)
-            if( all(map$respCounts == 0) ) return(0)
+            if(all(map$respCounts == 0)) return(0)
 
-            ## Re-create the patterns to incorporate
-            ## the grouping variables imputed values
+            ## Re-create the patterns to incorporate the grouping variables
+            ## imputed values
             map$createPatterns()
         }
     }
 }# END doGroupMeanSub()
-
+    
 
 
 ## Fill a variable's missing values with appropriate group-means:
 fillWithGroupMean <- function(v, pat, patLevs) {
-    for( k in 1 : length(patLevs) ) {
+    for(k in 1 : length(patLevs)) {
         subData <- subset(v, pat == patLevs[k])
-        if( all(is.na(subData)) ) {
-            tmp <- NA
-        } else {
-            tmp <- flexCenTen(subData)
-        }
-
+        
+        if(all(is.na(subData))) tmp <- NA
+        else                    tmp <- flexCenTen(subData)
+        
         ## With multiple modes, break ties randomly:
-        groupMean <- ifelse(length(tmp) > 1,
-                            sample(tmp, size = 1),
-                            tmp)
-
+        groupMean <- ifelse(length(tmp) > 1, sample(tmp, size = 1), tmp)
+        
         ## Make sure the group mean is non-missing and finite:
         badMean <- is.na(groupMean) | is.nan(groupMean) |
             is.infinite(groupMean) | is.null(groupMean)
-
-        if(!badMean)
-            v[pat == patLevs[k] & is.na(v)] <- groupMean
+        
+        if(!badMean) v[pat == patLevs[k] & is.na(v)] <- groupMean
     }
     v
 }# END fillWithGroupMean()
 
 
 
-doGrandMeanSub <- function(map)
-{
+doGrandMeanSub <- function(map) {
     missCols <- map$respCounts > 0
 
-    if(sum(missCols) == 1) {
+    if(sum(missCols) == 1) 
         map$data[ , missCols][is.na(map$data[ , missCols])] <-
             flexCenTen(map$data[ , missCols])
-    } else {
+    else 
         map$data[ , missCols] <-
             do.call(data.frame,
                     lapply(map$data[ , missCols],
@@ -545,82 +471,63 @@ doGrandMeanSub <- function(map)
                                x
                            })
                     )
-    }
 }# END doGrandMeanSub()
-
+    
 
 
 ## Do the various flavors of mean substitution:
-meanSubstitute <- function(map, skipList)
-{
-    if( !missCheck(map$groupVars) ) {# We have grouping variables
-        ## Make sure we don't try to use dropped grouping variables:
-        map$groupVars <- setdiff(map$groupVars, map$dropVars[ , 1])
-
-        if( missCheck(map$groupVars) ) {# All groupVars have been dropped
-            warnFun("dropGroupVars", map)
-
-            if(map$verbose) cat("--Filling missing values...")
-            doGrandMeanSub(map)
-            if(map$verbose) cat("done.\n")
-        } else {
-            ## Try group-mean substitution:
-            if(map$verbose) cat("--Filling missing values...")
-            doGroupMeanSub(map)
-            if(map$verbose) cat("done.\n")
-
-            ## Undo the group-mean imputation to check grand-mean imputaiton:
-            if(skipList$groupMean) {
-                map$data <- parent.frame()$frozenData
-                map$countResponses(countMissing = TRUE)
-            }
-
-            if( any(map$respCounts > 0) ) {# Still have missing?
-                ## If all else fails, do global-mean substitution
-                map$updateImpFails(colnames(map$data)[map$respCounts > 0],
-                                   "groupMean")
-                warnFun("groupMeanFail", map)
-
-                if(map$verbose) cat("--Filling missing values...")
-                doGrandMeanSub(map)
-                if(map$verbose) cat("done.\n")
-
-                ## Undo the grand-mean imputation to check failure state:
-                if(skipList$grandMean)
-                    map$data <- parent.frame()$frozenData
-            }
-        }
-    } else {# We don't have grouping variables
+meanSubstitute <- function(map) {
+    if(missCheck(map$groupVars)) {# No grouping variables
         warnFun("noGroupVars", map)
+        
+        if(map$verbose) cat("--Filling missing values...")
         doGrandMeanSub(map)
-    }# CLOSE if( !is.null(map$groupVar) )
+        if(map$verbose) cat("done.\n")
+        
+        return(1)
+    }  
+    
+    ## Make sure we don't try to use dropped grouping variables:
+    map$groupVars <- setdiff(map$groupVars, map$dropVars[ , 1])
+    
+    if(missCheck(map$groupVars)) {# All groupVars have been dropped
+        warnFun("dropGroupVars", map)
+        
+        if(map$verbose) cat("--Filling missing values...")
+        doGrandMeanSub(map)
+        if(map$verbose) cat("done.\n")
 
-    ## Do a final check for remaining missing values:
-    map$countResponses(countMissing = TRUE)
-
-    if( any(map$respCounts > 0) ) {
-        ## If any missingness remains exclude the incomplete columns:
-        map$updateImpFails(colnames(map$data)[map$respCounts > 0],
-                           type = "grandMean")
-        warnFun("grandMeanFail", map)
-
-        map$removeVars(x = colnames(map$data)[map$respCounts > 0],
-                       reason = "imp_fail")
-    }# CLOSE if( any(map$respCounts > 0) )
+        return(2)
+    }
+    
+    ## Try group-mean substitution:
+    if(map$verbose) cat("--Filling missing values...")
+    doGroupMeanSub(map)
+    if(map$verbose) cat("done.\n")
+    
+    if(any(map$respCounts > 0)) {# Still have missing?
+        ## If all else fails, do global-mean substitution
+        map$updateImpFails(
+                colnames(map$data)[map$respCounts > 0], "groupMean"
+            )
+        warnFun("groupMeanFail", map)
+        
+        if(map$verbose) cat("--Filling missing values...")
+        doGrandMeanSub(map)
+        if(map$verbose) cat("done.\n")
+    }
 }# END meanSubstitute()
 
 
 
-doPCA <- function(map)
-{
-    
+doPCA <- function(map) {
     ## Are we extracting linear or nonlinear PC scores?
     if(length(map$pcAux$lin) == 0) {linVal <- "lin";    pcType <- 1}
     else                           {linVal <- "nonLin"; pcType <- 2}
     
     ## Do we need to parse the nComps argument?
     parseCheck <- is.infinite(map$nComps[pcType]) |
-        (map$nComps[pcType] < 1 & map$nComps[pcType] > 0)
+        (map$nComps[pcType] < 1 & map$nComps[pcType] != 0)
     
     if(linVal == "lin") {
         if(map$verbose)
@@ -708,16 +615,13 @@ doPCA <- function(map)
 
 
 
-## Construct one imputated data set with mice
-## for use in parallel processing
-parallelMice <- function(imp, predMat, map)
-{
+## Construct one imputed data set with mice for use in parallel processing
+parallelMice <- function(imp, predMat, map) {
     ## Setup the PRNG:
     .lec.SetPackageSeed(rep(map$seed, 6))
-    if( !imp %in% .lec.GetStreams() )
-        .lec.CreateStream(c(1 : map$nImps))
+    if(!imp %in% .lec.GetStreams()) .lec.CreateStream(c(1 : map$nImps))
     .lec.CurrentStream(imp)
-
+    
     ## Create a single imputation:
     miceOut <- try(
         mice(data            = map$data,
@@ -727,9 +631,9 @@ parallelMice <- function(imp, predMat, map)
              method          = map$methVec,
              printFlag       = map$verbose,
              ridge           = map$miceRidge,
-             nnet.MaxNWts    = map$maxNWts),
+             nnet.MaxNWts    = map$maxNetWts),
         silent = FALSE)
-
+    
     if(class(miceOut) != "try-error") {
         impData <- complete(miceOut, 1)
     } else {

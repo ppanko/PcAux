@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-06
+### Modified: 2017-MAR-07
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -32,10 +32,10 @@ createPcAux <- function(quarkData,
                         control,
                         ...)
 {
-    quarkData$setCall(match.call(), parent = "quark")
+    quarkData$setCall(match.call(), parent = "createPcAux")
     
     ## Check for problems with the input values:
-    if(!simMode) checkInputs(parent = "quark")
+    if(!simMode) checkInputs(parent = "createPcAux")
 
     ## Add elements to an extant instance of the QuarkData class:
     quarkData$nComps   <- nComps
@@ -45,16 +45,7 @@ createPcAux <- function(quarkData,
     quarkData$simMode  <- simMode
 
     ## Make sure the control list is fully populated:
-    if(!missCheck(control)) quarkData$setControl(x = control) #{
-                                        #conDefault <- quarkData$getControl()
-                                        #for( i in names(conDefault) ) {
-                                        #    if( i %in% names(control) ) {
-                                        #        conDefault[[i]] <- control[[i]]
-                                        #    }
-                                        #}
-                                        #
-                                        #rm(conDefault)
-                                        #}
+    if(!missCheck(control)) quarkData$setControl(x = control)
     
     ## Populate some important elements of the QuarkData object:
     if(quarkData$maxPower > 1) 
@@ -83,29 +74,16 @@ createPcAux <- function(quarkData,
         ## check the functionality of the fall-back imputation methods.
         doSingleImputation(map = quarkData, ...)
     }
-
-    ## Parse the nComps argument:
-    #parseCheck <- any(is.infinite(nComps)) || any(nComps > 0 & nComps < 1)
-    #if(parseCheck) quarkData$parseNComps()
-
-    #print(quarkData$nComps)
-    #print(quarkData$pcVarExp)
-    #print(quarkData$pcCount)
-    
-    ## Construct interactions from raw variables?
-                                        #if(quarkData$intMeth == 1) quarkData$computeNonLin()
     
     ## Extract the linear principal component scores:
     doPCA(map = quarkData)
     
-    if(nComps[2] > 0) {# Construct seperate non-linear PcAux?
+    if(nComps[2] != 0) {# Construct seperate non-linear PcAux?
         ## Construct and orthogonalize nonlinear terms:
         quarkData$computeNonLin()
         
         ## Extract the nonlinear principal component scores:
         doPCA(map = quarkData)
     }
-    
-    ## Return the QuarkData object:
     quarkData
 }# END createPcAux()

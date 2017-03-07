@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for Quark
 ### Author:   Kyle M. Lang
 ### Created:  2015-NOV-01
-### Modified: 2017-MAR-06
+### Modified: 2017-MAR-07
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -169,8 +169,9 @@ pcAuxOut <- createPcAux(quarkData = tmp,
 ## Test:   Use low memory pca
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData   = tmp,
-                        pcaMemLevel = 1L)
+pcAuxOut <- createPcAux(quarkData = tmp,
+                        control   = list(pcaMemLevel = 1L)
+                        )
 
 ## Test:   Use simMode = TRUE and forcePmm = TRUE
 ## Result: Successful execution with nothing printed to stdout
@@ -180,75 +181,6 @@ pcAuxOut <- createPcAux(quarkData = tmp,
                         forcePmm  = TRUE)
 
 frozenPcAuxOut2 <- pcAuxOut$copy()
-
-## Test:   Invoke fall-back PMM
-## Result: Induced failure of first-pass imputation with successful execution of
-##         fall-back PMM
-tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData     = tmp,
-                        skipFirstPass = TRUE)
-
-## Test:   Invoke fall-back group-mean substitution
-## Result: Induced failure of first-pass imputation and PMM with successful
-##         execution of fall-back group-mean substition
-tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp,
-                        skipPmm   = TRUE)
-
-## Test:   Invoke group-mean substitution with one continuous grouping variable
-## Result: Induced failure of first-pass imputation and PMM with successful
-##         execution of fall-back group-mean substitution
-quarkData <- prepData(rawData   = testData,
-                      nomVars   = c("nom1", "nom2"),
-                      ordVars   = c("ord1", "ord2"),
-                      idVars    = c("id1", "id2"),
-                      dropVars  = c("y1", "y2", "z2"),
-                      groupVars = c("nom1", "ord1", "w1")
-                      )
-
-pcAuxOut <- createPcAux(quarkData = quarkData,
-                        skipPmm   = TRUE)
-
-## Test:   Invoke group-mean substitution with multiple continuous grouping
-##         variables
-## Result: Induced failure of first-pass imputation and PMM with successful
-##         execution of fall-back group-mean substitution
-quarkData <- prepData(rawData   = testData,
-                      nomVars   = c("nom1", "nom2"),
-                      ordVars   = c("ord1", "ord2"),
-                      idVars    = c("id1", "id2"),
-                      dropVars  = c("y1", "y2", "z2"),
-                      groupVars = c("nom1", "ord1", "w1", "w2")
-                      )
-
-pcAuxOut <- createPcAux(quarkData = quarkData,
-                        skipPmm   = TRUE)
-
-## Test:   Invoke group-mean substitution with no grouping variables defined
-## Result: Print a warning and fall-back to grand-mean substitution
-quarkData <- prepData(rawData  = testData,
-                      nomVars  = c("nom1", "nom2"),
-                      ordVars  = c("ord1", "ord2"),
-                      idVars   = c("id1", "id2"),
-                      dropVars = c("y1", "y2", "z2"),
-                      )
-
-pcAuxOut <- createPcAux(quarkData = quarkData,
-                        skipPmm   = TRUE)
-
-## Test:   Invoke fall-back grand-mean substitution
-## Result: Induced failure of first-pass imputation, PMM, and group-mean
-##         substitution with successful execution of grand-mean substitution
-tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData     = tmp,
-                        skipGroupMean = TRUE)
-
-## Test:   Invoke imputation failure state
-## Result: Induced failure of first-pass imputation, PMM, group-mean
-##         substitution, and grand-mean substitution.
-tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData     = tmp,
-                        skipGrandMean = TRUE)
 
 ## Test:   Extract 0 non-linear components
 ## Result: Successful exectution
@@ -290,12 +222,6 @@ tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData  = tmp,
                         maxPolyPow = 4L)
 
-## Test:   Try to request only first-order polynomials
-## Result: Fatal Error
-#tmp      <- frozenQuarkData1$copy()
-#pcAuxOut <- createPcAux(quarkData = tmp,
-#                        maxPower  = 1L)
-
 ## Test:   Try to request polynomial power greater than 4
 ## Result: Fatal Error
 tmp      <- frozenQuarkData1$copy()
@@ -328,20 +254,6 @@ quarkData <- prepData(rawData = testData,
 pcAuxOut <- createPcAux(quarkData = quarkData)
 
 frozenPcAuxOut4 <- pcAuxOut$copy()
-
-## Test:   Try to use a grouping variable that was dropped via data checks
-## Result: Successful execution
-quarkData <- prepData(rawData   = testData,
-                      nomVars   = c("nom1", "nom2"),
-                      ordVars   = c("ord1", "ord2"),
-                      idVars    = c("id1", "id2"),
-                      dropVars  = c("y1", "y2", "z2"),
-                      groupVars = c("nom1", "nom2", "y4")
-                      )
-pcAuxOut <- createPcAux(quarkData = quarkData,
-                        skipPmm   = TRUE)
-
-frozenPcAuxOut5 <- pcAuxOut$copy()
 
 ## Simulate some clean data:
 sigma       <- matrix(0.3, 50, 50)
@@ -415,11 +327,12 @@ pcAuxOut <- createPcAux(quarkData    = tmp,
                         nComps       = c(0.5, 0.5)
                         )
 
-## Test:   Specify number of PcAux in terms of variance explained
+## Test:   Specify number of PcAux in terms of variance explained and include
+##         interactions between PcAux and key moderators
 ## Result: Successful execution
-tmp      <- frozenQuarkData1$copy()
+tmp      <- frozenQuarkData3$copy()
 pcAuxOut <- createPcAux(quarkData    = tmp,
-                        interactType = 3,
+                        interactType = 2,
                         nComps       = c(0.5, 0.5)
                         )
 
@@ -446,6 +359,7 @@ pcAuxOut <- createPcAux(quarkData    = tmp,
                         interactType = 3,
                         nComps       = c(Inf, Inf)
                         )
+frozenPcAuxOut9 <- pcAuxOut$copy()
 
 ## Test:   Specify number of PcAux in mixed terms 3
 ## Result: Successful execution
@@ -463,7 +377,33 @@ pcAuxOut <- createPcAux(quarkData    = tmp,
                         nComps       = c(0.75, Inf)
                         )
 
-##### IMPUTATION TESTING #####
+## Test:   Get all possible PcAux
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(-100, -100)
+                        )
+frozenPcAuxOut10 <- pcAuxOut$copy()
+
+## Test:   Specify number of PcAux in mixed terms 5
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(Inf, -1)
+                        )
+
+## Test:   Specify number of PcAux in mixed terms 6
+## Result: Successful execution
+tmp      <- frozenQuarkData1$copy()
+pcAuxOut <- createPcAux(quarkData    = tmp,
+                        interactType = 3,
+                        nComps       = c(4, -11)
+                        )
+
+
+##### MI TESTING #####
 
 
 ## Test:   Ordinary usage
@@ -504,12 +444,32 @@ miOut <- miWithPcAux(rawData   = testData2,
 ## Test:   Defining nComps in terms of variance explained
 ## Result: Successful execution
 tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData      = testData,
-                     quarkData    = tmp,
-                     dropVars     = "z2",
-                     nImps        = 5L,
-                     varExpLin    = 0.5,
-                     varExpNonLin = 0.05)
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = "z2",
+                     nImps     = 5L,
+                     nComps    = c(0.5, 0.05)
+                     )
+
+## Test:   Defining nComps in terms of 'Inf' keyword
+## Result: Successful execution
+tmp   <- frozenPcAuxOut9$copy()
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = c("z2", "ord2"),
+                     nImps     = 2L,
+                     nComps    = c(Inf, Inf)
+                     )
+
+## Test:   Using all possible PcAux:
+## Result: Successful execution
+tmp   <- frozenPcAuxOut10$copy()
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = c("z2", "ord2"),
+                     nImps     = 2L,
+                     nComps    = c(-1, -1)
+                     )
 
 ## Test:   Asking for too much linear variance explained
 ## Result: Fatal Error
@@ -518,16 +478,18 @@ miOut <- miWithPcAux(rawData   = testData,
                      quarkData = tmp,
                      dropVars  ="z2",
                      nImps     = 5L,
-                     varExpLin = 0.9)
+                     nComps    = c(0.9, 0.05)
+                     )
 
 ## Test:   Asking for too much non-linear variance explained
 ## Result: Fatal Error
 tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData      = testData,
-                     quarkData    = tmp,
-                     dropVars     = "z2",
-                     nImps        = 5L,
-                     varExpNonLin = 0.25)
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = "z2",
+                     nImps     = 5L,
+                     nComps    = c(0.5, 0.5)
+                     )
 
 ## Test:   Asking for too many linear components
 ## Result: Fatal Error
@@ -536,16 +498,18 @@ miOut <- miWithPcAux(rawData   = testData,
                      quarkData = tmp,
                      dropVars  = "z2",
                      nImps     = 5L,
-                     nLinear   = 42)
+                     nComps    = c(42, 3)
+                     )
 
 ## Test:   Asking for too many non-linear components
 ## Result: Fatal Error
 tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData    = testData,
-                     quarkData  = tmp,
-                     dropVars   = "z2",
-                     nImps      = 5L,
-                     nNonLinear = 42)
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = "z2",
+                     nImps     = 5L,
+                     nComps    = c(10, 42)
+                     )
 
 ## Test:   Use defaults with no non-linear pcAux:
 ## Result: Successful execution
@@ -554,41 +518,25 @@ miOut <- miWithPcAux(rawData   = testData,
                      quarkData = tmp,
                      nImps     = 5L)
 
-## Test:   Request no non-linear components via counts
+## Test:   Request no non-linear components
 ## Result: Successful execution
 tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData    = testData,
-                     quarkData  = tmp,
-                     dropVars   = "z2",
-                     nImps      = 5L,
-                     nNonLinear = 0)
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = "z2",
+                     nImps     = 5L,
+                     nComps    = c(5, 0)
+                     )
 
-## Test:   Request no non-linear components via variance explained
-## Result: Successful execution
-tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData      = testData,
-                     quarkData    = tmp,
-                     dropVars     = "z2",
-                     nImps        = 5L,
-                     varExpNonLin = 0.0)
-
-## Test:   Try requesting no linear components via counts
+## Test:   Try requesting no linear components
 ## Result: Fatal Error denoting the requirement for nLinear >= 1
 tmp   <- frozenPcAuxOut1$copy()
 miOut <- miWithPcAux(rawData   = testData,
                      quarkData = tmp,
                      dropVars  = "z2",
                      nImps     = 5L,
-                     nLinear   = 0)
-
-## Test:   Try requesting no linear components via variance explained
-## Result: Fatal Error denoting the requirement for nLinear >= 1
-tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData   = testData,
-                     quarkData = tmp,
-                     dropVars  = "z2",
-                     nImps     = 5L,
-                     varExpLin = 0.0)
+                     nComps    = c(0, 5)
+                     )
 
 ## Test:   Specify nomVars different from quarkObj$nomVars
 ## Result: Successful execution
@@ -618,7 +566,7 @@ miOut <- miWithPcAux(rawData   = testData,
                      dropVars  = "z2",
                      nImps     = 5L)
 
-## Test: Trip initial check for distinct idVars
+## Test:   Trip initial check for distinct idVars
 ## Result: Fatal Error
 tmp   <- frozenPcAuxOut1$copy()
 miOut <- miWithPcAux(rawData   = testData,
@@ -633,7 +581,7 @@ tmp   <- frozenPcAuxOut1$copy()
 miOut <- miWithPcAux(rawData   = testData,
                      quarkData = tmp,
                      idVars    = c("id1", "id2"),
-                     dropVars  = c("z2", "z1", "y5", "ord1")
+                     dropVars  = c("id2", "z2")
                      )
 
 ## Test:   Trip initial check for non-existant variables
@@ -672,7 +620,7 @@ miOut <- miWithPcAux(rawData        = testData,
                      nImps          = 5L,
                      completeFormat = "repeated")
 
-## Test:   Call rom with no user-defined dropVars in quark():
+## Test:   Call miWithPcAux() with no user-defined dropVars in prepData():
 ## Result: Successful execution
 tmp   <- frozenPcAuxOut4$copy()
 miOut <- miWithPcAux(rawData   = testData,
@@ -698,12 +646,11 @@ miOut <- miWithPcAux(rawData   = testData3,
 ## Test:   Use parallel processing to generate the multiple imputations
 ## Result: Successful execution
 tmp   <- frozenPcAuxOut1$copy()
-miOut <- miWithPcAux(rawData     = testData,
-                     quarkData   = tmp,
-                     dropVars    = "z2",
-                     nImps       = 5L,
-                     useParallel = TRUE,
-                     nProcess    = 4)
+miOut <- miWithPcAux(rawData   = testData,
+                     quarkData = tmp,
+                     dropVars  = "z2",
+                     nImps     = 5L,
+                     nProcess  = 4)
 
 ## Test:   Use parallel processing with "long" output
 ## Result: Successful execution
@@ -712,7 +659,6 @@ miOut <- miWithPcAux(rawData        = testData,
                      quarkData      = tmp,
                      dropVars       = "z2",
                      nImps          = 5L,
-                     useParallel    = TRUE,
                      nProcess       = 4,
                      completeFormat = "long")
 
@@ -723,7 +669,6 @@ miOut <- miWithPcAux(rawData        = testData,
                      quarkData      = tmp,
                      dropVars       = "z2",
                      nImps          = 5L,
-                     useParallel    = TRUE,
                      nProcess       = 4,
                      completeFormat = "broad")
 
@@ -734,6 +679,5 @@ miOut <- miWithPcAux(rawData        = testData,
                      quarkData      = tmp,
                      dropVars       = "z2",
                      nImps          = 5L,
-                     useParallel    = TRUE,
                      nProcess       = 4,
                      completeFormat = "repeated")
