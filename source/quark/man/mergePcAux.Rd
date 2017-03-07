@@ -44,11 +44,12 @@ mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
   the proportion of variance in the data explained by the set of
   extracted components. When specifying \code{nComps}, integer
   arguments are interpreted as counts of components; real-valued
-  arguments between 0 and 1.0 are interpreted as proportions of
-  variance explained, and the special character token "max" indicates
-  the smallest number of component scores that explain 100\% of the
-  variance in the raw data. An error is returned when more components
-  are requested than exist in \code{quarkData}.  
+  arguments in [0, 1.0). Additionally, two special options are available. A
+  value of \code{Inf} will employ the smallest number of component
+  scores such that adding one more component score does not explain a
+  differentiably larger amount of variance. Specifying any negative
+  value will employ all possible component scores. An error is returned
+  when more components are requested than exist in \code{quarkData}.  
 }
 \value{
   A data frame with (a subset of) the principal component auxiliary
@@ -63,17 +64,15 @@ mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
 data(iris2)
 
 ## Prepare the data:
-cleanData <- prepData(rawData = iris2,
-                      nomVars = "Species",
-                      ordVars = "Petal.Width",
-                      idVars = "ID",
-                      dropVars = "Junk",
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps = c(3, 2)
-                        )
+pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 2))
 
 ## Merge the PC auxiliaries with the original data:
 outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)

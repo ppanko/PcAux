@@ -124,11 +124,13 @@ miWithPcAux(rawData,
   the proportion of variance in the data explained by the set of
   extracted components. When specifying \code{nComps}, integer
   arguments are interpreted as counts of components; real-valued
-  arguments between 0 and 1.0 are interpreted as proportions of
-  variance explained, and the special character token "max" indicates
-  the smallest number of component scores that explain 100\% of the
-  variance in the raw data. An error is returned when more components
-  are requested than exist in \code{quarkData}. 
+  arguments in [0, 1.0) are interpreted as proportions of
+  variance explained. Additionally, two special options are available. A
+  value of \code{Inf} will employ the smallest number of component
+  scores such that adding one more component score does not explain a
+  differentiably larger amount of variance. Specifying any negative
+  value will employ all possible component scores. An error is returned
+  when more components are requested than exist in \code{quarkData}. 
   
   The \code{control} argument is a key-paired list with the following
   possible entries:
@@ -262,12 +264,8 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps    = c(3, 2)
-                        )
+pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 2))
 
 ## Conduct MI with the pcAux:
-miOut <- miWithPcAux(rawData   = iris2,
-                     quarkData = pcAuxOut,
-                     nImps     = 5)
+miOut <- miWithPcAux(rawData = iris2, quarkData = pcAuxOut, nImps = 5)
 }

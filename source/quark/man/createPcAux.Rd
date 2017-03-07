@@ -25,7 +25,7 @@ createPcAux(quarkData,
     An object of class QuarkData returned from \code{prepData}. 
   }
   \item{nComps}{
-    A two-element vector giving the number of linear and
+    A two-element, numeric vector giving the number of linear and
     nonlinear, respectively, component scores to extract. See the
     \emph{Details} section for more information. Defaults to
     \code{nComps = c(10L, 3L)}.
@@ -96,12 +96,14 @@ createPcAux(quarkData,
   The number of component scores requested via the \code{nComps}
   argument can be defined in two ways: as simple counts, or in terms of
   the proportion of variance in the data explained by the set of
-  extracted components. When specifying \code{nComps}, integer
+  extracted components. When specifying \code{nComps}, positive integer
   arguments are interpreted as counts of components; real-valued
-  arguments between 0 and 1.0 are interpreted as proportions of
-  variance explained, and the special character token "max" indicates
-  the smallest number of component scores that explain 100\% of the
-  variance in the raw data.
+  arguments in [0, 1.0) are interpreted as proportions of
+  variance explained. Additionally, two special options are available. A
+  value of \code{Inf} will employ the smallest number of component
+  scores such that adding one more component score does not explain a
+  differentiably larger amount of variance. Specifying any negative
+  value will employ all possible component scores.
   
   The \code{interactType} argument can take any of the values in {0, 1, 2,
     3}. \code{interactType = 0} includes no interaction terms.
@@ -322,7 +324,5 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create the principal component auxiliaries:
-pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps    = c(3, 2)
-                        )
+pcAuxOut <- createPcAux(quarkData = cleanData, nComps    = c(3, 2))
 }
