@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-07
+### Modified:     2017-MAR-08
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -254,8 +254,8 @@ QuarkData$methods(
         nonInts <- c("minPredCor", "collinThresh", "miceRidge")
         
         for(n in names(x)) {
-            if(n %in% nonInts) assign(n, x[[n]])
-            else               assign(n, as.integer(x[[n]]))
+            if(n %in% nonInts) field(n, x[[n]])
+            else               field(n, as.integer(x[[n]]))
         }
     },
 
