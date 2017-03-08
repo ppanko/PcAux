@@ -16,9 +16,8 @@ prepData(rawData,
          dropVars   = NULL,
          groupVars  = NULL,
          simMode    = FALSE,
-         mySeed     = 235711L,
          nProcess   = 1L,
-         verbose    = !simMode,
+         verbose    = 2L,
          control,
          ...)
 }
@@ -71,10 +70,6 @@ prepData(rawData,
     well-known by the user. This mode should not be used for
     'real-world' data analysis. Defaults to \code{simMode = FALSE}.
   }
-  \item{mySeed}{
-    An integer used to seed the random number generator used by the
-    imputation algorithm. Defaults to \code{mySeed = 235711L}.
-  }
   \item{nProcess}{
     An integer indicating the number of processors to use when
     using parallel processing for the collinearity checks. A value of
@@ -83,9 +78,12 @@ prepData(rawData,
     cores. Defaults to \code{nProcess = 1L}.
   }
   \item{verbose}{
-    A logical switch indicating whether output should be printed to the
-    screen. Warnings are always printed, regardless of the value
-    assigned to \code{verbose}. Defaults to \code{verbose = !simMode}.
+    An integer code in {0, 1, 2} defining the verbosity of output printed to the
+    screen. \code{verbose = 0} prints no output; \code{verbose = 1}
+    prints all output except for the messages returned by \pkg{mice};
+    \code{verbose = 2} prints all output, including the messages
+    returned by \pkg{mice}. Warnings are always printed, regardless of the value
+    assigned to \code{verbose}. Defaults to \code{verbose = 2}.
   }
   \item{control}{
     An optional list of control parameters (see 'Details').

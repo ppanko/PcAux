@@ -56,7 +56,7 @@ QuarkData <- setRefClass("QuarkData",
                              emptyVars    = "vector",
                              constants    = "vector",
                              minRespCount = "integer",
-                             verbose      = "logical",
+                             verbose      = "integer",
                              groupVars    = "vector",
                              dummyVars    = "vector",
                              pcAux        = "list",
@@ -100,7 +100,7 @@ QuarkData$methods(
             miWithPcAux = NULL
         ),
         data         = data.frame(NULL),
-        seed         = 0L,
+        seed         = as.integer(NA),
         miceIters    = 10L,
         miceRidge    = 1.0e-5,
         maxNetWts    = 10000L,
@@ -126,7 +126,7 @@ QuarkData$methods(
         emptyVars    = vector("character"),
         constants    = vector("character"),
         minRespCount = as.integer(floor(0.05 * nrow(data))),
-        verbose      = FALSE,
+        verbose      = 0L,
         groupVars    = vector("character"),
         dummyVars    = vector("character"),
         pcaMemLev    = 0L,
@@ -699,9 +699,9 @@ QuarkData$methods(
     computeInteract = function()                                                {
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
-            pcNames   <- setdiff(colnames(pcAux$lin), idVars)
+            pcNames <- setdiff(colnames(pcAux$lin), idVars)
         if(intMeth < 3)           # Interactions involving key moderators
-            mIndex    <- which(colnames(data) %in% moderators$coded)
+            mIndex <- which(colnames(data) %in% moderators$coded)
         else                      # All observed variables as moderators
             mIndex <- colnames(data)
 
@@ -712,14 +712,21 @@ QuarkData$methods(
             if(intMeth == 1) {# Interactions all among observed variables
                 X     <- data[ , -m]
                 y     <- data[ , m]
+
+                ## Problem:
+                ## X and stems cannot include any dummy codes originating
+                ## with the factor that produced y
+                
                 stems <- colnames(data)[-m]
+
+                
             } else {          # Interactions involve PcAux
                 X     <- as.matrix(pcAux$lin[ , pcNames])
                 y     <- data[ , m]
                 stems <- pcNames
             }
 
-            ## Compute interactiosn terms and give them good names:
+            ## Compute interaction terms and give them good names:
             intList[[i]] <- apply(X, 2, function(x, y) x * y, y = y)
             colnames(intList[[i]]) <-
                 paste0(stems, "_", ifelse(intMeth == 3, m, colnames(data)[m]))
@@ -814,9 +821,13 @@ QuarkData$methods(
                     if(n %in% moderators$raw)
                         moderators$coded <<- c(moderators$coded, nameList[[n]])
                 }
+
+                ## Included non-nominal moderators in the 'coded' sublist:
+                moderators$coded <-
+                    c(setdiff(moderators$raw, noms), moderators$coded)
                 
-                cn <- setdiff(colnames(data), noms)
-                
+                ## Merge and name transformed data:
+                cn             <-  setdiff(colnames(data), noms)
                 data           <<- data.frame(data[ , cn], dumList)
                 dummyVars      <<- unlist(nameList)
                 colnames(data) <<- c(cn, dummyVars)
@@ -836,3 +847,23 @@ QuarkData$methods(
     }
     
 )# END QuarkData$methods()
+
+
+
+### ToDo:
+### Get interactions with nominal variables correct
+### - Don't want to interact within-factor codes with one another
+### - Maybe refactor the interaction loop to be indexed by the factor
+###   names rather than the dummy names?
+
+
+n <- c("var1", "var2")
+m <- c("var1_1", "var1_2", "var2_1", "var2_2", "var2_3")
+z <- m[1]
+
+n
+m
+z
+
+grep(z, n)
+

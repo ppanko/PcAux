@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-07
+### Modified: 2017-MAR-08
 ### Purpose:  Use the principal component auxiliaries produced by createPcAux()
 ###           to conduct MI.
 
@@ -23,18 +23,18 @@
 
 miWithPcAux <- function(rawData,
                         quarkData,
-                        nImps          = 100L,
-                        nomVars        = NULL,
-                        ordVars        = NULL,
-                        idVars         = NULL,
-                        dropVars       = "useExtant",
-                        nComps         = NULL,
-                        completeFormat = "list",
-                        mySeed         = 235711L,
-                        simMode        = FALSE,
-                        forcePmm       = FALSE,
-                        nProcess       = 1L,
-                        verbose        = !simMode,
+                        nImps      = 100L,
+                        nomVars    = NULL,
+                        ordVars    = NULL,
+                        idVars     = NULL,
+                        dropVars   = "useExtant",
+                        nComps     = NULL,
+                        compFormat = "list",
+                        seed       = NULL,
+                        simMode    = FALSE,
+                        forcePmm   = FALSE,
+                        nProcess   = 1L,
+                        verbose    = 2L,
                         control)
 {
     quarkData$setCall(match.call(), parent = "miWithPcAux")
@@ -75,12 +75,13 @@ miWithPcAux <- function(rawData,
     ## Populate new fields in the extant QuarkData object:
     quarkData$data       <- mergeOut
     quarkData$nImps      <- as.integer(nImps)
-    quarkData$seed       <- as.integer(mySeed)
     quarkData$simMode    <- simMode
-    quarkData$compFormat <- completeFormat
+    quarkData$compFormat <- compFormat
     quarkData$forcePmm   <- forcePmm
-    quarkData$verbose    <- verbose
-
+    quarkData$verbose    <- as.integer(verbose)
+    
+    if(!missCheck(seed)) quarkData$seed <- as.integer(seed)
+    
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) quarkData$setControl(x = control)
     
@@ -125,7 +126,7 @@ miWithPcAux <- function(rawData,
                  method          = quarkData$methVec,
                  printFlag       = verbose,
                  ridge           = quarkData$miceRidge,
-                 seed            = mySeed,
+                 seed            = quarkData$seed,
                  nnet.MaxNWts    = quarkData$maxNetWts),
             silent = TRUE)
         

@@ -1,7 +1,7 @@
 Package: quark
 Type: Package
 Title: Missing data analysis with principal component auxiliary variables
-Version: 0.7.1
+Version: 0.7.2
 Date: 2017-03-08
 Author: Kyle M. Lang [aut, crt], Todd D. Little [aut], Steven Chesnut [ctb], Byung Jung [ctb], Vibhuti Gupta [ctb]
 Maintainer: Kyle M. Lang <kyle.lang@ttu.edu>

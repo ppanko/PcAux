@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-07
+### Modified: 2017-MAR-08
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -20,13 +20,13 @@
 
 
 createPcAux <- function(quarkData,
-                        nComps       = c(10L, 3L),
-                        interactType = 3L,
+                        nComps,
+                        interactType = 1L,
                         maxPolyPow   = 3L,
                         simMode      = FALSE,
-                        mySeed       = 235711L,
+                        seed         = NULL,
                         forcePmm     = FALSE,
-                        verbose      = !simMode,
+                        verbose      = 2L,
                         doImputation = TRUE,
                         castData     = !doImputation,
                         control,
@@ -43,7 +43,10 @@ createPcAux <- function(quarkData,
     quarkData$intMeth  <- as.integer(interactType)
     quarkData$maxPower <- as.integer(maxPolyPow)
     quarkData$simMode  <- simMode
-
+    quarkData$verbose  <- as.integer(verbose)
+    
+    if(!missCheck(seed)) quarkData$seed <- as.integer(seed)
+    
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) quarkData$setControl(x = control)
     
@@ -53,6 +56,13 @@ createPcAux <- function(quarkData,
             powerVal <- switch(pp - 1, "square", "cube", "quad")
             quarkData$setPoly(x = data.frame(NULL), power = powerVal)
         }
+
+    ## Check for extant moderators when interactType == 1:
+    check <- interactType == 1 & length(quarkData$moderators$raw) == 0
+    if(check) {
+        quarkData$moderators$raw <- colnames(quarkData$data)
+        warnFun("noMods")
+    }
     
     ## Re-cast the data if needed
     if(castData) castData(map = quarkData)

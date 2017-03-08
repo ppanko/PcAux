@@ -11,18 +11,18 @@
 \usage{
 miWithPcAux(rawData,
             quarkData,
-            nImps          = 100L,
-            nomVars        = NULL,
-            ordVars        = NULL,
-            idVars         = NULL,
-            dropVars       = "useExtant",
-            nComps         = NULL,
-            completeFormat = "list",
-            mySeed         = 235711L,
-            simMode        = FALSE,
-            forcePmm       = FALSE,
-            nProcess       = 1L,
-            verbose        = !simMode,
+            nImps      = 100L,
+            nomVars    = NULL,
+            ordVars    = NULL,
+            idVars     = NULL,
+            dropVars   = "useExtant",
+            nComps     = NULL,
+            compFormat = "list",
+            seed       = NULL,
+            simMode    = FALSE,
+            forcePmm   = FALSE,
+            nProcess   = 1L,
+            verbose    = 2L,
             control)
 }
 \arguments{
@@ -70,7 +70,7 @@ miWithPcAux(rawData,
     \emph{Details} section for more information. When not specified, all
     component scores that exist in \code{quarkData} are used.
   }
-  \item{completeFormat}{
+  \item{compFormat}{
     The format in which the multiply-imputed data sets are
     returned. Valid arguments are "list", which returns a list of length
     \code{nImps} with each entry containing one imputed data set,
@@ -78,11 +78,13 @@ miWithPcAux(rawData,
     directly to the \code{action} argument of the \code{mice::complete}
     function. See the documentation for \code{mice::complete} for more
     details on the behavior of the "long", "broad", and "repeated"
-    options. Defaults to \code{completeFormat = "list"}. 
+    options. Defaults to \code{compFormat = "list"}. 
   }
-  \item{mySeed}{
-    An integer used to seed the random number generator used by the
-    imputation algorithm. Defaults to \code{mySeed = 235711L}.
+  \item{seed}{
+    An optional integer used to seed the random number generator used by the
+    imputation algorithm. Defaults to \code{seed = NULL} which employs
+    any seed defined in \code{createPcAux} and, otherwise, leaves the
+    default random number generator unaltered.
   }
   \item{simMode}{
     A logical switch turning 'Simulation Mode' on or off. In Simulation
@@ -110,9 +112,12 @@ miWithPcAux(rawData,
       1L}.
   }
   \item{verbose}{
-    A logical switch indicating whether output should be printed to the
-    screen. Warnings are always printed, regardless of the value
-    assigned to \code{verbose}. Defaults to \code{verbose = !simMode}.
+    An integer code in {0, 1, 2} defining the verbosity of output printed to the
+    screen. \code{verbose = 0} prints no output; \code{verbose = 1}
+    prints all output except for the messages returned by \pkg{mice};
+    \code{verbose = 2} prints all output, including the messages
+    returned by \pkg{mice}. Warnings are always printed, regardless of the value
+    assigned to \code{verbose}. Defaults to \code{verbose = 2}.
   }
   \item{control}{
     An optional list of control parameters (see 'Details').

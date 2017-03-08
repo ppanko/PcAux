@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-07
+### Modified: 2017-MAR-08
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -40,20 +40,6 @@ countLevels <- function(x)
 {
     length( unique( x[!is.na(x)] ) )
 }
-
-
-## Wrapper to suppress all gc() output:
-#silentGC <- function()
-#{
-#    if(.Platform$OS.type == "unix")
-#        nullFile <- "/dev/null"
-#    else
-#        nullFile <- "nul"
-#
-#    sink(nullFile)
-#    gc()
-#    sink()
-#}# END silentGC()
 
 
 
@@ -183,39 +169,6 @@ flexCenTen <- function(x)
 
 
 
-## Convert factors to dummy codes:
-#factorToDummy <- function(facVar, labelStem, refLevel = NULL)
-#{
-#    ## Remove empty factor levels (KML 2016-JUL-30):
-#    missLevels <- setdiff(levels(facVar), unique(facVar))
-#    levels(facVar)[levels(facVar) %in% missLevels] <- NA
-#    length(levels(facVar))
-#    
-#    dummyFrame <- data.frame(
-#        matrix(0,
-#               length(facVar),
-#               length(levels(facVar))
-#               )
-#    )                            
-#    
-#    if( is.null(refLevel) ) refLevel = ncol(dummyFrame)
-#    
-#    for( i in 1 : nrow(dummyFrame) ) {
-#        if(!is.na(facVar[i])) {
-#            dummyFrame[i, as.numeric(facVar[i])] <- 1
-#        }
-#        else {
-#          dummyFrame[i, ] <- NA
-#        }
-#    }
-#
-#    outFrame <- data.frame(dummyFrame[ , -refLevel])
-#    colnames(outFrame) <- paste0(labelStem, "_", levels(facVar)[-refLevel])
-#    outFrame
-#}# END factorToDummy()
-
-
-
 ### Flexibly check for missing arguments:
 missCheck <- function(x)
 {
@@ -238,18 +191,6 @@ missCheck <- function(x)
     }
     outVal
 }
-
-
-
-## Scale data with minimal memory usage:
-#lowMemScale <- function(inData)
-#{
-#    for( i in 1 : ncol(inData) ) {
-#        inData[ , i] <-
-#            ( inData[ , i] - mean(inData[ , i]) ) / sd(inData[ , i])
-#    }
-#    inData
-#}
 
 
 
@@ -431,10 +372,7 @@ warnFun <- function(type, map)
                           ".\n")
                },
                mergeNoID =
-                   paste0("No ID variables are shared by the QuarkData object ",
-                          "and the raw data, so the merging was accomplished ",
-                          "via naive column-binding.\n",
-                          "Please confirm the output object's row alignment."),
+                   "No ID variables are shared by the QuarkData object and the raw data, so the merging was accomplished via naive column-binding.\nPlease confirm the output object's row alignment.",
                mergeBadID =
                    paste0("None of the potential ID variables (i.e., ",
                           toString(map$idVars),
@@ -446,7 +384,9 @@ warnFun <- function(type, map)
                           "imputation number ",
                           map$impNum,
                           "and returned the following error message:\n",
-                          map$miceObj)
+                          map$miceObj),
+               noMods =
+                   "You have specified 'interactType = 1' without specifying any moderators, so I will incorporate all pairwise interactions among the observed variables into the initial imputation model."
                )
 
     ## Print the warning message
@@ -465,11 +405,11 @@ errFun <- function(type, ...)
     errMessage <-
         switch(type,
                noData =
-                   paste0("Please provide a data object ",
-                          "for the rawData argument.\n"),
+                   "Please provide a data object for the rawData argument.\n",
                badDataType =
-                   paste0("Please provide a data frame or ",
-                          "matrix for the rawData argument.\n"),
+                   "Please provide a data frame or matrix for the rawData argument.\n",
+               noNComps =
+                   "You have not specified a number of principal component auxiliary variables to use.\nPlease provide a two-element numeric vector for the 'nComps' argument.",
                smallPower =
                    "maxPolyPow must be a positive integer.\n",
                largePower =
@@ -477,29 +417,30 @@ errFun <- function(type, ...)
                noLinPc =
                    paste0("You must ",
                           ifelse(x$doingQuark, "extract", "use"),
-                          " at least 1 linear auxiliary ",
-                          "principal component score. You have requested 0.\n"),
+                          " at least 1 linear auxiliary principal component ",
+                          "score. You have requested 0.\n"),
                nonLinOptionClash =
-                   paste0("You have requested a non-trivial number of non-linear ",
-                          "principal component scores (i.e., ",
+                   paste0("You have requested a non-trivial number of ",
+                          "non-linear principal component scores (i.e., ",
                           x$nNonLinear,
                           "), but you have also told me not to compute any ",
                           "interactions or polynomial terms.\nI am confused.\n",
                           "Could you please adjust the values supplied to the ",
-                          "'nComps', 'interactType', and 'maxPolyPow' arguments so ",
-                          "that they are consistent?\n"),
+                          "'nComps', 'interactType', and 'maxPolyPow' ",
+                          "arguments so that they are consistent?\n"),
+               badVerb =
+                   "The value supplied for the 'verbose' argument must be an integer in {0, 1, 2}.",
                missingVars =
-                   paste0("Some of the arguments you've supplied ",
-                          "correspond to variables that do ",
-                          "not exist in the data object.\n",
+                   paste0("Some of the arguments you've supplied correspond ",
+                          "to variables that do not exist in the data object.\n",
                           "The problematic variables are: ",
                           toString(x$varNames[x$check]),
                           ".\n"),
                dropVarOverlap =
-                   paste0("The set of variable names supplied ",
-                          "for the 'dropVars' argument overlaps ",
-                          "with the variable names supplied for other ",
-                          "arguments.\nThe problematic variables are: ",
+                   paste0("The set of variable names supplied for the ",
+                          "'dropVars' argument overlaps with the variable ",
+                          "names supplied for other arguments.\nThe ",
+                          "problematic variables are: ",
                           toString(unique(x$varNames[x$check])),
                           ".\nPlease ensure that 'dropVars' and ",
                           "c('idVars', 'nomVars', 'ordVars', 'groupVars') ",
@@ -538,11 +479,7 @@ errFun <- function(type, ...)
                           ").\nPlease provide a value of '0' ",
                           "or '1' for this argument."),
                missingNonLinPcAux =
-                   paste0("You have requested the use of non-linear ",
-                          "principal component scores, but 'quarkData' ",
-                          "does not contain any non-linear principal ",
-                          "component scores.\n Please adjust your ",
-                          "analysis accordingly.\n"),
+                   "You have requested the use of non-linear principal component scores, but 'quarkData' does not contain any non-linear principal component scores.\n Please adjust your analysis accordingly.\n",
                linVarExp =
                    paste0("The number of available linear ",
                           "component scores (i.e., ",
@@ -585,73 +522,6 @@ errFun <- function(type, ...)
 }# END errFun()
 
 
-
-
-### Unpack the extra arguments to doSingleImputation() to construct a list of
-### debugging flags:
-createSkipFlags <- function(...)
-{
-    args <- list(...)
-
-    if(!is.null(args$skipFirstPass)) {
-        skipFirstPass <- args$skipFirstPass
-    } else {
-        skipFirstPass <- FALSE
-    }
-
-    if(!is.null(args$skipPmm)) {
-        if(args$skipPmm)
-            skipPmm <- skipFirstPass <- TRUE
-        else
-            skipPmm <- FALSE
-    } else {
-        skipPmm <- FALSE
-    }
-
-    if(!is.null(args$skipGroupMean)) {
-        if(args$skipGroupMean)
-            skipGroupMean <-
-                skipPmm <- skipFirstPass <- TRUE
-        else
-            skipGroupMean <- FALSE
-    } else {
-        skipGroupMean <- FALSE
-    }
-
-    if(!is.null(args$skipGrandMean)) {
-        if(args$skipGrandMean)
-            skipGrandMean <- skipGroupMean <-
-                skipPmm <- skipFirstPass <- TRUE
-        else
-            skipGrandMean <- FALSE
-    } else {
-        skipGrandMean <- FALSE
-    }
-
-    skipList <- list(firstPass = skipFirstPass,
-                     pmm       = skipPmm,
-                     groupMean = skipGroupMean,
-                     grandMean = skipGrandMean)
-    skipList
-}
-
-
-
-### Setup the doSingleImputation calling environment for imputation checking
-### procedures:
-prepImpChecks <- function()
-{
-    env <- parent.frame()
-    env$frozenData <- env$map$data
-}
-
-### Undo an imputation for the purposes of functionality of fall-back
-### imputation methods:
-undoImputation <- function()
-{
-    env <- parent.frame()
-    env$map$data <- env$frozenData
-}
 
 makePredMat <- function(map)
 {

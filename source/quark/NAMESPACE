@@ -14,5 +14,5 @@ import(methods,
        rlecuyer,
        parallel)
 
-importFrom("stats", ".lm.fit", "cor", "cov", "prcomp", "sd")
+importFrom("stats", ".lm.fit", "cor", "cov", "prcomp", "sd", "runif")
 importFrom("utils", "combn")

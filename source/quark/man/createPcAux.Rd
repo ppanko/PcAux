@@ -8,13 +8,13 @@
 }
 \usage{
 createPcAux(quarkData,
-            nComps       = c(10L, 3L),
-            interactType = 3L,
+            nComps,       
+            interactType = 1L,
             maxPolyPow   = 3L,
             simMode      = FALSE,
-            mySeed       = 235711L,
+            seed         = NULL,
             forcePmm     = FALSE,
-            verbose      = !simMode,
+            verbose      = 2L,
             doImputation = TRUE,
             castData     = !doImputation,
             control,
@@ -27,14 +27,13 @@ createPcAux(quarkData,
   \item{nComps}{
     A two-element, numeric vector giving the number of linear and
     nonlinear, respectively, component scores to extract. See the
-    \emph{Details} section for more information. Defaults to
-    \code{nComps = c(10L, 3L)}.
+    \emph{Details} section for more information.
   }
   \item{interactType}{
     An integer code indicating which method is used to incorporate
     interactions into the initial, single imputation model. See the
     \emph{Details} section for more information. Defaults to
-    \code{interactType = 3L}.
+    \code{interactType = 1L}.
   }
   \item{maxPolyPow}{
     An integer giving the maximum power used when constructing the
@@ -50,9 +49,10 @@ createPcAux(quarkData,
     well-known by the user. This mode should not be used for
     'real-world' data analysis. Defaults to \code{simMode = FALSE}.
   }
-  \item{mySeed}{
-    An integer used to seed the random number generator used by the
-    imputation algorithm. Defaults to \code{mySeed = 235711L}.
+  \item{seed}{
+    An optional integer used to seed the random number generator used by the
+    imputation algorithm. Defaults to \code{seed = NULL} which leaves
+    the default random number generator unaltered.
   }
   \item{forcePmm}{
     A logical flag indicating whether or not the initial single
@@ -65,9 +65,12 @@ createPcAux(quarkData,
     PMM. Defaults to \code{forcePmm = FALSE}.
   }
   \item{verbose}{
-    A logical switch indicating whether output should be printed to the
-    screen. Warnings are always printed, regardless of the value
-    assigned to \code{verbose}. Defaults to \code{verbose = !simMode}.
+    An integer code in {0, 1, 2} defining the verbosity of output printed to the
+    screen. \code{verbose = 0} prints no output; \code{verbose = 1}
+    prints all output except for the messages returned by \pkg{mice};
+    \code{verbose = 2} prints all output, including the messages
+    returned by \pkg{mice}. Warnings are always printed, regardless of the value
+    assigned to \code{verbose}. Defaults to \code{verbose = 2}.
   }
   \item{doImputation}{
     A logical switch indicating whether the data should be imputed
@@ -86,10 +89,7 @@ createPcAux(quarkData,
     An optional list of control parameters (see 'Details').
   }
   \item{...}{
-    Used to pass undocumented debugging arguments to the internal
-    methods. These arguments are primarily intended for developer
-    use. Refer to the source code to understand how these arguments are
-    employed.
+   Not currently used.
   }
 }
 \details{
@@ -324,5 +324,5 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create the principal component auxiliaries:
-pcAuxOut <- createPcAux(quarkData = cleanData, nComps    = c(3, 2))
+pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 2))
 }

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-07
+### Modified:     2017-MAR-08
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -23,7 +23,7 @@
 checkInputs <- function(parent) {
     ## Get access to objects defined in quark():
     env <- parent.frame()
-    if(env$verbose) cat("\nChecking inputs' validity...\n")
+    if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
     if(parent == "prepData") {
         ## Check the data object:
@@ -39,6 +39,7 @@ checkInputs <- function(parent) {
                 }
             }
         }
+
         ## Check the existance of all designated variables:
         varNames <- with(env, c(idVars, nomVars, ordVars, groupVars, dropVars))
         check    <- !varNames %in% colnames(env$rawData)
@@ -64,6 +65,9 @@ checkInputs <- function(parent) {
     }
 
     if(parent == "createPcAux") {
+        ## Check that the user specified a number of PcAux:
+        if(missCheck(env$nComps)) errFun("noNComps")
+        
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
@@ -104,36 +108,41 @@ checkInputs <- function(parent) {
                    check      = check,
                    doingQuark = FALSE)
     }
-    if(env$verbose) cat("Complete.\n")
+
+    check <- env$verbose %in% c(0, 1, 2)
+    if(!check) errFun("badVerb")
+    
+    if(env$verbose > 0) cat("Complete.\n")
 }# END checkInputs()
+
 
 
 ## Check input formatting and cast variables to declared types:
 castData <- function(map, doingQuark = TRUE) {
-    if(map$verbose) cat("\nChecking data and information provided...\n")
+    if(map$verbose > 0) cat("\nChecking data and information provided...\n")
 
     nVars <- ncol(map$data)
 
-    if(map$verbose) cat("--Examining data...")
+    if(map$verbose > 0) cat("--Examining data...")
     ## Count variable levels:
     map$countVarLevels()
 
     ## Store the initial percent missing:
     map$countResponses(initialPm = TRUE)
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
 
     ## Flag variable types:
-    if(map$verbose) cat("--Typing data...")
+    if(map$verbose > 0) cat("--Typing data...")
     map$typeData()
 
     ## If any ID variables are factors, cast them as character objects:
     if(doingQuark) map$idToCharacter()
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
 
     ## Cast all variables to the appropriate measurement level:
-    if(map$verbose) cat("--Casting data...")
+    if(map$verbose > 0) cat("--Casting data...")
     map$castData()
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
     
     confirmTypes <- !map$simMode
     if(confirmTypes) {
@@ -183,7 +192,7 @@ castData <- function(map, doingQuark = TRUE) {
         
     }# CLOSE if(confirmTypes)
 
-    if(map$verbose) cat("Complete.\n")
+    if(map$verbose > 0) cat("Complete.\n")
 }# END castData()
 
 
@@ -191,7 +200,7 @@ castData <- function(map, doingQuark = TRUE) {
 ## Find and (possibly) remove problematic data columns (i.e., variables with few
 ## or no observations and constants):
 cleanData <- function(map, doingQuark = TRUE) {
-    if(map$verbose)
+    if(map$verbose > 0)
         cat("\nFinding and addressing problematic data columns...\n")
 
     if(doingQuark) {
@@ -225,19 +234,19 @@ cleanData <- function(map, doingQuark = TRUE) {
     map$countResponses()
 
     ## Flag empty variables:
-    if(map$verbose) cat("--Checking for empty columns...")
+    if(map$verbose > 0) cat("--Checking for empty columns...")
     haveEmptyVars <- map$findEmptyVars(remove = doingQuark)
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
 
     ## Flag constant columns:
-    if(map$verbose) cat("--Checking for constant columns...")
+    if(map$verbose > 0) cat("--Checking for constant columns...")
     haveConstCols <- map$findConstCols(doingQuark = doingQuark)
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
 
     ## Flag variables with few responses:
-    if(map$verbose) cat("--Checking for high PM...")
+    if(map$verbose > 0) cat("--Checking for high PM...")
     haveHighPmVars <- map$findHighPmVars()
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
 
     if(haveHighPmVars) {# Any low-response variables?
         warnFun("highPm", map)
@@ -257,14 +266,14 @@ cleanData <- function(map, doingQuark = TRUE) {
     if(haveConstCols)
         warnFun(ifelse(doingQuark, "quarkConstCols", "romConstCols"), map)
     
-    if(map$verbose) cat("Complete.\n")
+    if(map$verbose > 0) cat("Complete.\n")
 }# END cleanData()
 
 
 
 ## Flag variables with perfect bivariate correlations (within some epsilon):
 findCollin <- function(map) {
-    if(map$verbose) cat("\nExamining data for collinear relationships...\n")
+    if(map$verbose > 0) cat("\nExamining data for collinear relationships...\n")
     
     ## Get all unique variable pairings:
     varPairs <- NULL
@@ -302,44 +311,44 @@ findCollin <- function(map) {
         warnFun("collin", map)
     }
     
-    if(map$verbose) cat("Complete.\n")
+    if(map$verbose > 0) cat("Complete.\n")
 }# END findCollin()
 
 
 
 ## Do the initial single imputation:
 doSingleImputation <- function(map) {
-    if(map$verbose) cat("\nDoing initial, single imputation...\n")
-    if(map$verbose & map$forcePmm) cat("PMM forced by user.\n")
+    if(map$verbose > 0) cat("\nDoing initial, single imputation...\n")
+    if(map$verbose > 0 & map$forcePmm) cat("PMM forced by user.\n")
     
     ## Construct a design matrix of predictors:
-    if(map$verbose) cat("--Constructing predictor matrix...")
+    if(map$verbose > 0) cat("--Constructing predictor matrix...")
     predMat <- makePredMat(map = map)
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
     
     passCount <- ifelse(map$forcePmm, 1, 0)
     while(passCount < 2) {
         passCount <- passCount + 1
         
         ## Specify a vector of elementary imputation methods:
-        if(map$verbose) cat("--Creating method vector...")
+        if(map$verbose > 0) cat("--Creating method vector...")
         map$createMethVec()
-        if(map$verbose) cat("done.\n")
+        if(map$verbose > 0) cat("done.\n")
         
         ## Initially fill-in the data with a single imputation:
-        if(map$verbose) cat("--Filling missing values...")
+        if(map$verbose > 0) cat("--Filling missing values...")
         map$data <- try(
             mice(data            = map$data,
                  maxit           = map$miceIters,
                  m               = 1L,
                  predictorMatrix = predMat,
                  method          = map$methVec,
-                 printFlag       = FALSE,
+                 printFlag       = map$verbose > 1,
                  seed            = map$seed,
                  nnet.MaxNWts    = map$maxNetWts,
                  ridge           = map$miceRidge),
             silent = TRUE)
-        if(map$verbose) cat("done.\n")
+        if(map$verbose > 0) cat("done.\n")
         
         if(class(map$data) != "try-error") # mice() didn't crash
             ## Fill missing values with the imputations
@@ -353,7 +362,7 @@ doSingleImputation <- function(map) {
         
         if(all(map$respCounts == 0)) {# All is well :)
             passCount <- 2
-            if(map$verbose)
+            if(map$verbose > 0)
                 cat("All variable successfully imputed in first pass.\n")
             return(0)
         } else {
@@ -384,7 +393,7 @@ doSingleImputation <- function(map) {
                        reason = "imp_fail")
     }# CLOSE if( any(map$respCounts > 0) )
     
-    if(map$verbose) cat("Complete.\n")
+    if(map$verbose > 0) cat("Complete.\n")
 }# END doSingleImputation()
 
      
@@ -480,9 +489,9 @@ meanSubstitute <- function(map) {
     if(missCheck(map$groupVars)) {# No grouping variables
         warnFun("noGroupVars", map)
         
-        if(map$verbose) cat("--Filling missing values...")
+        if(map$verbose > 0) cat("--Filling missing values...")
         doGrandMeanSub(map)
-        if(map$verbose) cat("done.\n")
+        if(map$verbose > 0) cat("done.\n")
         
         return(1)
     }  
@@ -493,17 +502,17 @@ meanSubstitute <- function(map) {
     if(missCheck(map$groupVars)) {# All groupVars have been dropped
         warnFun("dropGroupVars", map)
         
-        if(map$verbose) cat("--Filling missing values...")
+        if(map$verbose > 0) cat("--Filling missing values...")
         doGrandMeanSub(map)
-        if(map$verbose) cat("done.\n")
+        if(map$verbose > 0) cat("done.\n")
 
         return(2)
     }
     
     ## Try group-mean substitution:
-    if(map$verbose) cat("--Filling missing values...")
+    if(map$verbose > 0) cat("--Filling missing values...")
     doGroupMeanSub(map)
-    if(map$verbose) cat("done.\n")
+    if(map$verbose > 0) cat("done.\n")
     
     if(any(map$respCounts > 0)) {# Still have missing?
         ## If all else fails, do global-mean substitution
@@ -512,9 +521,9 @@ meanSubstitute <- function(map) {
             )
         warnFun("groupMeanFail", map)
         
-        if(map$verbose) cat("--Filling missing values...")
+        if(map$verbose > 0) cat("--Filling missing values...")
         doGrandMeanSub(map)
-        if(map$verbose) cat("done.\n")
+        if(map$verbose > 0) cat("done.\n")
     }
 }# END meanSubstitute()
 
@@ -530,7 +539,7 @@ doPCA <- function(map) {
         (map$nComps[pcType] < 1 & map$nComps[pcType] != 0)
     
     if(linVal == "lin") {
-        if(map$verbose)
+        if(map$verbose > 0)
             cat("\nCalculating linear principal component scores...\n")
         
         map$castCatVars() # Cast factor variables to numeric formats
@@ -547,7 +556,7 @@ doPCA <- function(map) {
             }
         }
     } else {# We already have linear component scores
-        if(map$verbose)
+        if(map$verbose > 0)
             cat("\nCalculating nonlinear principal component scores...\n")
         
         ## Redefine the data object:
@@ -610,7 +619,7 @@ doPCA <- function(map) {
                  c(1 : map$nComps[ifelse(linVal == "lin", 1, 2)])
                  )
           )    
-    if(map$verbose) cat("Complete.\n")
+    if(map$verbose > 0) cat("Complete.\n")
 }# END doPCA()
 
 
@@ -618,7 +627,8 @@ doPCA <- function(map) {
 ## Construct one imputed data set with mice for use in parallel processing
 parallelMice <- function(imp, predMat, map) {
     ## Setup the PRNG:
-    .lec.SetPackageSeed(rep(map$seed, 6))
+    tmpSeed <- ifelse(is.na(map$seed), round(runif(1, 1, 1e6)), map$seed)
+    .lec.SetPackageSeed(rep(tmpSeed, 6))
     if(!imp %in% .lec.GetStreams()) .lec.CreateStream(c(1 : map$nImps))
     .lec.CurrentStream(imp)
     
@@ -629,7 +639,7 @@ parallelMice <- function(imp, predMat, map) {
              maxit           = 1L,
              predictorMatrix = predMat,
              method          = map$methVec,
-             printFlag       = map$verbose,
+             printFlag       = map$verbose > 1,
              ridge           = map$miceRidge,
              nnet.MaxNWts    = map$maxNetWts),
         silent = FALSE)

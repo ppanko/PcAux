@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-07
+### Modified:     2017-MAR-08
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -28,9 +28,8 @@ prepData <- function(rawData,
                      dropVars   = NULL,
                      groupVars  = NULL,
                      simMode    = FALSE,
-                     mySeed     = 235711L,
                      nProcess   = 1L,
-                     verbose    = !simMode,
+                     verbose    = 2L,
                      control,
                      ...)
 {
@@ -44,9 +43,9 @@ prepData <- function(rawData,
     quarkData <- QuarkData(data     = rawData,
                            dropVars = dropVars,
                            simMode  = simMode,
-                           seed     = as.integer(mySeed),
                            nProcess = as.integer(nProcess),
-                           verbose  = verbose)
+                           verbose  = as.integer(verbose)
+                           )
 
     quarkData$setCall(match.call(), parent = "prepData")
     
