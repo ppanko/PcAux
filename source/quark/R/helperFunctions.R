@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-08
+### Modified: 2017-MAR-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -314,37 +314,37 @@ warnFun <- function(type, map)
                           "for the following variables: ",
                           toString(map$impFails$firstPass),
                           ".\nI will now attempt to fill their missing ",
-                          "data by using predictive mean matching (PMM)."),
+                          "data by using predictive mean matching (PMM).\n"),
                pmmFail =
                    paste0("Predictive mean matching has failed ",
                           "for the following variables: ",
                           toString(map$impFails$pmm),
                           ".\nI will now attempt to fill their missing ",
-                          "data by using group-mean substitution."),
+                          "data by using group-mean substitution.\n"),
                groupMeanFail =
                    paste0("Group-mean substitution has failed ",
                           "for the following variables: ",
                           toString(map$impFails$groupMean),
                           ".\nI will now fill their missing ",
-                          "data by using grand-mean substitution."),
+                          "data by using grand-mean substitution.\n"),
                noGroupVars =
                    paste0("No grouping variables were specified, ",
                           "so I will employ grand-mean substitution ",
                           "to treat the following variables: ",
                           toString(map$impFails$pmm),
-                          "."),
+                          ".\n"),
                dropGroupVars =
                    paste0("All grouping variables have been dropped, ",
                           "so I will employ grand-mean substitution ",
                           "to treat the following variables: ",
                           toString(map$impFails$pmm),
-                          "."),
+                          ".\n"),
                grandMeanFail =
                    paste0("Grand-mean substitution has failed ",
                           "for the following variables: ",
                           toString(map$impFails$grandMean),
                           ".\nThese variables will be exluded from ",
-                          "subsequent analyses."),
+                          "subsequent analyses.\n"),
                linPcNum = {
                    datCols <- ncol(map$data)
                    nComps <- map$nComps[1]
@@ -372,21 +372,33 @@ warnFun <- function(type, map)
                           ".\n")
                },
                mergeNoID =
-                   "No ID variables are shared by the QuarkData object and the raw data, so the merging was accomplished via naive column-binding.\nPlease confirm the output object's row alignment.",
+                   "No ID variables are shared by the QuarkData object and the raw data, so the merging was accomplished via naive column-binding.\nPlease confirm the output object's row alignment.\n",
                mergeBadID =
                    paste0("None of the potential ID variables (i.e., ",
                           toString(map$idVars),
                           ") are unique row-identifiers, so the ",
                           "merging was accomplished via naive column-binding.\n",
-                          "Please confirm the output object's row alignment."),
+                          "Please confirm the output object's row alignment.\n"),
                miceCrash =
                    paste0("The mice() algorithm has crashed while creating ",
                           "imputation number ",
                           map$impNum,
                           "and returned the following error message:\n",
-                          map$miceObj),
+                          map$miceObj,
+                          "\n"),
                noMods =
-                   "You have specified 'interactType = 1' without specifying any moderators, so I will incorporate all pairwise interactions among the observed variables into the initial imputation model."
+                   "You have specified 'interactType = 1' without specifying any moderators, so I will incorporate all pairwise interactions among the observed variables into the initial imputation model.\n",
+               collinMods = {
+                   val <- map[ , 3]
+                   paste0("Two of your moderator variables (i.e., ",
+                          toString(map[ , 1 : 2]),
+                          ") are ",
+                          ifelse(val < 1, "approximately", "exactly"),
+                          " collinear. Their strength of linear association is ",
+                          round(val, 3),
+                          ". This collinearity may lead to numerical problems ",
+                          "when estimating the initial imputation model.\n")
+               }
                )
 
     ## Print the warning message
@@ -409,7 +421,7 @@ errFun <- function(type, ...)
                badDataType =
                    "Please provide a data frame or matrix for the rawData argument.\n",
                noNComps =
-                   "You have not specified a number of principal component auxiliary variables to use.\nPlease provide a two-element numeric vector for the 'nComps' argument.",
+                   "You have not specified a number of principal component auxiliary variables to use.\nPlease provide a two-element numeric vector for the 'nComps' argument.\n",
                smallPower =
                    "maxPolyPow must be a positive integer.\n",
                largePower =
@@ -429,7 +441,7 @@ errFun <- function(type, ...)
                           "'nComps', 'interactType', and 'maxPolyPow' ",
                           "arguments so that they are consistent?\n"),
                badVerb =
-                   "The value supplied for the 'verbose' argument must be an integer in {0, 1, 2}.",
+                   "The value supplied for the 'verbose' argument must be an integer in {0, 1, 2}.\n",
                missingVars =
                    paste0("Some of the arguments you've supplied correspond ",
                           "to variables that do not exist in the data object.\n",
@@ -463,21 +475,17 @@ errFun <- function(type, ...)
                },
                userKill =
                    "Execution stopped by user.\n",
-               pmmCrash =
-                   paste0("The PMM algorithm has crashed in mice() ",
-                          " and returned the following error message:\n",
-                          x$map$data),
                miceCrash =
-                   paste0("The mice() algorithm has crashed during the ",
-                          "initial imputation attempt ",
+                   paste0("The mice() algorithm has crashed ",
                           "and returned the following error message:\n",
-                          x$map$data),
+                          x$map$data,
+                          "\n"),
                badPcaMemLev =
                    paste0("An unrecognized value has been specified ",
                           "for the 'pcaMemLevel' argument (i.e., ",
                           x$map$pcaMemLev,
                           ").\nPlease provide a value of '0' ",
-                          "or '1' for this argument."),
+                          "or '1' for this argument.\n"),
                missingNonLinPcAux =
                    "You have requested the use of non-linear principal component scores, but 'quarkData' does not contain any non-linear principal component scores.\n Please adjust your analysis accordingly.\n",
                linVarExp =
@@ -489,7 +497,7 @@ errFun <- function(type, ...)
                           x$varExp[1],
                           ").\nPlease consult the output of: ",
                           "'inspect(quarkData, what = \"rSquared\")' ",
-                          "for more details."),
+                          "for more details.\n"),
                fewLinPcAux =
                    paste0("The number of linear component scores you ",
                           "requested (i.e., ",
@@ -507,7 +515,7 @@ errFun <- function(type, ...)
                           x$varExp[2],
                           ").\nPlease consult the output of: ",
                           "'inspect(quarkData, what = \"rSquared\")' ",
-                          "for more details."),
+                          "for more details.\n"),
                fewNonLinPcAux =
                    paste0("The number of non-linear component scores you ",
                           "requested (i.e., ",

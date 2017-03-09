@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for Quark
 ### Author:   Kyle M. Lang
 ### Created:  2015-NOV-01
-### Modified: 2017-MAR-07
+### Modified: 2017-MAR-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -148,6 +148,39 @@ quarkData <- prepData(rawData    = testData,
                       groupVars  = c("nom1", "nom2", "ord1")
                       )
 frozenQuarkData3 <- quarkData$copy()
+
+## Test:   Make sure collinear moderators are not dropped
+## Result: Successful execution
+quarkData <- prepData(rawData    = testData,
+                      moderators = "y4",
+                      nomVars    = c("nom1", "nom2"),
+                      ordVars    = c("ord1", "ord2"),
+                      idVars     = c("id1"),
+                      dropVars   = c("y1", "y2", "z2", "id2"),
+                      groupVars  = c("nom1", "nom2", "ord1")
+                      )
+
+## Test:   Make sure moderators' collinear partner is dropped
+## Result: Successful execution
+quarkData <- prepData(rawData    = testData,
+                      moderators = "x2",
+                      nomVars    = c("nom1", "nom2"),
+                      ordVars    = c("ord1", "ord2"),
+                      idVars     = c("id1"),
+                      dropVars   = c("y1", "y2", "z2", "id2"),
+                      groupVars  = c("nom1", "nom2", "ord1")
+                      )
+
+## Test:   Make sure both collinear moderators are retained
+## Result: Successful execution
+quarkData <- prepData(rawData    = testData,
+                      moderators = c("y4", "x2"),
+                      nomVars    = c("nom1", "nom2"),
+                      ordVars    = c("ord1", "ord2"),
+                      idVars     = c("id1"),
+                      dropVars   = c("y1", "y2", "z2", "id2"),
+                      groupVars  = c("nom1", "nom2", "ord1")
+                      )
 
 
 ##### PCAUX CREATION TESTING #####

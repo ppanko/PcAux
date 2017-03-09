@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-08
+### Modified:     2017-MAR-09
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -498,7 +498,42 @@ QuarkData$methods(
         sameNaCntVec   <- NULL
         diffNaCntVec   <- NULL
         diffMaxCntVec  <- NULL
-       
+        
+        ## KML 2017-MAR-09: First, drop any variable that is collinear with a key
+        ##                  moderator to ensure that all moderators are retained
+        if(length(moderators$raw) > 0) {
+            ## Find moderators in collinear pairs:
+            modScreen <- do.call(cbind,
+                                 lapply(collinVarPairs,
+                                        function(x, mods) x %in% mods,
+                                        mods = moderators$raw)
+                                 )
+            ## Flag rows with no moderators:
+            filter <- rowSums(modScreen) == 0
+        } else {
+            filter <- TRUE
+        }
+        
+        if(any(!filter)) {
+            ## Gather names of variables that are collinear with moderators:
+            dropList <- list()
+            for(i in which(!filter)) {
+                tmp <- collinVarPairs[i, !modScreen[i, ]]
+                if(length(tmp) == 1) dropList[[i]] <- tmp
+                else                 warnFun("collinMods", map = collinVars[i, ])
+            }
+            
+            ## Exclude variables collected above:
+            ## NOTE: Need to check extent in case only moderators are collinear
+            ## and no variables are excluded
+            tmp <- unlist(dropList)
+            if(length(tmp) > 0) 
+                removeVars(x = unique(tmp), reason = "collinear")
+            
+            ## Redifine the collinear pairs:
+            collinVarPairs <- collinVarPairs[filter, ]
+        }
+        
         while(nrow(collinVarPairs) > 0) {
             varCount     <- data.frame(table(unlist(collinVarPairs)))
             maxVarCount  <-
@@ -546,7 +581,8 @@ QuarkData$methods(
         }
         
         varsToRemove <- c(sameNaCntVec, diffNaCntVec, diffMaxCntVec)
-        removeVars(x = unique(varsToRemove), reason = "collinear")
+        if(!is.null(varsToRemove))
+            removeVars(x = unique(varsToRemove), reason = "collinear")
     },
     
     createMethVec  = function()                                                 {
@@ -700,36 +736,35 @@ QuarkData$methods(
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
             pcNames <- setdiff(colnames(pcAux$lin), idVars)
-        if(intMeth < 3)           # Interactions involving key moderators
-            mIndex <- which(colnames(data) %in% moderators$coded)
-        else                      # All observed variables as moderators
-            mIndex <- colnames(data)
+        
+        ## Interactions involving key moderators:
+        if(intMeth < 3) mods <- moderators$coded
+        ## All observed variables as moderators:
+        else            mods <- colnames(data)
 
         intList <- list()
         i       <- 0
-        for(m in mIndex) {
+        for(m in mods) {
             i <- i + 1
             if(intMeth == 1) {# Interactions all among observed variables
-                X     <- data[ , -m]
-                y     <- data[ , m]
-
-                ## Problem:
-                ## X and stems cannot include any dummy codes originating
-                ## with the factor that produced y
-                
-                stems <- colnames(data)[-m]
-
-                
+                if(m %in% dummyVars) {# Nominal moderators
+                    ## Don't interact dummy codes originating from the same
+                    ## factor:
+                    for(n in nomVars)
+                        if(grepl(n, m)) {
+                            X <- as.matrix(data[ , -grep(n, colnames(data))])
+                            break
+                        }
+                } else {              # Non-nominal moderators
+                    X <- as.matrix(data[ , -grep(m, colnames(data))])
+                }
             } else {          # Interactions involve PcAux
-                X     <- as.matrix(pcAux$lin[ , pcNames])
-                y     <- data[ , m]
-                stems <- pcNames
+                X <- as.matrix(pcAux$lin[ , pcNames])
             }
-
+            
             ## Compute interaction terms and give them good names:
-            intList[[i]] <- apply(X, 2, function(x, y) x * y, y = y)
-            colnames(intList[[i]]) <-
-                paste0(stems, "_", ifelse(intMeth == 3, m, colnames(data)[m]))
+            intList[[i]] <- apply(X, 2, function(x, y) x * y, y = data[ , m])
+            colnames(intList[[i]]) <- paste(colnames(X), m, sep = "_")
         }
         interact <<- do.call("cbind", intList)
 
@@ -823,7 +858,7 @@ QuarkData$methods(
                 }
 
                 ## Included non-nominal moderators in the 'coded' sublist:
-                moderators$coded <-
+                moderators$coded <<-
                     c(setdiff(moderators$raw, noms), moderators$coded)
                 
                 ## Merge and name transformed data:
@@ -847,23 +882,3 @@ QuarkData$methods(
     }
     
 )# END QuarkData$methods()
-
-
-
-### ToDo:
-### Get interactions with nominal variables correct
-### - Don't want to interact within-factor codes with one another
-### - Maybe refactor the interaction loop to be indexed by the factor
-###   names rather than the dummy names?
-
-
-n <- c("var1", "var2")
-m <- c("var1_1", "var1_2", "var2_1", "var2_2", "var2_3")
-z <- m[1]
-
-n
-m
-z
-
-grep(z, n)
-

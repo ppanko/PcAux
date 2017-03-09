@@ -137,7 +137,9 @@ createPcAux(quarkData,
     }
     \item{collinThresh: }{
       The strength of linear association used to flag collinear variable
-      for removal. Defaults to \code{collinThresh = 0.95}.
+      for removal. Note that any variable specified in the 'moderators'
+      argument of \code{prepData} will be retained, regardless of its
+      collinearity with other variables. Defaults to \code{collinThresh = 0.95}.
     }
     \item{minRespCount: }{
       The minimum number of observations allowed on each variable without
