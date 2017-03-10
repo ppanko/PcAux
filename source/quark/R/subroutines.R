@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-08
+### Modified:     2017-MAR-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -26,20 +26,11 @@ checkInputs <- function(parent) {
     if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
     if(parent == "prepData") {
-        ## Check the data object:
-        if(missCheck(env$rawData)) {
-            errFun("noData")
-        } else {
-            ## Make sure the data object is a data.frame:
-            if(!is.data.frame(env$rawData)) {
-                if(is.matrix(env$rawData)) {
-                    env$rawData <- as.data.frame(env$rawData)
-                } else {
-                    errFun("badDataType")
-                }
-            }
-        }
-
+        ## Make sure the data object is a data.frame:
+        if(!is.data.frame(env$rawData))
+            if(is.matrix(env$rawData)) env$rawData <- as.data.frame(env$rawData)
+            else                       errFun("badDataType")
+        
         ## Check the existance of all designated variables:
         varNames <- with(env, c(idVars, nomVars, ordVars, groupVars, dropVars))
         check    <- !varNames %in% colnames(env$rawData)
@@ -65,22 +56,19 @@ checkInputs <- function(parent) {
     }
 
     if(parent == "createPcAux") {
-        ## Check that the user specified a number of PcAux:
-        if(missCheck(env$nComps)) errFun("noNComps")
-        
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
-       
+        
         ## Check for non-zero linear component counts:
         if(env$nComps[1] == 0) errFun("noLinPc", doingQuark = TRUE)
-
+        
         ## Check for disagreement between nComps and usePoly/useInteract:
         checkVal <-
             env$interactType == 0 & env$maxPolyPow == 1 & env$nComps[2] > 0
         if(checkVal) errFun("nonLinOptionClash", nNonLinear = env$nComps[2])
     }
-
+    
     if(parent == "miWithPcAux") {
         ## Check the existance of all designated variables:
         varNames <-
@@ -108,7 +96,7 @@ checkInputs <- function(parent) {
                    check      = check,
                    doingQuark = FALSE)
     }
-
+    
     check <- env$verbose %in% c(0, 1, 2)
     if(!check) errFun("badVerb")
     
@@ -604,7 +592,8 @@ doPCA <- function(map) {
                 data.frame(map$idCols, pcaOut$x[ , 1 : map$nComps[pcType]])
     } else if(map$pcaMemLev == 1) {
         ## Save memory at the expense of numerical accuracy
-        pcaOut <- simplePca(map = map, lv = linVal, scale = TRUE)
+        pcaOut <-
+            simplePca(map = map, lv = pcType, parse = parseCheck, scale = TRUE)
     } else {
         errFun("badPcaMemLev", map = map)
     }

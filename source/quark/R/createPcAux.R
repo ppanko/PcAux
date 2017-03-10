@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-08
+### Modified: 2017-MAR-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -35,8 +35,10 @@ createPcAux <- function(quarkData,
     quarkData$setCall(match.call(), parent = "createPcAux")
     
     ## Check for problems with the input values:
-    if(!simMode) checkInputs(parent = "createPcAux")
-
+    if(missing(quarkData)) errFun("noQuarkData")
+    if(missing(nComps))    errFun("noNComps")
+    if(!simMode)           checkInputs(parent = "createPcAux")
+    
     ## Add elements to an extant instance of the QuarkData class:
     quarkData$nComps   <- nComps
     quarkData$forcePmm <- forcePmm

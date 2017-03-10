@@ -37,6 +37,8 @@ quarkData <- prepData(rawData   = testData,
                       groupVars = c("nom1", "nom2", "ord1")
                       )
 
+tmp <- createPcAux(quarkData = quarkData)
+
 ## Test:   Catch high percent missing
 ## Result: Warning with request for user input
 quarkData <- prepData(rawData   = testData,
@@ -85,7 +87,7 @@ testData2[ , c("id1", "id2")] <-
     matrix(seq(1 : (2 * nrow(testData2))), ncol = 2)
 
 ## Test:   Use simMode = TRUE
-## Result: Successful execution with nothing printed to stdout
+## Result: Successful execution
 quarkData <- prepData(rawData   = testData2,
                       nomVars   = c("nom1", "nom2"),
                       ordVars   = c("ord1", "ord2"),
@@ -128,14 +130,13 @@ quarkData <- prepData(rawData   = testData,
 
 ## Test:   Use parallel processing to check for collinearity
 ## Result: Successful execution
-quarkData <- prepData(rawData     = testData,
-                      nomVars     = c("nom1", "nom2"),
-                      ordVars     = c("ord1", "ord2"),
-                      idVars      = c("id1", "id2"),
-                      dropVars    = c("y1", "y2", "z2"),
-                      groupVars   = c("nom1", "nom2", "ord1"),
-                      useParallel = TRUE,
-                      nProcess    = 4L)
+quarkData <- prepData(rawData   = testData,
+                      nomVars   = c("nom1", "nom2"),
+                      ordVars   = c("ord1", "ord2"),
+                      idVars    = c("id1", "id2"),
+                      dropVars  = c("y1", "y2", "z2"),
+                      groupVars = c("nom1", "nom2", "ord1"),
+                      nProcess  = 4L)
 
 ## Test:   Specify key moderators variables
 ## Result: Successful execution
@@ -189,7 +190,9 @@ quarkData <- prepData(rawData    = testData,
 ## Test:   Basic usage
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
-pcAuxOut <- createPcAux(quarkData = tmp)
+pcAuxOut <- createPcAux(quarkData = tmp,
+                        nComps    = c(5, 3)
+                        )
 
 frozenPcAuxOut1 <- pcAuxOut$copy()
 
@@ -197,19 +200,22 @@ frozenPcAuxOut1 <- pcAuxOut$copy()
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData = tmp,
+                        nComps    = c(5, 3),
                         forcePmm  = TRUE)
 
 ## Test:   Use low memory pca
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData = tmp,
-                        control   = list(pcaMemLevel = 1L)
+                        nComps    = c(5, 3),
+                        control   = list(pcaMemLev = 1L)
                         )
 
 ## Test:   Use simMode = TRUE and forcePmm = TRUE
-## Result: Successful execution with nothing printed to stdout
+## Result: Successful execution
 tmp      <- frozenQuarkData2$copy()
 pcAuxOut <- createPcAux(quarkData = tmp,
+                        nComps    = c(5, 3),
                         simMode   = TRUE,
                         forcePmm  = TRUE)
 
@@ -235,36 +241,42 @@ pcAuxOut <- createPcAux(quarkData = tmp,
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData    = tmp,
+                        nComps       = c(5, 3),
                         interactType = 0)
 
 ## Test:   Don't use polynomials
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData  = tmp,
+                        nComps     = c(5, 3),
                         maxPolyPow = 1)
 
 ## Test:   Only use squares
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData  = tmp,
+                        nComps     = c(5, 3),
                         maxPolyPow = 2L)
 
 ## Test:   Use polynomials up to 4th power
 ## Result: Successful execution
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData  = tmp,
+                        nComps     = c(5, 3),
                         maxPolyPow = 4L)
 
 ## Test:   Try to request polynomial power greater than 4
 ## Result: Fatal Error
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData  = tmp,
+                        nComps     = c(5, 3),
                         maxPolyPow = 5L)
 
 ## Test:   Try to request nComps[2] > 0 while asking for no nonlinearities
 ## Result: Fatal Error
 tmp      <- frozenQuarkData1$copy()
 pcAuxOut <- createPcAux(quarkData    = tmp,
+                        nComps       = c(5, 3),
                         interactType = 0,
                         maxPolyPow   = 1)
 
@@ -275,11 +287,16 @@ quarkData <- prepData(rawData  = testData,
                       ordVars  = c("ord1", "ord2"),
                       dropVars = c("y1", "y2", "z2", "id1", "id2")
                       )
+options(warn = 2)
 pcAuxOut <- createPcAux(quarkData = quarkData)
+
+traceback()
+quark:::missCheck
 
 ## Test:   Don't specify any dropped variables
 ## Result: Successful execution
 quarkData <- prepData(rawData = testData,
+                      nComps  = c(5, 3),
                       nomVars = c("nom1", "nom2"),
                       ordVars = c("ord1", "ord2"),
                       idVars  = c("id1", "id2")
@@ -287,6 +304,12 @@ quarkData <- prepData(rawData = testData,
 pcAuxOut <- createPcAux(quarkData = quarkData)
 
 frozenPcAuxOut4 <- pcAuxOut$copy()
+
+quark:::missCheck
+
+
+
+prepData()
 
 ## Simulate some clean data:
 sigma       <- matrix(0.3, 50, 50)
@@ -300,7 +323,12 @@ testData3[as.logical(rbinom(prod(dim(testData3)), 1, 0.2))] <- NA
 ## Test:   Run quark on clean, normally distributed data
 ## Result: Successful execution
 quarkData <- prepData(rawData = testData3)
-pcAuxOut  <- createPcAux(quarkData = quarkData)
+
+debug(createPcAux)
+
+pcAuxOut  <- createPcAux(quarkData = quarkData,
+                         nComps    = c(5, 3)
+                         )
 
 frozenPcAuxOut6 <- pcAuxOut$copy()
 
@@ -309,6 +337,7 @@ frozenPcAuxOut6 <- pcAuxOut$copy()
 quarkData <- prepData(rawData = as.data.frame(testData3),
                       simMode = TRUE)
 pcAuxOut <- createPcAux(quarkData = quarkData,
+                        nComps    = c(5, 3),
                         simMode   = TRUE)
 
 frozenPcAuxOut7 <- pcAuxOut$copy()
@@ -323,7 +352,9 @@ colnames(testData4) <- paste0("x", c(1 : 100))
 testData4[as.logical(rbinom(prod(dim(testData4)), 1, 0.2))] <- NA
 
 quarkData <- prepData(rawData = as.data.frame(testData4))
-pcAuxOut  <- createPcAux(quarkData = quarkData)
+pcAuxOut  <- createPcAux(quarkData = quarkData,
+                         nComps    = c(5, 3)
+                         )
 
 frozenPcAuxOut8 <- pcAuxOut$copy()
 
@@ -331,6 +362,7 @@ frozenPcAuxOut8 <- pcAuxOut$copy()
 ## Result: Successful execution
 tmp      <- frozenQuarkData3$copy()
 pcAuxOut <- createPcAux(quarkData    = tmp,
+                        nComps       = c(5, 3),
                         interactType = 1)
 
 ## Test:   Specify interactions among observed variables without polynomials
@@ -344,12 +376,14 @@ pcAuxOut <- createPcAux(quarkData    = tmp,
 ## Result: Successful execution
 tmp      <- frozenQuarkData3$copy()
 pcAuxOut <- createPcAux(quarkData    = tmp,
+                        nComps       = c(5, 3),
                         interactType = 2)
 
 ## Test:   Specify moderators but don't use them
 ## Result: Successful execution
 tmp      <- frozenQuarkData3$copy()
 pcAuxOut <- createPcAux(quarkData    = tmp,
+                        nComps       = c(5, 3),
                         interactType = 3)
 
 ## Test:   Specify number of PcAux in terms of variance explained

@@ -793,7 +793,7 @@ QuarkData$methods(
                            lm.fit(y = dv^p,
                                   x = as.matrix(
                                       cbind(
-                                          sapply(c(p : 1),
+                                          sapply(c((p - 1) : 1),
                                                  function(pp, dat) dat^pp,
                                                  dat = dv),
                                           pc)
@@ -838,7 +838,7 @@ QuarkData$methods(
         "Cast factor variables to numeric formats to facilitate PCA"
         ## Dummy code nominal factors:
         if(!all(nomVars == "")) {
-            noms    <- colnames(data)[colnames(data) %in% nomVars]
+            noms <- colnames(data)[colnames(data) %in% nomVars]
             if(length(noms) > 0) {
                 dumList <- nameList <- list()
                 for(n in noms) {
@@ -857,10 +857,6 @@ QuarkData$methods(
                         moderators$coded <<- c(moderators$coded, nameList[[n]])
                 }
 
-                ## Included non-nominal moderators in the 'coded' sublist:
-                moderators$coded <<-
-                    c(setdiff(moderators$raw, noms), moderators$coded)
-                
                 ## Merge and name transformed data:
                 cn             <-  setdiff(colnames(data), noms)
                 data           <<- data.frame(data[ , cn], dumList)
@@ -868,6 +864,11 @@ QuarkData$methods(
                 colnames(data) <<- c(cn, dummyVars)
             }
         }
+        
+        ## Included non-nominal moderators in the 'coded' sublist:
+        moderators$coded <<-
+            c(setdiff(moderators$raw, nomVars), moderators$coded)
+        
         ## Cast ordinal factors as numeric:
         if(!all(ordVars == "")) {
             ## Find ordinal variables that are still on the data set:

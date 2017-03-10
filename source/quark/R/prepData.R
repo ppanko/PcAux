@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-08
+### Modified:     2017-MAR-09
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -34,7 +34,8 @@ prepData <- function(rawData,
                      ...)
 {
     ## Check for problems with the input values:
-    if(!simMode) checkInputs(parent = "prepData")
+    if(missing(rawData)) errFun("noData")
+    if(!simMode)         checkInputs(parent = "prepData")
     
     if(missCheck(dropVars)) dropVars <- "NONE_DEFINED"
             

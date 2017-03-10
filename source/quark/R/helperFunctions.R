@@ -35,18 +35,15 @@
 }
 
 
+
 ## Count levels of variables:
-countLevels <- function(x)
-{
-    length( unique( x[!is.na(x)] ) )
-}
+countLevels <- function(x) length(unique(na.omit(x)))
 
 
 
 ### Create a set of dummy ID values ensured to be disjoint from the observed IDs
 ### to use as temporary fill-ins for missing IDs:
-createDummyIdValues <- function(x)
-{
+createDummyIdValues <- function(x) {
     varType <- class(x)
     if(varType == "numeric" | varType == "integer")
         idFills <- 2 * max(x, na.rm = TRUE) + c(0 : (sum(is.na(x)) - 1))
@@ -146,8 +143,7 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
 
 
 ### Compute several measures of central tendency:
-flexCenTen <- function(x)
-{
+flexCenTen <- function(x) {
     varType <- class(x)[1]
     if(varType == "numeric" | varType == "integer") {
         ## Mean for continuous variables
@@ -170,32 +166,24 @@ flexCenTen <- function(x)
 
 
 ### Flexibly check for missing arguments:
-missCheck <- function(x)
-{
-    if( missing(x) ) {
-        outVal <- TRUE
-    } else if( !is.object(x) ) {
-        if(length(x) == 0) {
-            outVal <- TRUE
-        } else if(length(x) == 1) {
-            if(is.na(x) | is.null(x) | x == "") {
-                outVal <- TRUE
-            } else {
-                outVal <- FALSE
-            }
-        } else {
-            outVal <- FALSE
-        }
-    } else {
-        outVal <- FALSE
+#missCheck <- function(x)
+#{
+#    missing(x) ||
+#        (!is.object(x) & length(x) == 0) ||
+#        (!is.object(x) & length(x) == 1 & (is.null(x) || is.na(x) || x == ""))
+#}
+missCheck <- function(x) {
+    if(missing(x)) return(TRUE)
+    if(!is.object(x)) {
+        if(length(x) == 0) return(TRUE)
+        if(length(x) == 1 & is.null(x) || is.na(x) || x == "") return(TRUE)
     }
-    outVal
+    FALSE
 }
 
 
-
 ### Do a simple PCA while trying to minimize memory usage:
-simplePca <- function(map, lv, scale = TRUE)
+simplePca <- function(map, lv, parse, scale = TRUE)
 {
     ## Scale the raw data:
     if(scale) {
@@ -217,9 +205,9 @@ simplePca <- function(map, lv, scale = TRUE)
     map$calcRSquared()
 
     ## Set component counts when some are defined by variance explained:
-    if(any(is.na(map$pcCount))) map$setNComp()
+    if(parse) map$setNComp(type = lv)
     
-    nc <- ifelse(lv == "lin", map$nComps[1], map$nComps[2])
+    nc <- map$nComps[lv]
     
     ## Compute and save the PcAux scores:
     if(is.null(map$idCols))
@@ -235,8 +223,7 @@ simplePca <- function(map, lv, scale = TRUE)
 
 
 
-warnFun <- function(type, map)
-{
+warnFun <- function(type, map) {
     ## Select an appropriate warning message:
     warnMessage <-
         switch(type,
@@ -409,8 +396,7 @@ warnFun <- function(type, map)
 
 
 
-errFun <- function(type, ...)
-{
+errFun <- function(type, ...) {
     x <- list(...) # Unpack extra arguments
 
     ## Select the appropriate error message:
@@ -420,8 +406,10 @@ errFun <- function(type, ...)
                    "Please provide a data object for the rawData argument.\n",
                badDataType =
                    "Please provide a data frame or matrix for the rawData argument.\n",
+               noQuarkData =
+                   "Please provide an instantiated QuarkData object for the quarkData argument.\n",
                noNComps =
-                   "You have not specified a number of principal component auxiliary variables to use.\nPlease provide a two-element numeric vector for the 'nComps' argument.\n",
+                   "Please provide a two-element numeric vector for the 'nComps' argument.\n",
                smallPower =
                    "maxPolyPow must be a positive integer.\n",
                largePower =
@@ -531,8 +519,7 @@ errFun <- function(type, ...)
 
 
 
-makePredMat <- function(map)
-{
+makePredMat <- function(map) {
     options(warn = -1)
     ## Construct a predictor matrix for mice():
     predMat <- quickpred(map$data,
