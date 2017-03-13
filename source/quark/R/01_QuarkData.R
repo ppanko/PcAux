@@ -587,6 +587,12 @@ QuarkData$methods(
     
     createMethVec  = function()                                                 {
         "Populate a vector of elementary imputation methods"
+        dataNames <- setdiff(colnames(data),
+                             c(colnames(interact),
+                               unlist(lapply(poly, colnames))
+                               )
+                             )
+        
         if(forcePmm) {
             methVec        <<- rep     ("pmm", ncol(data))
             names(methVec) <<- colnames(data             )
@@ -765,9 +771,16 @@ QuarkData$methods(
             ## Compute interaction terms and give them good names:
             intList[[i]] <- apply(X, 2, function(x, y) x * y, y = data[ , m])
             colnames(intList[[i]]) <- paste(colnames(X), m, sep = "_")
+
+            ## Create method vector entries to implement passive imputation of
+            ## the product terms:
+            if(intMeth == 1)
+                methVec[["int"]] <- c(methVec[["int"]],
+                                      paste0("~I(", colnames(X), "*", m, ")")
+                                      )
         }
         interact <<- do.call("cbind", intList)
-
+        
         ## If any PcAux are involved, orthogonalize the interaction terms w.r.t.
         ## the linear PcAux scores:
         if(intMeth > 1)
@@ -806,6 +819,11 @@ QuarkData$methods(
             ## Give some sensible variable names:
             colnames(poly[[powerVals[p - 1]]]) <<-
                 paste0(colnames(data[ , dataNames]), "_p", p)
+            
+            ## Create method vector entries to implement passive imputation of
+            ## the polynomial terms:
+            methVec[["poly"]] <-
+                paste0("~I(", colnames(data[ , dataNames]), "^", p, ")")
         }# END for(p in 1 : (maxPower - 1))
     },
     
@@ -813,7 +831,7 @@ QuarkData$methods(
         "Create nonlinear terms and orthogonalize them"
         if(verbose) cat("\nComputing interaction and polynomial terms...\n")
         
-        if(intMeth > 1)  computeInteract()
+        if(intMeth > 0)  computeInteract()
         if(maxPower > 1) computePoly()
         
         if(verbose) cat("Complete.\n")
@@ -834,52 +852,62 @@ QuarkData$methods(
                 rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
     },
     
-    castCatVars     = function()                                                {
-        "Cast factor variables to numeric formats to facilitate PCA"
-        ## Dummy code nominal factors:
-        if(!all(nomVars == "")) {
-            noms <- colnames(data)[colnames(data) %in% nomVars]
-            if(length(noms) > 0) {
-                dumList <- nameList <- list()
-                for(n in noms) {
-                    ## Remove empty factor levels:
-                    missLevels <- setdiff(levels(data[ , n]), unique(data[ , n]))
-                    levels(data[ , n])[levels(data[ , n]) %in% missLevels] <<- NA
-
-                    ## Create dummy codes:
-                    dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
-                    
-                    ## Give some meaningful variable names:
-                    nameList[[n]] <- paste0(n, "_", levels(data[ , n])[-1])
-                    
-                    ## Store names of any dummy-coded moderators:
-                    if(n %in% moderators$raw)
-                        moderators$coded <<- c(moderators$coded, nameList[[n]])
-                }
-
-                ## Merge and name transformed data:
-                cn             <-  setdiff(colnames(data), noms)
-                data           <<- data.frame(data[ , cn], dumList)
-                dummyVars      <<- unlist(nameList)
-                colnames(data) <<- c(cn, dummyVars)
+    castNomVars     = function()                                                {
+        "Dummy code nominal factors"
+        noms <- colnames(data)[colnames(data) %in% nomVars]
+        if(length(noms) > 0) {
+            dumList <- nameList <- list()
+            for(n in noms) {
+                ## Remove empty factor levels:
+                missLevels <- setdiff(levels(data[ , n]), unique(data[ , n]))
+                levels(data[ , n])[levels(data[ , n]) %in% missLevels] <<- NA
+                
+                ## Create dummy codes:
+                dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
+                
+                ## Give some meaningful variable names:
+                nDum          <- length(levels(data[ , n])) - 1
+                nameList[[n]] <- paste0(n, c(1 : nDum), sep = ".")
+                
+                ## Store names of any dummy-coded moderators:
+                if(n %in% moderators$raw)
+                    moderators$coded <<- c(moderators$coded, nameList[[n]])
             }
+            
+            ## Store raw and coded versions of the nominal variables:
+            dummyVars           <<- data.frame(dumList)
+            factorVars          <<- data[ , noms]
+            colnames(dummyVars) <<- unlist(nameList)
         }
-        
         ## Included non-nominal moderators in the 'coded' sublist:
         moderators$coded <<-
             c(setdiff(moderators$raw, nomVars), moderators$coded)
+    },
+    
+    castOrdVars     = function()                                                {
+        "Cast ordinal factors to numeric variables"
+        ## Find ordinal variables that are still on the data set:
+        ords <- colnames(data)[colnames(data) %in% ordVars]
         
-        ## Cast ordinal factors as numeric:
-        if(!all(ordVars == "")) {
-            ## Find ordinal variables that are still on the data set:
-            ords <- colnames(data)[colnames(data) %in% ordVars]
-            
-            ## Cast the ordinal variables as numeric:
-            if(length(ords) > 1)
-                data[ , ords] <<- data.frame(lapply(data[ , ords], as.numeric))
-            else
-                data[ , ords] <<- as.numeric(data[ , ords])
-        }
+        ## Cast the ordinal variables as numeric:
+        if(length(ords) > 1)
+            data[ , ords] <<- data.frame(lapply(data[ , ords], as.numeric))
+        else
+            data[ , ords] <<- as.numeric(data[ , ords])
+    },
+
+    swapNoms = function(toFactor) {
+        "Switch between dummy-codes and factors"
+        if(toFactor)
+            data <<- data.frame(
+                data[ , setdiff(colnames(data), colnames(factorVars))],
+                dummyVars
+            )
+        else
+            data <<- data.frame(
+                data[ , setdiff(colnames(data), colnames(dummyVars))],
+                factorVars
+            )[ , names(typeVec)]
     }
     
 )# END QuarkData$methods()

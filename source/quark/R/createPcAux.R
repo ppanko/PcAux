@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-09
+### Modified: 2017-MAR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -68,6 +68,9 @@ createPcAux <- function(quarkData,
     
     ## Re-cast the data if needed
     if(castData) castData(map = quarkData)
+
+    ## Make sure nonlinearities are represented in the data before imputation:
+    if(intMeth == 1) quarkData$computeNonLin()
     
     if(doImputation) {
         ## Check for and treat any single nominal variables that are missing

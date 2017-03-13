@@ -530,10 +530,11 @@ doPCA <- function(map) {
         if(map$verbose > 0)
             cat("\nCalculating linear principal component scores...\n")
         
-        map$castCatVars() # Cast factor variables to numeric formats
+        map$castOrdVars() # Cast ordinal factors to numeric formats
         
         ## Construct interactions from raw variables?
-        if(map$intMeth == 1) map$computeInteract()
+                                        # This is done pre-imp, now.
+                                        #if(map$intMeth == 1) map$computeInteract()
         
         if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than the number
