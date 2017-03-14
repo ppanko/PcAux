@@ -131,6 +131,12 @@ castData <- function(map, doingQuark = TRUE) {
     if(map$verbose > 0) cat("--Casting data...")
     map$castData()
     if(map$verbose > 0) cat("done.\n")
+
+    ## Center continuous variables:
+    if(map$verbose > 0) cat("--Centering continuous data...")
+    map$centerData()
+    if(map$verbose > 0) cat("done.\n")
+
     
     confirmTypes <- !map$simMode
     if(confirmTypes) {

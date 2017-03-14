@@ -67,10 +67,12 @@ createPcAux <- function(quarkData,
     }
     
     ## Re-cast the data if needed
-    if(castData) castData(map = quarkData)
+    if(castData) castData(map = q
+                          uarkData)
 
     ## Make sure nonlinearities are represented in the data before imputation:
-    if(intMeth == 1) quarkData$computeNonLin()
+    if(intMeth == 1) quarkData$computeInteract()
+    if(maxPower > 1) quarkData$computePoly()
     
     if(doImputation) {
         ## Check for and treat any single nominal variables that are missing

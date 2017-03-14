@@ -373,7 +373,13 @@ QuarkData$methods(
                        )
         }
     },
-
+    
+    centerData      = function()                                                {
+        conNames <- names(typeVec)[typeVec == "continuous"]
+        data[ , conNames] <-
+            scale(data[ , conNames], center = TRUE, scale = FALSE)
+    },
+    
     checkTypes     = function()                                                 {
         "Check each variable for a sensible number of levels"
         tmpN <- (typeVec == "nominal" | typeVec == "binary") &
