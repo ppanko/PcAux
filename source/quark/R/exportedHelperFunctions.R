@@ -1,7 +1,7 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2017-MAR-07
+### Modified: 2017-MAR-15
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -187,10 +187,16 @@ mergePcAux <- function(quarkData, rawData, nComps = NULL, verbose = TRUE)
     
     ## Merge the PcAux scores onto the raw data:
     if(badId) {
-        outData <-
-            data.frame(rawData, quarkData$pcAux$lin, quarkData$pcAux$nonLin)
-    } else      {
-        tmp <- merge(quarkData$pcAux$lin, quarkData$pcAux$nonLin)
+        if(quarkData$intMeth > 1)
+            outData <-
+                data.frame(rawData, quarkData$pcAux$lin, quarkData$pcAux$nonLin)
+        else
+            outData <- data.frame(rawData, quarkData$pcAux$lin)
+    } else {
+        if(quarkData$intMeth > 1)
+            tmp <- merge(quarkData$pcAux$lin, quarkData$pcAux$nonLin)
+        else
+            tmp <- quarkData$pcAux$lin
         outData <-
             merge(rawData, tmp[ , setdiff(colnames(tmp), extraIds)], by = useId)
     }
@@ -204,7 +210,7 @@ mergePcAux <- function(quarkData, rawData, nComps = NULL, verbose = TRUE)
 ### the principle component auxiliaries produced by quark() as the imputation
 ### model predictors:
 makePredMatrix <- function(mergedData, nLinear = NULL, nNonLinear = NULL)
-{
+{    
     if(missCheck(nLinear))
         nLinear <- length(grep("linPC", colnames(mergedData)))
     

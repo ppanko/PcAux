@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-09
+### Modified:     2017-MAR-15
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -67,6 +67,13 @@ checkInputs <- function(parent) {
         checkVal <-
             env$interactType == 0 & env$maxPolyPow == 1 & env$nComps[2] > 0
         if(checkVal) errFun("nonLinOptionClash", nNonLinear = env$nComps[2])
+
+        ## Check for disagreement between nComps and usePoly/useInteract:
+        checkVal <- env$interactType == 1 & env$nComps[2] > 0
+        if(checkVal) {
+            env$nComps[2] <- 0
+            warnFun("nonLinPcAuxClash")
+        }
     }
     
     if(parent == "miWithPcAux") {
@@ -313,7 +320,6 @@ findCollin <- function(map) {
 ## Do the initial single imputation:
 doSingleImputation <- function(map) {
     if(map$verbose > 0) cat("\nDoing initial, single imputation...\n")
-    if(map$verbose > 0 & map$forcePmm) cat("PMM forced by user.\n")
     
     ## Construct a design matrix of predictors:
     if(map$verbose > 0) cat("--Constructing predictor matrix...")
@@ -326,7 +332,7 @@ doSingleImputation <- function(map) {
         
         ## Specify a vector of elementary imputation methods:
         if(map$verbose > 0) cat("--Creating method vector...")
-        map$createMethVec()
+        map$createMethVec(initialImp = TRUE)
         if(map$verbose > 0) cat("done.\n")
         
         ## Initially fill-in the data with a single imputation:
@@ -535,13 +541,19 @@ doPCA <- function(map) {
     if(linVal == "lin") {
         if(map$verbose > 0)
             cat("\nCalculating linear principal component scores...\n")
-        
+
+        ## Unless intMeth == 1, remove polynomial terms from the data before
+        ## extracting linear PcAux:
+        if(map$intMeth != 1 & map$maxPower > 1)
+            map$data <- with(map,
+                             data[ , setdiff(colnames(data),
+                                             unlist(lapply(poly, colnames))
+                                             )]
+                             )
+      
         map$castOrdVars() # Cast ordinal factors to numeric formats
-        
-        ## Construct interactions from raw variables?
-                                        # This is done pre-imp, now.
-                                        #if(map$intMeth == 1) map$computeInteract()
-        
+        map$castNomVars() # Dummy code nominal variables
+      
         if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than the number
             ## of columns in our data object:
@@ -555,7 +567,7 @@ doPCA <- function(map) {
             cat("\nCalculating nonlinear principal component scores...\n")
         
         ## Redefine the data object:
-        if(map$intMeth > 0)  map$data <- map$interact
+        if(map$intMeth > 1)  map$data <- map$interact
         if(map$maxPower > 1) map$data <- data.frame(map$data, map$poly)
         
         ## Note the variables we need to scale down below:

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-09
+### Modified:     2017-MAR-15
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -61,15 +61,11 @@ prepData <- function(rawData,
         quarkData$data   <-
             quarkData$data[ , setdiff(colnames(quarkData$data), idVars)]
     }
-    if(!missCheck(groupVars))  quarkData$groupVars <- groupVars
-    if(!missCheck(nomVars))    quarkData$nomVars   <- nomVars
-    if(!missCheck(ordVars))    quarkData$ordVars   <- ordVars
-    if(!missCheck(moderators))
-        quarkData$moderators <-
-            list(raw   = moderators,
-                 coded = setdiff(moderators, quarkData$nomVars)
-                 )
-    
+    if(!missCheck(groupVars))  quarkData$groupVars  <- groupVars
+    if(!missCheck(nomVars))    quarkData$nomVars    <- nomVars
+    if(!missCheck(ordVars))    quarkData$ordVars    <- ordVars
+    if(!missCheck(moderators)) quarkData$moderators <- moderators
+                                           
 ### Pre-process the data ###
     
     ## Cast the variables to their declared types:

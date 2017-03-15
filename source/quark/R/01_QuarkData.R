@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-09
+### Modified:     2017-MAR-15
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -78,7 +78,7 @@ QuarkData <- setRefClass("QuarkData",
                              miDatasets   = "ANY",
                              miceObject   = "ANY",
                              nProcess     = "integer",
-                             moderators   = "list",
+                             moderators   = "character",
                              intMeth      = "integer",
                              idCols       = "ANY"
                          )# END fields
@@ -159,7 +159,7 @@ QuarkData$methods(
         miDatasets   = NULL,
         miceObject   = NULL,
         nProcess     = 1L,
-        moderators   = list(raw = NULL, coded = NULL),
+        moderators   = vector("character"),
         intMeth      = 0L,
         idCols       = NULL
     )                                                                           {
@@ -376,7 +376,7 @@ QuarkData$methods(
     
     centerData      = function()                                                {
         conNames <- names(typeVec)[typeVec == "continuous"]
-        data[ , conNames] <-
+        data[ , conNames] <<-
             scale(data[ , conNames], center = TRUE, scale = FALSE)
     },
     
@@ -591,28 +591,37 @@ QuarkData$methods(
             removeVars(x = unique(varsToRemove), reason = "collinear")
     },
     
-    createMethVec  = function()                                                 {
+    createMethVec  = function(initialImp = FALSE)                               {
         "Populate a vector of elementary imputation methods"
-        dataNames <- setdiff(colnames(data),
-                             c(colnames(interact),
-                               unlist(lapply(poly, colnames))
-                               )
-                             )
+        cn0 <- setdiff(colnames(data),
+                       c(colnames(interact),
+                         unlist(lapply(poly, colnames))
+                         )
+                       )
+        cn1 <- setdiff(colnames(data), cn0)
         
         if(forcePmm) {
             methVec        <<- rep     ("pmm", ncol(data))
             names(methVec) <<- colnames(data             )
-
+            
             ## KML 2016-JUL-31: Don't use PMM for nominal variables
-            binNames <- colnames(data)[typeVec[colnames(data)] == "binary"]
-            nomNames <- colnames(data)[typeVec[colnames(data)] == "nominal"]
+            binNames <- cn0[typeVec[cn0] == "binary"]
+            nomNames <- cn0[typeVec[cn0] == "nominal"]
             
             tmpIndex <- names(methVec) %in% binNames
             setMethVec(x = "logreg", index = tmpIndex)
 
             tmpIndex <- names(methVec) %in% nomNames
             setMethVec(x = "polyreg", index = tmpIndex)
-       
+
+            ## Impute binary interaction terms with logistic regression:
+            if(intMeth == 1 & initialImp) {
+                facFlag <- unlist(lapply(data[ , cn1], is.factor))
+                if(any(facFlag)) {
+                    tmpIndex <- colnames(data) %in% colnames(data)[facFlag]
+                    setMethVec(x = "logreg", index = tmpIndex)
+                }
+            }
             ## Don't impute ID or Dropped Variables:
             tmpIndex <- names(methVec) %in% dropVars[ , 1]
             setMethVec(x = "", index = tmpIndex)
@@ -748,99 +757,115 @@ QuarkData$methods(
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
             pcNames <- setdiff(colnames(pcAux$lin), idVars)
+
+        ## Cast ordered factors to numeric:
+        if(length(ordVars) > 0) castOrdVars()
         
         ## Interactions involving key moderators:
-        if(intMeth < 3) mods <- moderators$coded
+        if(intMeth < 3) mods <- moderators
         ## All observed variables as moderators:
         else            mods <- colnames(data)
 
-        intList <- list()
-        i       <- 0
-        for(m in mods) {
-            i <- i + 1
-            if(intMeth == 1) {# Interactions all among observed variables
-                if(m %in% dummyVars) {# Nominal moderators
-                    ## Don't interact dummy codes originating from the same
-                    ## factor:
-                    for(n in nomVars)
-                        if(grepl(n, m)) {
-                            X <- as.matrix(data[ , -grep(n, colnames(data))])
-                            break
-                        }
-                } else {              # Non-nominal moderators
-                    X <- as.matrix(data[ , -grep(m, colnames(data))])
-                }
-            } else {          # Interactions involve PcAux
-                X <- as.matrix(pcAux$lin[ , pcNames])
-            }
-            
-            ## Compute interaction terms and give them good names:
-            intList[[i]] <- apply(X, 2, function(x, y) x * y, y = data[ , m])
-            colnames(intList[[i]]) <- paste(colnames(X), m, sep = "_")
+        ## Generate interaction terms:
+        varCombs <- combn(colnames(data), 2)
+        filter   <- varCombs[1, ] %in% mods
+        intTerms <-
+            apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "*"))
+        
+        ## Build a formula defining interactions:
+        form <- as.formula(
+            paste0("~",
+                   paste(
+                       paste0(intTerms, collapse = " + "),
+                       paste0(colnames(data), collapse = " - "),
+                       sep = " - ")
+                   )
+        )
 
-            ## Create method vector entries to implement passive imputation of
-            ## the product terms:
-            if(intMeth == 1)
-                methVec[["int"]] <- c(methVec[["int"]],
-                                      paste0("~I(", colnames(X), "*", m, ")")
-                                      )
-        }
-        interact <<- do.call("cbind", intList)
+        ## Make sure missing values are retained in dummy codes:
+        oldOpt <- options(na.action = "na.pass")
+        
+        ## Create product variables:
+        if(intMeth == 1)
+            interact <<- data.frame(model.matrix(form, data = data)[ , -1])
+        else
+            interact <<- data.frame(
+                model.matrix(form,
+                             data = data.frame(data, pcAux$lin[ , pcNames])
+                             )[ , -1]
+            )
+
+        ## Reset the na.action option:
+        options(na.action = oldOpt$na.action)
+      
+        ## Remove dummy codes for empty cells:
+        levVec <- unlist(
+            lapply(interact, function(x) length(unique(na.omit(x))))
+        )
+        
+        interact  <<- interact[ , levVec > 1]
+        dummyVars <<- colnames(interact)
+        
+        ## Cast dummy codes as factors:
+        dumFlag <- unlist(
+            lapply(interact, function(x) all(unique(na.omit(x)) %in% c(0, 1)))
+        )
+        
+        if(sum(dumFlag) > 1)
+            interact[ , dumFlag] <<-
+                data.frame(lapply(interact[ , dumFlag], as.factor))
+        else if(sum(dumFlag) == 1)
+            interact[ , dumFlag] <<- as.factor(interact[ , dumFlag])
         
         ## If any PcAux are involved, orthogonalize the interaction terms w.r.t.
         ## the linear PcAux scores:
-        if(intMeth > 1)
+        if(intMeth > 1)        
             for(v in 1 : ncol(interact))
                 interact[ , v] <<-
                     .lm.fit(y = interact[ , v],
                             x = as.matrix(pcAux$lin[ , pcNames]))$resid
+        
+        ## Undo type-cast of ordered factors:
+        if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
     },
     
     computePoly     = function()                                                {
         "Compute polynomial terms"
-        dataNames <- setdiff(colnames(data), dummyVars)
-        pcNames   <- setdiff(colnames(pcAux$lin), idVars)
+        dataNames <- setdiff(colnames(data), c(dummyVars, nomVars, ordVars))
         
-        for(p in 2 : maxPower) {# Loop over power levels
-            powerVals <- c("square", "cube", "quad")
-            
-            ## Compute the powered terms and orthogonalize them w.r.t. their
-            ## lower-powered counterparts and the linear pcAux:
-            poly[[powerVals[p - 1]]] <<- data.frame(
-                lapply(data[ , dataNames],
-                       FUN = function(dv, p, pc)
-                           lm.fit(y = dv^p,
-                                  x = as.matrix(
-                                      cbind(
-                                          sapply(c((p - 1) : 1),
-                                                 function(pp, dat) dat^pp,
-                                                 dat = dv),
-                                          pc)
-                                  ))$resid,
-                       p  = p,
-                       pc = pcAux$lin[ , pcNames]
-                       )       
+        ## Construct a formula to define the polynomial transformations:
+        form <- as.formula(
+            paste0("~",
+                   paste0("I(",
+                          paste(dataNames,
+                                rep(c(2 : maxPower), each = length(dataNames)),
+                                sep = "^"),
+                          ")",
+                          collapse = " + "
+                          )
+                   )
+        )
+
+        ## Make sure missing values are retained in dummy codes:
+        oldOpt <- options(na.action = "na.pass")
+       
+        ## Create the polynominal terms:
+        poly <<- data.frame(
+            model.matrix(form, data = data[ , dataNames])[ , -1]
+        )
+
+        ## Undo type-cast of ordered factors:
+        if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
+   
+        ## If we're constructing distinct non-linear PcAux, orthogonalize the
+        ## polynomial terms w.r.t. the linear PcAux:
+        if(intMeth != 1)
+            poly <<- data.frame(
+                lapply(poly,
+                       function(y, X) .lm.fit(y = y, x = as.matrix(X))$resid,
+                       X = pcAux$lin[ , setdiff(colnames(pcAux$lin), idVars)]
+                       )
             )
-            
-            ## Give some sensible variable names:
-            colnames(poly[[powerVals[p - 1]]]) <<-
-                paste0(colnames(data[ , dataNames]), "_p", p)
-            
-            ## Create method vector entries to implement passive imputation of
-            ## the polynomial terms:
-            methVec[["poly"]] <-
-                paste0("~I(", colnames(data[ , dataNames]), "^", p, ")")
-        }# END for(p in 1 : (maxPower - 1))
-    },
-    
-    computeNonLin   = function()                                                {
-        "Create nonlinear terms and orthogonalize them"
-        if(verbose) cat("\nComputing interaction and polynomial terms...\n")
-        
-        if(intMeth > 0)  computeInteract()
-        if(maxPower > 1) computePoly()
-        
-        if(verbose) cat("Complete.\n")
     },
     
     calcRSquared    = function()                                                {
@@ -862,58 +887,50 @@ QuarkData$methods(
         "Dummy code nominal factors"
         noms <- colnames(data)[colnames(data) %in% nomVars]
         if(length(noms) > 0) {
-            dumList <- nameList <- list()
-            for(n in noms) {
-                ## Remove empty factor levels:
-                missLevels <- setdiff(levels(data[ , n]), unique(data[ , n]))
-                levels(data[ , n])[levels(data[ , n]) %in% missLevels] <<- NA
-                
-                ## Create dummy codes:
-                dumList[[n]] <- model.matrix(~data[ , n])[ , -1]
-                
-                ## Give some meaningful variable names:
-                nDum          <- length(levels(data[ , n])) - 1
-                nameList[[n]] <- paste0(n, c(1 : nDum), sep = ".")
-                
-                ## Store names of any dummy-coded moderators:
-                if(n %in% moderators$raw)
-                    moderators$coded <<- c(moderators$coded, nameList[[n]])
+            ## Expand factors into dummy codes:
+            form <- as.formula(
+                paste0("~", paste0(noms, collapse = " + "))
+            )
+            dummies <- data.frame(model.matrix(form, data = data)[ , -1])
+            
+            ## Remove dummy codes for empty factor levels:
+            levVec <- unlist(
+                lapply(dummies, function(x) length(unique(na.omit(x))))
+            )
+            dummies <- dummies[ , levVec > 1]
+            
+            ## Cast binary interaction terms as numeric dummy codes:
+            if(intMeth == 1) {
+                facFlag <- unlist(lapply(interact, is.factor))
+                if(any(facFlag)) {
+                    facInts <- colnames(interact)[facFlag]
+                    dummies <- data.frame(dummies, lapply(data[ , facInts], f2n))
+                }
             }
             
-            ## Store raw and coded versions of the nominal variables:
-            dummyVars           <<- data.frame(dumList)
-            factorVars          <<- data[ , noms]
-            colnames(dummyVars) <<- unlist(nameList)
+            ## Replace factors in the data with dummy codes:
+            data <<- data.frame(data[ , setdiff(colnames(data), noms)], dummies)
         }
-        ## Included non-nominal moderators in the 'coded' sublist:
-        moderators$coded <<-
-            c(setdiff(moderators$raw, nomVars), moderators$coded)
     },
     
-    castOrdVars     = function()                                                {
+    castOrdVars     = function(toNumeric = TRUE)                                {
         "Cast ordinal factors to numeric variables"
         ## Find ordinal variables that are still on the data set:
         ords <- colnames(data)[colnames(data) %in% ordVars]
-        
-        ## Cast the ordinal variables as numeric:
-        if(length(ords) > 1)
-            data[ , ords] <<- data.frame(lapply(data[ , ords], as.numeric))
-        else
-            data[ , ords] <<- as.numeric(data[ , ords])
-    },
 
-    swapNoms = function(toFactor) {
-        "Switch between dummy-codes and factors"
-        if(toFactor)
-            data <<- data.frame(
-                data[ , setdiff(colnames(data), colnames(factorVars))],
-                dummyVars
-            )
-        else
-            data <<- data.frame(
-                data[ , setdiff(colnames(data), colnames(dummyVars))],
-                factorVars
-            )[ , names(typeVec)]
+        if(toNumeric) {
+            ## Cast the ordinal variables as numeric:
+            if(length(ords) > 1)
+                data[ , ords] <<- data.frame(lapply(data[ , ords], as.numeric))
+            else
+                data[ , ords] <<- as.numeric(data[ , ords])
+        } else {
+            ## Cast back to ordered factors:
+            if(length(ords) > 1)
+                data[ , ords] <<- data.frame(lapply(data[ , ords], as.ordered))
+            else
+                data[ , ords] <<- as.ordered(data[ , ords])
+        }
     }
-    
+     
 )# END QuarkData$methods()

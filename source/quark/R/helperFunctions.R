@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-09
+### Modified: 2017-MAR-15
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -165,13 +165,6 @@ flexCenTen <- function(x) {
 
 
 
-### Flexibly check for missing arguments:
-#missCheck <- function(x)
-#{
-#    missing(x) ||
-#        (!is.object(x) & length(x) == 0) ||
-#        (!is.object(x) & length(x) == 1 & (is.null(x) || is.na(x) || x == ""))
-#}
 missCheck <- function(x) {
     if(missing(x)) return(TRUE)
     if(!is.object(x)) {
@@ -180,6 +173,7 @@ missCheck <- function(x) {
     }
     FALSE
 }
+
 
 
 ### Do a simple PCA while trying to minimize memory usage:
@@ -385,7 +379,9 @@ warnFun <- function(type, map) {
                           round(val, 3),
                           ". This collinearity may lead to numerical problems ",
                           "when estimating the initial imputation model.\n")
-               }
+               },
+               nonLinPcAuxClash =
+                   "You have requested a non-trivial number of non-linear PcAux scores while specifying interactType == 1.\nNonlinearities will be directly incorporated into the linear PcAux scores, and no distinct non-linear PcAux scores will be extracted.\n"
                )
 
     ## Print the warning message

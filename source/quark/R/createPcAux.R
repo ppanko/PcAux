@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-13
+### Modified: 2017-MAR-15
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -25,7 +25,6 @@ createPcAux <- function(quarkData,
                         maxPolyPow   = 3L,
                         simMode      = FALSE,
                         seed         = NULL,
-                        forcePmm     = FALSE,
                         verbose      = 2L,
                         doImputation = TRUE,
                         castData     = !doImputation,
@@ -41,7 +40,7 @@ createPcAux <- function(quarkData,
     
     ## Add elements to an extant instance of the QuarkData class:
     quarkData$nComps   <- nComps
-    quarkData$forcePmm <- forcePmm
+    quarkData$forcePmm <- TRUE # Don't give imputation options other than PMM
     quarkData$intMeth  <- as.integer(interactType)
     quarkData$maxPower <- as.integer(maxPolyPow)
     quarkData$simMode  <- simMode
@@ -52,31 +51,19 @@ createPcAux <- function(quarkData,
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) quarkData$setControl(x = control)
     
-    ## Populate some important elements of the QuarkData object:
-    if(quarkData$maxPower > 1) 
-        for(pp in 2 : quarkData$maxPower) {
-            powerVal <- switch(pp - 1, "square", "cube", "quad")
-            quarkData$setPoly(x = data.frame(NULL), power = powerVal)
-        }
-
-    ## Check for extant moderators when interactType == 1:
-    check <- interactType == 1 & length(quarkData$moderators$raw) == 0
+    ## Check for extant moderators when interactType == 1 or 2:
+    check <- interactType %in% c(1, 2) & missCheck(quarkData$moderators)
     if(check) {
-        quarkData$moderators$raw <- colnames(quarkData$data)
+        quarkData$moderators <- colnames(quarkData$data)
         warnFun("noMods")
     }
     
     ## Re-cast the data if needed
-    if(castData) castData(map = q
-                          uarkData)
-
-    ## Make sure nonlinearities are represented in the data before imputation:
-    if(intMeth == 1) quarkData$computeInteract()
-    if(maxPower > 1) quarkData$computePoly()
+    if(castData) castData(map = quarkData)
     
     if(doImputation) {
-        ## Check for and treat any single nominal variables that are missing
-        ## only one datum
+        ## Check for and treat any nominal variables that are missing only one
+        ## datum:
         singleMissNom <-
             with(quarkData, (nrow(data) - respCounts == 1) &
                             (typeVec == "binary" | typeVec == "nominal")
@@ -86,18 +73,30 @@ createPcAux <- function(quarkData,
                                  quarkData$dropVars[ , 1])
         
         if(length(singleMissNom) > 0) quarkData$fillNomCell(singleMissNom)
-        
-        ## NOTE: '...' pass hidden debugging flags that allow developers to
-        ## check the functionality of the fall-back imputation methods.
-        doSingleImputation(map = quarkData, ...)
     }
+    
+    ## Compute interactions for use during initial imputation:
+    if(quarkData$intMeth == 1) {
+        quarkData$computeInteract()
+        quarkData$data <- with(quarkData, data.frame(data, interact))
+    }
+    
+    ## Compute polynomials for use during initial imputation:
+    if(quarkData$maxPower > 1) {
+        quarkData$computePoly()
+        quarkData$data <- with(quarkData, data.frame(data, poly))
+    }
+    
+    ## Execute the initial, single imputation:
+    if(doImputation) doSingleImputation(map = quarkData)
     
     ## Extract the linear principal component scores:
     doPCA(map = quarkData)
     
-    if(nComps[2] != 0) {# Construct seperate non-linear PcAux?
-        ## Construct and orthogonalize nonlinear terms:
-        quarkData$computeNonLin()
+    ## Are we constructing seperate non-linear PcAux?
+    if(quarkData$intMeth != 1 & quarkData$maxPower > 1) {
+        ## Construct and orthogonalize interaction terms:
+        quarkData$computeInteract()
         
         ## Extract the nonlinear principal component scores:
         doPCA(map = quarkData)

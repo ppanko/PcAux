@@ -13,7 +13,6 @@ createPcAux(quarkData,
             maxPolyPow   = 3L,
             simMode      = FALSE,
             seed         = NULL,
-            forcePmm     = FALSE,
             verbose      = 2L,
             doImputation = TRUE,
             castData     = !doImputation,
@@ -53,16 +52,6 @@ createPcAux(quarkData,
     An optional integer used to seed the random number generator used by the
     imputation algorithm. Defaults to \code{seed = NULL} which leaves
     the default random number generator unaltered.
-  }
-  \item{forcePmm}{
-    A logical flag indicating whether or not the initial single
-    imputation should use predictive mean matching as the elementary
-    imputation method for (almost) all variables. If \code{forcePmm ==
-      FALSE}, the elementary imputation methods are chosen to match each
-    variable's declared type. When \code{forcePmm == TRUE}, nominal
-    variables are still imputed with GLM-based methods appropriate for
-    their declared types, but all other variables are imputed with
-    PMM. Defaults to \code{forcePmm = FALSE}.
   }
   \item{verbose}{
     An integer code in {0, 1, 2} defining the verbosity of output printed to the
