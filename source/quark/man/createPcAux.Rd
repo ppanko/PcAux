@@ -315,5 +315,5 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create the principal component auxiliaries:
-pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 2))
+pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 0))
 }

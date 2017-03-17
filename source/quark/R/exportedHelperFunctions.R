@@ -1,7 +1,7 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2017-MAR-15
+### Modified: 2017-MAR-16
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -86,11 +86,11 @@ mergePcAux <- function(quarkData, rawData, nComps = NULL, verbose = TRUE)
         
         ## Must use at least 1 linear PcAux
         check <- nComps[1] == 0
-        if(check) errFun("noLinPc", doingQuark = FALSE)
+        if(check) errFun("noLinPcAux", doingQuark = FALSE)
         
         ## Make sure non-linear PcAux are available, if requested
         check <- quarkData$nComps[2] == 0 & nComps[2] > 0
-        if(check) errFun("missingNonLinPc")
+        if(check) errFun("missingNonLinPcAux")
         
         ## Requesting a legal number of linear components?
         check <- nComps[1] <= quarkData$nComps[1]
@@ -142,8 +142,10 @@ mergePcAux <- function(quarkData, rawData, nComps = NULL, verbose = TRUE)
     
     ## Check for shared ID variables:
     check <- idVars %in% colnames(rawData) &
-        idVars %in% colnames(quarkData$pcAux$lin) &
-        idVars %in% colnames(quarkData$pcAux$nonLin)
+        idVars %in% colnames(quarkData$pcAux$lin)
+    
+    if(nComps[2] > 0)
+        check <- check & idVars %in% colnames(quarkData$pcAux$nonLin)
     
     if(!any(check)) {
         warnFun("mergeNoID")

@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-15
+### Modified: 2017-MAR-16
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -55,13 +55,24 @@ createDummyIdValues <- function(x) {
 
 
 ### Calculate various kinds of 'correlation' coefficient:
-flexLinearAssoc <- function(varNames, map, checkMat = FALSE)
+flexLinearAssoc <- function(varNames, map, checkMat = FALSE, autoType = FALSE)
 {
     options(warn = -1)# Suppress warnings
-
+    
     ## Find the class of the target variables:
-    varType <- map$typeVec[varNames]
-
+    if(autoType) {# HACK: Find a better way to do this.
+        varType <- rep("continuous", 2)
+        tmp     <- map$data[ , varNames]
+        
+        check <- unlist(lapply(tmp, is.factor))
+        if(any(check)) varType[check] <- "nominal"
+        
+        check <- unlist(lapply(tmp, is.ordered))
+        if(any(check)) varType[check] <- "ordinal"
+    } else {
+        varType <- map$typeVec[varNames]
+    }
+    
     if(.Platform$OS.type == "unix") nullFile <- "/dev/null"
     else                            nullFile <- "nul"
 
@@ -410,7 +421,7 @@ errFun <- function(type, ...) {
                    "maxPolyPow must be a positive integer.\n",
                largePower =
                    "Polynomial powers greater than 4 are not supported.\n",
-               noLinPc =
+               noLinPcAux =
                    paste0("You must ",
                           ifelse(x$doingQuark, "extract", "use"),
                           " at least 1 linear auxiliary principal component ",
@@ -518,32 +529,29 @@ errFun <- function(type, ...) {
 makePredMat <- function(map) {
     options(warn = -1)
     ## Construct a predictor matrix for mice():
-    predMat <- quickpred(map$data,
-                         mincor  = map$minPredCor,
-                         exclude = map$idVars)
-
+    predMat <- quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
+    
     ## Make sure we have fewer predictors than rows:
     badPredFlag <- rowSums(predMat) > (nrow(map$data) - 1)
-
+    
     if(any(badPredFlag)) {# Some models have P > (N - 1)
         badVars <- colnames(map$data)[badPredFlag]
         for(v in badVars) {
             ## Get names of potential predictors:
             candidates <- setdiff(colnames(map$data), c(map$dropVars[ , 1], v))
-
+            
             ## Find the bivariate linear associations with the target:
-            tmpList <-
+            tmp <- unlist(
                 lapply(candidates,
-                       FUN = function(x, y, map) {
+                       FUN = function(x, y, map)
                            flexLinearAssoc(varNames = c(x, y),
-                                           map = map)$value
-                       },
-                       y = v,
+                                           map      = map,
+                                           autoType = TRUE)$value,
+                       y   = v,
                        map = map)
-            tmpVec <- do.call(c, tmpList)
+            )
             ## Select the strongest N - 1 candidates to use as predictors:
-            predNames <-
-                candidates[order(abs(tmpVec))][1 : (nrow(map$data) - 1)]
+            predNames <- candidates[order(abs(tmp))][1 : (nrow(map$data) - 1)]
             ## Modify the predictor matrix accordingly:
             predMat[v, ] <- 0
             predMat[v, colnames(predMat) %in% predNames] <- 1

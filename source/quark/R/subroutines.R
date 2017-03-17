@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-15
+### Modified:     2017-MAR-16
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -61,7 +61,7 @@ checkInputs <- function(parent) {
         else if(env$maxPolyPow > 4) errFun("largePower")
         
         ## Check for non-zero linear component counts:
-        if(env$nComps[1] == 0) errFun("noLinPc", doingQuark = TRUE)
+        if(env$nComps[1] == 0) errFun("noLinPcAux", doingQuark = TRUE)
         
         ## Check for disagreement between nComps and usePoly/useInteract:
         checkVal <-
@@ -542,18 +542,22 @@ doPCA <- function(map) {
         if(map$verbose > 0)
             cat("\nCalculating linear principal component scores...\n")
 
-        ## Unless intMeth == 1, remove polynomial terms from the data before
-        ## extracting linear PcAux:
-        if(map$intMeth != 1 & map$maxPower > 1)
+        if(map$intMeth != 1 & map$maxPower > 1) {
+            ## Replace the raw polinomial values with the imputed versions from
+            ## the data:
+            map$poly <- map$data[ , colnames(map$poly)]
+            ## Remove polynomial terms from the data before extracting linear
+            ## PcAux:
             map$data <- with(map,
-                             data[ , setdiff(colnames(data),
-                                             unlist(lapply(poly, colnames))
-                                             )]
+                             data[ , setdiff(colnames(data), colnames(poly))]
                              )
-      
-        map$castOrdVars() # Cast ordinal factors to numeric formats
-        map$castNomVars() # Dummy code nominal variables
-      
+        }
+        
+        ## Cast ordinal factors to numeric formats:
+        if(!missCheck(map$ordVars)) map$castOrdVars() 
+        ## Dummy code nominal variables:
+        if(!missCheck(map$nomVars)) map$castNomVars() 
+        
         if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than the number
             ## of columns in our data object:
@@ -565,15 +569,26 @@ doPCA <- function(map) {
     } else {# We already have linear component scores
         if(map$verbose > 0)
             cat("\nCalculating nonlinear principal component scores...\n")
-        
+
         ## Redefine the data object:
-        if(map$intMeth > 1)  map$data <- map$interact
-        if(map$maxPower > 1) map$data <- data.frame(map$data, map$poly)
+        if(map$intMeth > 1) map$data <- map$interact
         
-        ## Note the variables we need to scale down below:
-        colnames(map$data) <- c(colnames(map$interact),
-                                unlist(lapply(map$poly, colnames))
-                                )
+        if(map$maxPower > 1) {
+            ## Orthogonalize the polynomial terms w.r.t. the linear PcAux:
+            map$poly <- data.frame(
+                lapply(map$poly,
+                       function(y, pc)
+                           .lm.fit(y = y, x = as.matrix(pc))$residuals,
+                       pc = with(map,
+                                 pcAux$lin[ , setdiff(colnames(pcAux$lin),
+                                                      idVars)]
+                                 )
+                       )
+            )
+            if(map$intMeth > 1) map$data <- data.frame(map$data, map$poly)
+            else                map$data <- map$poly
+        }
+        colnames(map$data) <- c(colnames(map$interact), colnames(map$poly))
         
         ## Remove the contents of the 'interact' and 'poly' fields when they are
         ## no longer necessary:
@@ -594,7 +609,7 @@ doPCA <- function(map) {
     if(map$pcaMemLev == 0) {
         ## Higher numerical accuracy, but more memory usage
         pcaOut <- prcomp(map$data, scale = TRUE, retx  = TRUE)
-       
+                
         ## Save the components' variances and compute variance explained:
         map$rSquared[[linVal]] <- pcaOut$sdev
         map$calcRSquared()
@@ -619,7 +634,7 @@ doPCA <- function(map) {
         
     ## Remove the contents of the 'data' field when they're no longer needed:
     if(linVal == "nonLin") map$data <- "Removed to save resources"
-
+    
     ## Give some informative column names:
     colnames(map$pcAux[[linVal]]) <-
         c(map$idVars,

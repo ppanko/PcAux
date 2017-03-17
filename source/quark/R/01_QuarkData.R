@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-15
+### Modified:     2017-MAR-16
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -58,7 +58,7 @@ QuarkData <- setRefClass("QuarkData",
                              minRespCount = "integer",
                              verbose      = "integer",
                              groupVars    = "vector",
-                             dummyVars    = "vector",
+                             intVars      = "vector",
                              pcAux        = "list",
                              rSquared     = "list",
                              pcaMemLev    = "integer",
@@ -80,7 +80,9 @@ QuarkData <- setRefClass("QuarkData",
                              nProcess     = "integer",
                              moderators   = "character",
                              intMeth      = "integer",
-                             idCols       = "ANY"
+                             idCols       = "ANY",
+                             dumNoms      = "ANY",
+                             facNoms      = "ANY"
                          )# END fields
                          )# END QuarkData
 
@@ -128,7 +130,7 @@ QuarkData$methods(
         minRespCount = as.integer(floor(0.05 * nrow(data))),
         verbose      = 0L,
         groupVars    = vector("character"),
-        dummyVars    = vector("character"),
+        intVars      = vector("character"),
         pcaMemLev    = 0L,
         maxPower     = 3L,
         interact     = NULL,
@@ -161,7 +163,9 @@ QuarkData$methods(
         nProcess     = 1L,
         moderators   = vector("character"),
         intMeth      = 0L,
-        idCols       = NULL
+        idCols       = NULL,
+        dumNoms      = data.frame(NULL),
+        facNoms      = data.frame(NULL)
     )                                                                           {
         "Initialize an object of class QuarkData"
         call         <<- call
@@ -200,7 +204,7 @@ QuarkData$methods(
         pcAux        <<- pcAux
         rSquared     <<- rSquared
         impFails     <<- impFails
-        dummyVars    <<- dummyVars
+        intVars      <<- intVars
         interact     <<- interact
         collinThresh <<- collinThresh
         minPredCor   <<- minPredCor
@@ -217,6 +221,8 @@ QuarkData$methods(
         moderators   <<- moderators
         intMeth      <<- intMeth
         idCols       <<- idCols
+        dumNoms      <<- dumNoms
+        facNoms      <<- facNoms
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -507,12 +513,12 @@ QuarkData$methods(
         
         ## KML 2017-MAR-09: First, drop any variable that is collinear with a key
         ##                  moderator to ensure that all moderators are retained
-        if(length(moderators$raw) > 0) {
+        if(length(moderators) > 0) {
             ## Find moderators in collinear pairs:
             modScreen <- do.call(cbind,
                                  lapply(collinVarPairs,
                                         function(x, mods) x %in% mods,
-                                        mods = moderators$raw)
+                                        mods = moderators)
                                  )
             ## Flag rows with no moderators:
             filter <- rowSums(modScreen) == 0
@@ -593,11 +599,7 @@ QuarkData$methods(
     
     createMethVec  = function(initialImp = FALSE)                               {
         "Populate a vector of elementary imputation methods"
-        cn0 <- setdiff(colnames(data),
-                       c(colnames(interact),
-                         unlist(lapply(poly, colnames))
-                         )
-                       )
+        cn0 <- setdiff(colnames(data), c(intVars, colnames(poly)))
         cn1 <- setdiff(colnames(data), cn0)
         
         if(forcePmm) {
@@ -618,7 +620,7 @@ QuarkData$methods(
             if(intMeth == 1 & initialImp) {
                 facFlag <- unlist(lapply(data[ , cn1], is.factor))
                 if(any(facFlag)) {
-                    tmpIndex <- colnames(data) %in% colnames(data)[facFlag]
+                    tmpIndex <- colnames(data) %in% cn1[facFlag]
                     setMethVec(x = "logreg", index = tmpIndex)
                 }
             }
@@ -757,7 +759,7 @@ QuarkData$methods(
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
             pcNames <- setdiff(colnames(pcAux$lin), idVars)
-
+             
         ## Cast ordered factors to numeric:
         if(length(ordVars) > 0) castOrdVars()
         
@@ -765,10 +767,14 @@ QuarkData$methods(
         if(intMeth < 3) mods <- moderators
         ## All observed variables as moderators:
         else            mods <- colnames(data)
-
-        ## Generate interaction terms:
-        varCombs <- combn(colnames(data), 2)
+        
+        if(intMeth == 1) # Interactions among raw variables
+            varCombs <- combn(colnames(data), 2)
+        else             # Interactions involving linear PcAux
+            varCombs <- t(expand.grid(mods, pcNames, stringsAsFactors = FALSE))
         filter   <- varCombs[1, ] %in% mods
+        
+        ## Generate interaction terms:
         intTerms <-
             apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "*"))
         
@@ -803,8 +809,8 @@ QuarkData$methods(
             lapply(interact, function(x) length(unique(na.omit(x))))
         )
         
-        interact  <<- interact[ , levVec > 1]
-        dummyVars <<- colnames(interact)
+        interact <<- interact[ , levVec > 1]
+        intVars  <<- colnames(interact)
         
         ## Cast dummy codes as factors:
         dumFlag <- unlist(
@@ -831,7 +837,7 @@ QuarkData$methods(
     
     computePoly     = function()                                                {
         "Compute polynomial terms"
-        dataNames <- setdiff(colnames(data), c(dummyVars, nomVars, ordVars))
+        dataNames <- setdiff(colnames(data), c(intVars, nomVars, ordVars))
         
         ## Construct a formula to define the polynomial transformations:
         form <- as.formula(
@@ -853,19 +859,9 @@ QuarkData$methods(
         poly <<- data.frame(
             model.matrix(form, data = data[ , dataNames])[ , -1]
         )
-
-        ## Undo type-cast of ordered factors:
-        if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
-   
-        ## If we're constructing distinct non-linear PcAux, orthogonalize the
-        ## polynomial terms w.r.t. the linear PcAux:
-        if(intMeth != 1)
-            poly <<- data.frame(
-                lapply(poly,
-                       function(y, X) .lm.fit(y = y, x = as.matrix(X))$resid,
-                       X = pcAux$lin[ , setdiff(colnames(pcAux$lin), idVars)]
-                       )
-            )
+        
+        ## Reset the na.action option:
+        options(na.action = oldOpt$na.action)
     },
     
     calcRSquared    = function()                                                {
@@ -883,33 +879,58 @@ QuarkData$methods(
                 rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
     },
     
-    castNomVars     = function()                                                {
+    castNomVars     = function(action = 0)                                      {
         "Dummy code nominal factors"
-        noms <- colnames(data)[colnames(data) %in% nomVars]
-        if(length(noms) > 0) {
+        if(action == 0) {# Create dummy codes
+            noms <- colnames(data)[colnames(data) %in% nomVars]
             ## Expand factors into dummy codes:
             form <- as.formula(
                 paste0("~", paste0(noms, collapse = " + "))
             )
-            dummies <- data.frame(model.matrix(form, data = data)[ , -1])
+            dumNoms <<- data.frame(model.matrix(form, data = data)[ , -1])
+            facNoms <<- data.frame(data[ , noms])
+            colnames(facNoms) <<- noms
             
             ## Remove dummy codes for empty factor levels:
             levVec <- unlist(
-                lapply(dummies, function(x) length(unique(na.omit(x))))
+                lapply(dumNoms, function(x) length(unique(na.omit(x))))
             )
-            dummies <- dummies[ , levVec > 1]
+            dumNoms <<- dumNoms[ , levVec > 1]
             
             ## Cast binary interaction terms as numeric dummy codes:
             if(intMeth == 1) {
-                facFlag <- unlist(lapply(interact, is.factor))
+                facFlag <- unlist(lapply(data[ , intVars], is.factor))
+                
                 if(any(facFlag)) {
-                    facInts <- colnames(interact)[facFlag]
-                    dummies <- data.frame(dummies, lapply(data[ , facInts], f2n))
+                    facInts <- intVars[facFlag]
+                    dumNoms <<- data.frame(
+                        dumNoms,
+                        lapply(data[ , facInts],
+                               function(x) as.numeric(as.character(x))
+                               )
+                    )
+                } else {
+                    facInts <- NULL
                 }
+            } else {
+                facInts <- NULL
             }
             
             ## Replace factors in the data with dummy codes:
-            data <<- data.frame(data[ , setdiff(colnames(data), noms)], dummies)
+            data <<- data.frame(
+                data[ , setdiff(colnames(data), c(noms, facInts))],
+                dumNoms
+            )
+        } else if(action == 1) {# Undo dummy codes
+            data <<- data.frame(
+                data[ , setdiff(colnames(data), colnames(dumNoms))],
+                facNoms
+            )
+        } else {# Redo dummy codes
+            data <<- data.frame(
+                data[ , setdiff(colnames(data), colnames(facNoms))],
+                dumNoms
+            )
         }
     },
     

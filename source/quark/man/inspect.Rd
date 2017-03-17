@@ -29,11 +29,11 @@ inspect(object, what)
 data(iris2)
 
 ## Prepare the data:
-newData <- prepData(rawData = iris2,
-                    nomVars = "Species",
-                    ordVars = "Petal.Width",
-                    idVars = "ID",
-                    dropVars = "Junk",
+newData <- prepData(rawData   = iris2,
+                    nomVars   = "Species",
+                    ordVars   = "Petal.Width",
+                    idVars    = "ID",
+                    dropVars  = "Junk",
                     groupVars = "Species")
 
 ## Pull the 'data' field from 'newData':

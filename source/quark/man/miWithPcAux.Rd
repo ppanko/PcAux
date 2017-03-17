@@ -269,7 +269,9 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 2))
+pcAuxOut <- createPcAux(quarkData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
 
 ## Conduct MI with the pcAux:
 miOut <- miWithPcAux(rawData = iris2, quarkData = pcAuxOut, nImps = 5)

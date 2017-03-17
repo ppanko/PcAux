@@ -33,22 +33,22 @@ getImpData(quarkData)
 data(iris2)
 
 ## Prepare the data:
-cleanData <- prepData(rawData = iris2,
-                      nomVars = "Species",
-                      ordVars = "Petal.Width",
-                      idVars = "ID",
-                      dropVars = "Junk",
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps = c(3, 2)
-                        )
+pcAuxOut <- createPcAux(quarkData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
 
 ## Conduct MI with the pcAux:
-miOut <- miWithPcAux(rawData = iris2,
+miOut <- miWithPcAux(rawData   = iris2,
                      quarkData = pcAuxOut,
-                     nImps = 5)
+                     nImps     = 5)
 
 ## Extract a list of imputed data sets:
 impList <- getImpData(quarkData = miOut)

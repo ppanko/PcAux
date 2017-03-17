@@ -72,7 +72,9 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 2))
+pcAuxOut <- createPcAux(quarkData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 3)
 
 ## Merge the PC auxiliaries with the original data:
 outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)

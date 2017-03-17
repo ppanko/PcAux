@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-15
+### Modified: 2017-MAR-16
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -78,13 +78,15 @@ createPcAux <- function(quarkData,
     ## Compute interactions for use during initial imputation:
     if(quarkData$intMeth == 1) {
         quarkData$computeInteract()
-        quarkData$data <- with(quarkData, data.frame(data, interact))
+        quarkData$data     <- with(quarkData, data.frame(data, interact))
+        quarkData$interact <- "Removed to save resources"
     }
-    
+        
     ## Compute polynomials for use during initial imputation:
     if(quarkData$maxPower > 1) {
         quarkData$computePoly()
         quarkData$data <- with(quarkData, data.frame(data, poly))
+        if(quarkData$intMeth == 1) quarkData$poly <- "Removed to save resources"
     }
     
     ## Execute the initial, single imputation:
@@ -94,12 +96,20 @@ createPcAux <- function(quarkData,
     doPCA(map = quarkData)
     
     ## Are we constructing seperate non-linear PcAux?
-    if(quarkData$intMeth != 1 & quarkData$maxPower > 1) {
+    if(quarkData$nComps[2] != 0) {
+        ## Undo dummy coding to facilitate interaction calculation:
+        if(!missCheck(quarkData$nomVars)) quarkData$castNomVars(action = 1)
+        
         ## Construct and orthogonalize interaction terms:
         quarkData$computeInteract()
-        
+
         ## Extract the nonlinear principal component scores:
         doPCA(map = quarkData)
     }
+
+    ## Remove unnecessary representation of nominal variables:
+    quarkData$facNoms <- "Removed to save resources"
+    quarkData$dumNoms <- "Removed to save resources"
+    
     quarkData
 }# END createPcAux()

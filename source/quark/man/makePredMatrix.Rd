@@ -44,17 +44,15 @@ makePredMatrix(mergedData, nLinear, nNonLinear)
 data(iris2)
 
 ## Prepare the data:
-cleanData <- prepData(rawData = iris2,
-                      nomVars = "Species",
-                      ordVars = "Petal.Width",
-                      idVars = "ID",
-                      dropVars = "Junk",
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData,
-                        nComps = c(3, 2)
-                        )
+pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 0))
 
 ## Merge the PC auxiliaries with the original data:
 outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)

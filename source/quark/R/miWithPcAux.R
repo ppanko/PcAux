@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-09
+### Modified: 2017-MAR-16
 ### Purpose:  Use the principal component auxiliaries produced by createPcAux()
 ###           to conduct MI.
 
