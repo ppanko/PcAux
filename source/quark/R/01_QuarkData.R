@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-16
+### Modified:     2017-MAR-22
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -773,7 +773,7 @@ QuarkData$methods(
         else             # Interactions involving linear PcAux
             varCombs <- t(expand.grid(mods, pcNames, stringsAsFactors = FALSE))
         filter   <- varCombs[1, ] %in% mods
-        
+              
         ## Generate interaction terms:
         intTerms <-
             apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "*"))
@@ -783,27 +783,26 @@ QuarkData$methods(
             paste0("~",
                    paste(
                        paste0(intTerms, collapse = " + "),
-                       paste0(colnames(data), collapse = " - "),
+                       paste0(unique(varCombs[ , filter]), collapse = " - "),
                        sep = " - ")
                    )
         )
-
+               
         ## Make sure missing values are retained in dummy codes:
         oldOpt <- options(na.action = "na.pass")
         
         ## Create product variables:
-        if(intMeth == 1)
+        if(intMeth == 1) {
             interact <<- data.frame(model.matrix(form, data = data)[ , -1])
-        else
-            interact <<- data.frame(
-                model.matrix(form,
-                             data = data.frame(data, pcAux$lin[ , pcNames])
-                             )[ , -1]
-            )
-
+        } else {
+            tmp           <-  data.frame(data, pcAux$lin[ , pcNames])
+            colnames(tmp) <-  c(colnames(data), pcNames)
+            interact      <<- data.frame(model.matrix(form, data = tmp)[ , -1])
+        }
+        
         ## Reset the na.action option:
         options(na.action = oldOpt$na.action)
-      
+        
         ## Remove dummy codes for empty cells:
         levVec <- unlist(
             lapply(interact, function(x) length(unique(na.omit(x))))
