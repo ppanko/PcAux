@@ -1,10 +1,10 @@
-### Title:    QuarkData Simple Accessor and Mutator Definitions
+### Title:    PcAuxData Simple Accessor and Mutator Definitions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-30
-### Modified: 2017-MAR-16
+### Modified: 2017-MAR-23
 ### Note:     These methods are not currently used. The following
 ###           definitions are included mostly for "future-proofing,"
-###           so that the QuarkData class will still be valid if future
+###           so that the PcAuxData class will still be valid if future
 ###           implementations of R's Reference Classes require stricter
 ###           field access protocols.
 
@@ -24,7 +24,7 @@
 ### along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-QuarkData$methods(
+PcAuxData$methods(
     ## Simple Mutators ##
     setData         = function(x) { data         <<- x                         },
     setSeed         = function(x) { seed         <<- x                         },

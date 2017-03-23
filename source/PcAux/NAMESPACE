@@ -5,7 +5,7 @@ export(prepData,
        makePredMatrix,
        inspect,
        getImpData,
-       quarkW)
+       pcAuxW)
 
 import(methods,
        mice,

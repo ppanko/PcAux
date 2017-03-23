@@ -1,4 +1,4 @@
-### Title:    Quark Helper Functions
+### Title:    PcAux Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
 ### Modified: 2017-MAR-23
@@ -27,7 +27,7 @@
         "Loading: ", paste(pkgname, version), ", Copyright (C) 2017 Kyle M. Lang."
     )
     packageStartupMessage(
-        pkgname, " comes with ABSOLUTELY NO WARRANTY; execute 'quarkW()' for details."
+        pkgname, " comes with ABSOLUTELY NO WARRANTY; execute 'pcAuxW()' for details."
     )
     packageStartupMessage(
         pkgname, " is beta software. Please report any bugs. Thank You."
@@ -269,7 +269,7 @@ warnFun <- function(type, map) {
                           "the data analysis: ",
                           toString(map$emptyVars),
                           ".\n"),
-               quarkConstCols =
+               pcAuxConstCols =
                    paste0("The following data columns ",
                           "are constants ",
                           "and have been excluded from ",
@@ -364,7 +364,7 @@ warnFun <- function(type, map) {
                           ".\n")
                },
                mergeNoID =
-                   "No ID variables are shared by the QuarkData object and the raw data, so the merging was accomplished via naive column-binding.\nPlease confirm the output object's row alignment.\n",
+                   "No ID variables are shared by the PcAuxData object and the raw data, so the merging was accomplished via naive column-binding.\nPlease confirm the output object's row alignment.\n",
                mergeBadID =
                    paste0("None of the potential ID variables (i.e., ",
                           toString(map$idVars),
@@ -413,8 +413,8 @@ errFun <- function(type, ...) {
                    "Please provide a data object for the rawData argument.\n",
                badDataType =
                    "Please provide a data frame or matrix for the rawData argument.\n",
-               noQuarkData =
-                   "Please provide an instantiated QuarkData object for the quarkData argument.\n",
+               noPcAuxData =
+                   "Please provide an instantiated PcAuxData object for the pcAuxData argument.\n",
                noNComps =
                    "Please provide a two-element numeric vector for the 'nComps' argument.\n",
                smallPower =
@@ -482,42 +482,42 @@ errFun <- function(type, ...) {
                           ").\nPlease provide a value of '0' ",
                           "or '1' for this argument.\n"),
                missingNonLinPcAux =
-                   "You have requested the use of non-linear principal component scores, but 'quarkData' does not contain any non-linear principal component scores.\n Please adjust your analysis accordingly.\n",
+                   "You have requested the use of non-linear principal component scores, but 'pcAuxData' does not contain any non-linear principal component scores.\n Please adjust your analysis accordingly.\n",
                linVarExp =
                    paste0("The number of available linear ",
                           "component scores (i.e., ",
-                          x$quarkData$nComps[1],
+                          x$pcAuxData$nComps[1],
                           ") cannot explain the requested ",
                           "proportion of variance (i.e., ",
                           x$varExp[1],
                           ").\nPlease consult the output of: ",
-                          "'inspect(quarkData, what = \"rSquared\")' ",
+                          "'inspect(pcAuxData, what = \"rSquared\")' ",
                           "for more details.\n"),
                fewLinPcAux =
                    paste0("The number of linear component scores you ",
                           "requested (i.e., ",
                           x$nComps[1],
                           ") is greated than the number of linear component ",
-                          "scores available in 'quarkData' (i.e., ",
-                          x$quarkData$nComps[1],
+                          "scores available in 'pcAuxData' (i.e., ",
+                          x$pcAuxData$nComps[1],
                           ").\nPlease adjust your analysis accordingly.\n"),
                nonLinVarExp =
                    paste0("The number of available non-linear ",
                           "component scores (i.e., ",
-                          x$quarkData$nComps[2],
+                          x$pcAuxData$nComps[2],
                           ") cannot explain the requested ",
                           "proportion of variance (i.e., ",
                           x$varExp[2],
                           ").\nPlease consult the output of: ",
-                          "'inspect(quarkData, what = \"rSquared\")' ",
+                          "'inspect(pcAuxData, what = \"rSquared\")' ",
                           "for more details.\n"),
                fewNonLinPcAux =
                    paste0("The number of non-linear component scores you ",
                           "requested (i.e., ",
                           x$nComps[2],
                           ") is greated than the number of non-linear component ",
-                          "scores available in 'quarkData' (i.e., ",
-                          x$quarkData$nComps[2],
+                          "scores available in 'pcAuxData' (i.e., ",
+                          x$pcAuxData$nComps[2],
                           ").\nPlease adjust your analysis accordingly.\n")
                )# CLOSE switch()
 

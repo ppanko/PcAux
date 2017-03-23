@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-15
+### Modified:     2017-MAR-23
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -39,44 +39,44 @@ prepData <- function(rawData,
     
     if(missCheck(dropVars)) dropVars <- "NONE_DEFINED"
             
-    ## Initialize a new instance of the QuarkData class
+    ## Initialize a new instance of the PcAuxData class
     ## to store all of the data and metadata for this run:
-    quarkData <- QuarkData(data     = rawData,
+    pcAuxData <- PcAuxData(data     = rawData,
                            dropVars = dropVars,
                            simMode  = simMode,
                            nProcess = as.integer(nProcess),
                            verbose  = as.integer(verbose)
                            )
 
-    quarkData$setCall(match.call(), parent = "prepData")
+    pcAuxData$setCall(match.call(), parent = "prepData")
     
     ## Make sure the control list is fully populated:
-    if(!missCheck(control)) quarkData$setControl(x = control)
+    if(!missCheck(control)) pcAuxData$setControl(x = control)
     
     ## Check for special variable arguments and fill the appropriate slots in the
-    ## quarkData object:
+    ## pcAuxData object:
     if(!missCheck(idVars)) {
-        quarkData$idVars <- idVars
-        quarkData$idCols <- as.data.frame(quarkData$data[ , idVars])
-        quarkData$data   <-
-            quarkData$data[ , setdiff(colnames(quarkData$data), idVars)]
+        pcAuxData$idVars <- idVars
+        pcAuxData$idCols <- as.data.frame(pcAuxData$data[ , idVars])
+        pcAuxData$data   <-
+            pcAuxData$data[ , setdiff(colnames(pcAuxData$data), idVars)]
     }
-    if(!missCheck(groupVars))  quarkData$groupVars  <- groupVars
-    if(!missCheck(nomVars))    quarkData$nomVars    <- nomVars
-    if(!missCheck(ordVars))    quarkData$ordVars    <- ordVars
-    if(!missCheck(moderators)) quarkData$moderators <- moderators
+    if(!missCheck(groupVars))  pcAuxData$groupVars  <- groupVars
+    if(!missCheck(nomVars))    pcAuxData$nomVars    <- nomVars
+    if(!missCheck(ordVars))    pcAuxData$ordVars    <- ordVars
+    if(!missCheck(moderators)) pcAuxData$moderators <- moderators
                                            
 ### Pre-process the data ###
     
     ## Cast the variables to their declared types:
-    castData(map = quarkData)
+    castData(map = pcAuxData)
 
     if(!simMode) {# Don't clean data in simMode
         ## Remove constant and empty columns:
-        cleanData(map = quarkData)
+        cleanData(map = pcAuxData)
 
         ## Find any (bivariate) collinear variables:
-        findCollin(map = quarkData)
+        findCollin(map = pcAuxData)
     }
-    quarkData
+    pcAuxData
 }# END prepData()

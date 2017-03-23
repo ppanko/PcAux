@@ -10,11 +10,11 @@
   which the component scores were constructed.
 }
 \usage{
-mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
+mergePcAux(pcAuxData, rawData, nComps = NULL, verbose = TRUE)
 }
 \arguments{
-  \item{quarkData}{
-    An object of class \emph{QuarkData} produced by a call to
+  \item{pcAuxData}{
+    An object of class \emph{PcAuxData} produced by a call to
     \code{createPcAux}.
   }
   \item{rawData}{
@@ -25,7 +25,7 @@ mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
     A two-element vector giving the number of linear and
     nonlinear, respectively, component scores to extract. See the
     \emph{Details} section for more information. When not specified, all
-    component scores that exist in \code{quarkData} are used.
+    component scores that exist in \code{pcAuxData} are used.
   }
   \item{verbose}{
     A logical flag indicating whether verbose output should be printed
@@ -33,7 +33,7 @@ mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
     }  
 }
 \details{
-  This function will attempt to use the ID variables defined in Quark's
+  This function will attempt to use the ID variables defined in PcAux's
   \code{idVars} argument to align rows for merging. If these ID
   variables are not suitable (i.e., because they don't exist in the raw
   data or they're not unique row-identifiers), the merging will be
@@ -49,11 +49,11 @@ mergePcAux(quarkData, rawData, nComps = NULL, verbose = TRUE)
   scores such that adding one more component score does not explain a
   differentiably larger amount of variance. Specifying any negative
   value will employ all possible component scores. An error is returned
-  when more components are requested than exist in \code{quarkData}.  
+  when more components are requested than exist in \code{pcAuxData}.  
 }
 \value{
   A data frame with (a subset of) the principal component auxiliary
-  scores from \code{quarkData$pcAux} merged onto the end of the raw
+  scores from \code{pcAuxData$pcAux} merged onto the end of the raw
   data. 
 }
 \author{
@@ -72,10 +72,10 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData    = cleanData,
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
                         nComps       = c(3, 2),
                         interactType = 3)
 
 ## Merge the PC auxiliaries with the original data:
-outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)
+outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
 }

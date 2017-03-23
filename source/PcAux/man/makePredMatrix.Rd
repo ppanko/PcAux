@@ -13,7 +13,7 @@ makePredMatrix(mergedData, nLinear, nNonLinear)
 }
 \arguments{
   \item{mergedData}{
-    A data frame, such as one returned by \code{quark::mergePcAux},
+    A data frame, such as one returned by \code{PcAux::mergePcAux},
     containing the incomplete variables to be imputed and the principal
     component auxiliary variable scores.
   }
@@ -52,10 +52,10 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 0))
+pcAuxOut <- createPcAux(pcAuxData = cleanData, nComps = c(3, 0))
 
 ## Merge the PC auxiliaries with the original data:
-outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)
+outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
 
 ## Create a predictor matrix:
 predMat <- makePredMatrix(mergedData = outData)

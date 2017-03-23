@@ -1,25 +1,25 @@
 \name{getImpData}
 \alias{getImpData}
 \title{
-  Extract multiply imputed datasets from a QuarkData object.
+  Extract multiply imputed datasets from a PcAuxData object.
 }
 \description{
   This is a simple wrapper function that extracts the completed,
-  multiply imputed data sets from a fitted QuarkData object produced by
+  multiply imputed data sets from a fitted PcAuxData object produced by
   running the \code{miWithPcAux} function.
 }
 \usage{
-getImpData(quarkData)
+getImpData(pcAuxData)
 }
 \arguments{
-  \item{quarkData}{
-    A fitted object of class \code{QuarkData} produced as output of the
+  \item{pcAuxData}{
+    A fitted object of class \code{PcAuxData} produced as output of the
     \code{miWithPcAux} function.
   }
 }
 \value{
   A set of multiply imputed data sets. The format of these data sets is
-  defined by the \code{completeFormat} value in \code{quarkData}. See
+  defined by the \code{completeFormat} value in \code{pcAuxData}. See
   \code{\link{miWithPcAux}} for more information.
 }
 \author{
@@ -41,15 +41,15 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData    = cleanData,
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
                         nComps       = c(3, 2),
                         interactType = 2)
 
 ## Conduct MI with the pcAux:
 miOut <- miWithPcAux(rawData   = iris2,
-                     quarkData = pcAuxOut,
+                     pcAuxData = pcAuxOut,
                      nImps     = 5)
 
 ## Extract a list of imputed data sets:
-impList <- getImpData(quarkData = miOut)
+impList <- getImpData(pcAuxData = miOut)
 }

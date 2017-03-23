@@ -1,7 +1,7 @@
 ### Title:    Create Principal Component Auxiliary Variables
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-16
+### Modified: 2017-MAR-23
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -19,7 +19,7 @@
 ### along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-createPcAux <- function(quarkData,
+createPcAux <- function(pcAuxData,
                         nComps,
                         interactType = 1L,
                         maxPolyPow   = 3L,
@@ -31,85 +31,85 @@ createPcAux <- function(quarkData,
                         control,
                         ...)
 {
-    quarkData$setCall(match.call(), parent = "createPcAux")
+    pcAuxData$setCall(match.call(), parent = "createPcAux")
     
     ## Check for problems with the input values:
-    if(missing(quarkData)) errFun("noQuarkData")
+    if(missing(pcAuxData)) errFun("noPcAuxData")
     if(missing(nComps))    errFun("noNComps")
     if(!simMode)           checkInputs(parent = "createPcAux")
     
-    ## Add elements to an extant instance of the QuarkData class:
-    quarkData$nComps   <- nComps
-    quarkData$forcePmm <- TRUE # Don't give imputation options other than PMM
-    quarkData$intMeth  <- as.integer(interactType)
-    quarkData$maxPower <- as.integer(maxPolyPow)
-    quarkData$simMode  <- simMode
-    quarkData$verbose  <- as.integer(verbose)
+    ## Add elements to an extant instance of the PcAuxData class:
+    pcAuxData$nComps   <- nComps
+    pcAuxData$forcePmm <- TRUE # Don't give imputation options other than PMM
+    pcAuxData$intMeth  <- as.integer(interactType)
+    pcAuxData$maxPower <- as.integer(maxPolyPow)
+    pcAuxData$simMode  <- simMode
+    pcAuxData$verbose  <- as.integer(verbose)
     
-    if(!missCheck(seed)) quarkData$seed <- as.integer(seed)
+    if(!missCheck(seed)) pcAuxData$seed <- as.integer(seed)
     
     ## Make sure the control list is fully populated:
-    if(!missCheck(control)) quarkData$setControl(x = control)
+    if(!missCheck(control)) pcAuxData$setControl(x = control)
     
     ## Check for extant moderators when interactType == 1 or 2:
-    check <- interactType %in% c(1, 2) & missCheck(quarkData$moderators)
+    check <- interactType %in% c(1, 2) & missCheck(pcAuxData$moderators)
     if(check) {
-        quarkData$moderators <- colnames(quarkData$data)
+        pcAuxData$moderators <- colnames(pcAuxData$data)
         warnFun("noMods")
     }
     
     ## Re-cast the data if needed
-    if(castData) castData(map = quarkData)
+    if(castData) castData(map = pcAuxData)
     
     if(doImputation) {
         ## Check for and treat any nominal variables that are missing only one
         ## datum:
         singleMissNom <-
-            with(quarkData, (nrow(data) - respCounts == 1) &
+            with(pcAuxData, (nrow(data) - respCounts == 1) &
                             (typeVec == "binary" | typeVec == "nominal")
                  )
         ## KML 2016-NOV-14: Ignore dropped variables
         singleMissNom <- setdiff(names(singleMissNom)[singleMissNom],
-                                 quarkData$dropVars[ , 1])
+                                 pcAuxData$dropVars[ , 1])
         
-        if(length(singleMissNom) > 0) quarkData$fillNomCell(singleMissNom)
+        if(length(singleMissNom) > 0) pcAuxData$fillNomCell(singleMissNom)
     }
     
     ## Compute interactions for use during initial imputation:
-    if(quarkData$intMeth == 1) {
-        quarkData$computeInteract()
-        quarkData$data     <- with(quarkData, data.frame(data, interact))
-        quarkData$interact <- "Removed to save resources"
+    if(pcAuxData$intMeth == 1) {
+        pcAuxData$computeInteract()
+        pcAuxData$data     <- with(pcAuxData, data.frame(data, interact))
+        pcAuxData$interact <- "Removed to save resources"
     }
         
     ## Compute polynomials for use during initial imputation:
-    if(quarkData$maxPower > 1) {
-        quarkData$computePoly()
-        quarkData$data <- with(quarkData, data.frame(data, poly))
-        if(quarkData$intMeth == 1) quarkData$poly <- "Removed to save resources"
+    if(pcAuxData$maxPower > 1) {
+        pcAuxData$computePoly()
+        pcAuxData$data <- with(pcAuxData, data.frame(data, poly))
+        if(pcAuxData$intMeth == 1) pcAuxData$poly <- "Removed to save resources"
     }
     
     ## Execute the initial, single imputation:
-    if(doImputation) doSingleImputation(map = quarkData)
+    if(doImputation) doSingleImputation(map = pcAuxData)
     
     ## Extract the linear principal component scores:
-    doPCA(map = quarkData)
+    doPCA(map = pcAuxData)
     
     ## Are we constructing seperate non-linear PcAux?
-    if(quarkData$nComps[2] != 0) {
+    if(pcAuxData$nComps[2] != 0) {
         ## Undo dummy coding to facilitate interaction calculation:
-        if(!missCheck(quarkData$nomVars)) quarkData$castNomVars(action = 1)
+        if(!missCheck(pcAuxData$nomVars)) pcAuxData$castNomVars(action = 1)
         
         ## Construct and orthogonalize interaction terms:
-        quarkData$computeInteract()
-
+        if(pcAuxData$intMeth > 1) pcAuxData$computeInteract()
+        
         ## Extract the nonlinear principal component scores:
-        doPCA(map = quarkData)
+        doPCA(map = pcAuxData)
     }
 
     ## Remove unnecessary representation of nominal variables:
-    quarkData$facNoms <- "Removed to save resources"
-    quarkData$dumNoms <- "Removed to save resources"
+    pcAuxData$facNoms <- "Removed to save resources"
+    pcAuxData$dumNoms <- "Removed to save resources"
     
-    quarkData
+    pcAuxData
 }# END createPcAux()

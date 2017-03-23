@@ -7,7 +7,7 @@
   Implement the ideas of Howard, Rhemtulla, and Little (2015).
 }
 \usage{
-createPcAux(quarkData,
+createPcAux(pcAuxData,
             nComps,       
             interactType = 1L,
             maxPolyPow   = 3L,
@@ -20,8 +20,8 @@ createPcAux(quarkData,
             ...)
 }
 \arguments{
-  \item{quarkData}{
-    An object of class QuarkData returned from \code{prepData}. 
+  \item{pcAuxData}{
+    An object of class PcAuxData returned from \code{prepData}. 
   }
   \item{nComps}{
     A two-element, numeric vector giving the number of linear and
@@ -43,7 +43,7 @@ createPcAux(quarkData,
   \item{simMode}{
     A logical switch turning 'Simulation Mode' on or off. In Simulation
     Mode all of the automatic data checks will be suppressed. This mode
-    is intended for use when \code{quark} is being called as part of a
+    is intended for use when \code{pcAux} is being called as part of a
     Monte Carlo simulation study in which the data properties are
     well-known by the user. This mode should not be used for
     'real-world' data analysis. Defaults to \code{simMode = FALSE}.
@@ -64,13 +64,13 @@ createPcAux(quarkData,
   \item{doImputation}{
     A logical switch indicating whether the data should be imputed
     before extracting the principal component scores. Set to
-    \code{FALSE} if the data element in \code{quarkData} has no missing
+    \code{FALSE} if the data element in \code{pcAuxData} has no missing
     values (e.g., the imputation was done elsewhere). Defaults to
     \code{doImputation = TRUE}.
   }
   \item{castData}{
     A logical switch indicating whether the data element in
-    \code{quarkData} should have its variables re-typed. Keep as
+    \code{pcAuxData} should have its variables re-typed. Keep as
     \code{FALSE} unless the data have been manipulated after running
     \code{prepData}. Defaults to \code{castData = FALSE}.
   }
@@ -106,7 +106,7 @@ createPcAux(quarkData,
   component scores and the raw observed variables. Note that
   \code{interactType == 2} or \code{interactType == 3} will produce a
   set of "non-linear" component scores in the \code{pcAux$nonLin} field
-    of the QuarkData object (in addition to the "linear" component
+    of the PcAuxData object (in addition to the "linear" component
     scores in the \code{pcAux$lin} field), while \code{interactType ==
     0} and \code{interactType == 1} will produce component scores only
     in the \code{pcAux$lin} field. 
@@ -166,27 +166,22 @@ createPcAux(quarkData,
       numerical accuracy in the algorithm used to extract the principal
       component scores. A value of '0L' (the default) will extract the PC
       scores with the stats::prcomp() package for maximal accuracy. A
-      value of '1L' will use the quark:::simplePca() subroutine to extract
+      value of '1L' will use the PcAux:::simplePca() subroutine to extract
       the PC scores with considerably lower memory usage but, possibly,
       less numerical accuracy than the prcomp() approach. Leaving this
       option at the default value should be sufficient for most
       applications.
     }
   }
-  Note that the behavior of the \code{forcePmm} argument changed between
-  versions 0.6.1 and 0.6.2 of quark. In earlier releases (<0.6.2)
-  setting \code{forcePmm = TRUE} caused all variables to be imputed with
-  PMM. Later releases do not use PMM for nominal variable since the
-  underlying matching rule is inappropriate for unordered variables.
 }
 \value{
-  An Reference Class object of class QuarkData with fields for each of
+  An Reference Class object of class PcAuxData with fields for each of
   the \code{createPcAux} function's arguments (except for the raw data
   which are removed to save resources) and the following modified or
   additional fields: 
   \itemize{
     \item{call: }{
-      A list containing the matched function call to \code{quark}.
+      A list containing the matched function call to \code{PcAux}.
     }
     \item{pcAux: }{
       A list of length 2. The first element contains the linear principal
@@ -315,5 +310,5 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create the principal component auxiliaries:
-pcAuxOut <- createPcAux(quarkData = cleanData, nComps = c(3, 0))
+pcAuxOut <- createPcAux(pcAuxData = cleanData, nComps = c(3, 0))
 }

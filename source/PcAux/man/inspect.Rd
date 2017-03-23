@@ -1,10 +1,10 @@
 \name{inspect}
 \alias{inspect}
 \title{
-  Access fields of a QuarkData object.
+  Access fields of a PcAuxData object.
 }
 \description{
-  Provide S3/S4-like access to fields of a QuarkData Reference Class
+  Provide S3/S4-like access to fields of a PcAuxData Reference Class
   object.
 }
 \usage{
@@ -12,7 +12,7 @@ inspect(object, what)
 }
 \arguments{
   \item{object}{
-    An initialized RC object of class QuarkData.
+    An initialized RC object of class PcAuxData.
   }
   \item{what}{
     A character string naming the field to access in \code{object}.

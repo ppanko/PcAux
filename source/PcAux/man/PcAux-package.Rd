@@ -1,19 +1,19 @@
-\name{quark-package}
-\alias{quark-package}
+\name{PcAux-package}
+\alias{PcAux-package}
 \docType{package}
 \title{
-\packageTitle{quark}
+\packageTitle{PcAux}
 }
 \description{
-\packageDescription{quark}
+\packageDescription{PcAux}
 }
 \details{
-\packageIndices{quark}
+\packageIndices{PcAux}
 }
 \author{
-\packageAuthor{quark}
+\packageAuthor{PcAux}
 
-Maintainer: \packageMaintainer{quark}
+Maintainer: \packageMaintainer{PcAux}
 }
 \references{
   Howard, W. H., Rhemtulla, M., & Little, T. D. (2015). Using principal
@@ -33,19 +33,19 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData = cleanData,
+pcAuxOut <- createPcAux(pcAuxData = cleanData,
                         nComps    = c(3, 2)
                         )
 
 ## Conduct MI with the pcAux:
 miOut <- miWithPcAux(rawData   = iris2,
-                     quarkData = pcAuxOut,
+                     pcAuxData = pcAuxOut,
                      nImps     = 5)
 
 ### OR get the constituent parts ###
 
 ## Merge the PC auxiliaries with the original data:
-outData <- mergePcAux(quarkData = pcAuxOut, rawData = iris2)
+outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
 
 ### outData can be analyzed via FIML, with the
 ### pcAux scores used as auxiliary variables.

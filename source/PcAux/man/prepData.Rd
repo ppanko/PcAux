@@ -144,7 +144,7 @@ prepData(rawData,
   }
 }
 \value{
-  An Reference Class object of class QuarkData with fields for each of
+  An Reference Class object of class PcAuxData with fields for each of
   the \code{prepData} function's arguments and the following additional,
   non-trivial fields: 
   \itemize{

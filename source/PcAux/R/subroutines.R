@@ -1,4 +1,4 @@
-### Title:        Quark Subroutines
+### Title:        PcAux Subroutines
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
@@ -21,7 +21,7 @@
 
 
 checkInputs <- function(parent) {
-    ## Get access to objects defined in quark():
+    ## Get access to objects defined in createPcAux():
     env <- parent.frame()
     if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
@@ -79,7 +79,7 @@ checkInputs <- function(parent) {
     if(parent == "miWithPcAux") {
         ## Check the existance of all designated variables:
         varNames <-
-            with(env$quarkData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
+            with(env$pcAuxData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
         
         varNames <- setdiff(varNames, "NONE_DEFINED")
         check    <- !varNames %in% colnames(env$rawData)
@@ -95,8 +95,8 @@ checkInputs <- function(parent) {
         
         ## Check for a non-empty intersection between 'idVars' and the other
         ## arguments:
-        varNames <- with(env$quarkData, c(nomVars, ordVars, dropVars))
-        check    <- varNames %in% env$quarkData$idVars
+        varNames <- with(env$pcAuxData, c(nomVars, ordVars, dropVars))
+        check    <- varNames %in% env$pcAuxData$idVars
         if(any(check))
             errFun("idOverlap",
                    varNames      = varNames,
@@ -269,7 +269,7 @@ cleanData <- function(map) {
     if(haveEmptyVars) warnFun("emptyVars", map)
     
     if(haveConstCols)
-        warnFun(ifelse(creatingPcAux, "quarkConstCols", "romConstCols"), map)
+        warnFun(ifelse(creatingPcAux, "pcAuxConstCols", "romConstCols"), map)
     
     if(map$verbose > 0) cat("Complete.\n")
 }# END cleanData()

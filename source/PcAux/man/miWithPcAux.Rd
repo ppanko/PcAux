@@ -10,7 +10,7 @@
 }
 \usage{
 miWithPcAux(rawData,
-            quarkData,
+            pcAuxData,
             nImps      = 100L,
             nomVars    = NULL,
             ordVars    = NULL,
@@ -30,8 +30,8 @@ miWithPcAux(rawData,
     A data frame containing the incomplete data for which to create
     the multiple imputations.
   }
-  \item{quarkData}{
-    An object of class \code{QuarkData} produced by a run of
+  \item{pcAuxData}{
+    An object of class \code{PcAuxData} produced by a run of
     \code{createPcAux}.
   }
   \item{nImps}{
@@ -41,13 +41,13 @@ miWithPcAux(rawData,
   \item{nomVars}{
     An optional character vector containing names of any nominal
     variables (i.e., unordered factors) that exist in \code{rawData}. If
-    unspecified, any \code{nomVars} defined in \code{quarkData} will be
+    unspecified, any \code{nomVars} defined in \code{pcAuxData} will be
     used.
   }
   \item{ordVars}{
     An optional character vector containing names of any ordinal
     variables (i.e., ordered factors) that exist in \code{rawData}. If
-    unspecified, any \code{ordVars} defined in \code{quarkData} will be
+    unspecified, any \code{ordVars} defined in \code{pcAuxData} will be
     used.
   }
   \item{idVars}{
@@ -55,20 +55,20 @@ miWithPcAux(rawData,
     that exist in \code{rawData}. Any columns flagged as ID variables
     should not be represented in \code{nomVars}, \code{ordVars},
     \code{dropVars}, or \code{groupVars}. If unspecified, any
-    \code{idVars} defined in \code{quarkData} will be used.
+    \code{idVars} defined in \code{pcAuxData} will be used.
   }
   \item{dropVars}{
     An optional character vector containing names of any nuisance
     variables that should be excluded from the imputation process. If
     unspecified, the default value of \code{dropVars = "useExtant"}
-    causes any user-defined \code{dropVars} defined in \code{quarkData}
+    causes any user-defined \code{dropVars} defined in \code{pcAuxData}
     to be used.
   }
   \item{nComps}{
     A two-element vector giving the number of linear and
     nonlinear, respectively, component scores to extract. See the
     \emph{Details} section for more information. When not specified, all
-    component scores that exist in \code{quarkData} are used.
+    component scores that exist in \code{pcAuxData} are used.
   }
   \item{compFormat}{
     The format in which the multiply-imputed data sets are
@@ -135,7 +135,7 @@ miWithPcAux(rawData,
   scores such that adding one more component score does not explain a
   differentiably larger amount of variance. Specifying any negative
   value will employ all possible component scores. An error is returned
-  when more components are requested than exist in \code{quarkData}. 
+  when more components are requested than exist in \code{pcAuxData}. 
   
   The \code{control} argument is a key-paired list with the following
   possible entries:
@@ -167,15 +167,10 @@ miWithPcAux(rawData,
       won't trigger a warning. Defaults to \code{minConLev = 10L}.
     }
   }
-  Note that the behavior of the \code{forcePmm} argument changed between
-  versions 0.6.1 and 0.6.2 of quark. In earlier releases (<0.6.2)
-  setting \code{forcePmm = TRUE} caused all variables to be imputed with
-  PMM. Later releases do not use PMM for nominal variable since the
-  underlying matching rule is inappropriate for unordered variables.  
 }
 \value{
-  A Reference Class object of class QuarkData with all of the fields
-  from the object provided to the \code{quarkData} argument preserved,
+  A Reference Class object of class PcAuxData with all of the fields
+  from the object provided to the \code{pcAuxData} argument preserved,
   new fields for each of the \code{miWithPcAux} function's arguments and
   the following modified or additional fields:
   \itemize{
@@ -269,10 +264,10 @@ cleanData <- prepData(rawData   = iris2,
                       groupVars = "Species")
 
 ## Create principal component auxiliary variables:
-pcAuxOut <- createPcAux(quarkData    = cleanData,
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
                         nComps       = c(3, 2),
                         interactType = 2)
 
 ## Conduct MI with the pcAux:
-miOut <- miWithPcAux(rawData = iris2, quarkData = pcAuxOut, nImps = 5)
+miOut <- miWithPcAux(rawData = iris2, pcAuxData = pcAuxOut, nImps = 5)
 }

@@ -1,9 +1,9 @@
-### Title:        QuarkData Reference Class Definition
+### Title:        PcAuxData Reference Class Definition
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
 ### Modified:     2017-MAR-23
-### Note:         QuarkData is the metadata class for the quark package.
+### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -25,7 +25,7 @@
 #####----------------------- DEFINE CLASS & FIELDS -------------------------#####
 #################################################################################
 
-QuarkData <- setRefClass("QuarkData",
+PcAuxData <- setRefClass("PcAuxData",
 
                          fields = list(
                              call         = "list",
@@ -84,14 +84,14 @@ QuarkData <- setRefClass("QuarkData",
                              dumNoms      = "ANY",
                              facNoms      = "ANY"
                          )# END fields
-                         )# END QuarkData
+                         )# END PcAuxData
 
 
 #################################################################################
 #####---------------------------- DEFINE METHODS ---------------------------#####
 #################################################################################
 
-QuarkData$methods(
+PcAuxData$methods(
 
     ##------------------------------ Constructor ------------------------------##
 
@@ -167,7 +167,7 @@ QuarkData$methods(
         dumNoms      = data.frame(NULL),
         facNoms      = data.frame(NULL)
     )                                                                           {
-        "Initialize an object of class QuarkData"
+        "Initialize an object of class PcAuxData"
         call         <<- call
         data         <<- data[ , setdiff(colnames(data), dropVars)]
         dropVars     <<- cbind(dropVars, "user_defined")
@@ -954,4 +954,4 @@ QuarkData$methods(
         }
     }
      
-)# END QuarkData$methods()
+)# END PcAuxData$methods()

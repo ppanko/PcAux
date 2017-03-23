@@ -7,7 +7,7 @@
 \description{
   This is a slight modification of the famous Fisher/Anderson iris
   data. I've binned petal width and added an ID and junk variable to
-  demonstrate the usage of \pkg{package:quark} more effectively.
+  demonstrate the usage of \pkg{package:PcAux} more effectively.
 }
 \usage{data("iris2")}
 \format{
