@@ -23,7 +23,7 @@ prepData(rawData,
 }
 \arguments{
   \item{rawData}{
-    A data frame from which to extract the auxiliary pricipal
+    A data frame from which to extract the auxiliary principal
     components. 
   }
   \item{moderators}{
@@ -122,7 +122,7 @@ prepData(rawData,
     }
     \item{maxNetWts: }{
       The maximum number of network weights used by nnet() to fit the
-      polytimous regression models used to impute nominal variables with
+      polytomous regression models used to impute nominal variables with
       mice(). Defaults to \code{maxNetWts = 10000L}.
     }
     \item{nomMaxLev: }{
@@ -211,7 +211,7 @@ prepData(rawData,
   Multivariate Behavioral Research. 50(3). 285-299.
 }
 \author{
-  Kyle M. Lang & Steven Chesnut
+  Kyle M. Lang
 }
 \seealso{
   \code{\link{createPcAux}}, \code{\link{miWithPcAux}}

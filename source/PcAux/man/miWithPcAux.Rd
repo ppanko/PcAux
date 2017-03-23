@@ -151,7 +151,7 @@ miWithPcAux(rawData,
     }
     \item{maxNetWts: }{
       The maximum number of network weights used by nnet() to fit the
-      polytimous regression models used to impute nominal variables with
+      polytomous regression models used to impute nominal variables with
       mice(). Defaults to \code{maxNetWts = 10000L}.
     }
     \item{nomMaxLev: }{
@@ -246,7 +246,7 @@ miWithPcAux(rawData,
   }
 }
 \author{
-  Kyle M. Lang & Stephen Chesnut
+  Kyle M. Lang
 }
 \seealso{
   \code{\link{createPcAux}}

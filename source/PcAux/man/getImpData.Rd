@@ -19,7 +19,7 @@ getImpData(pcAuxData)
 }
 \value{
   A set of multiply imputed data sets. The format of these data sets is
-  defined by the \code{completeFormat} value in \code{pcAuxData}. See
+  defined by the \code{compFormat} value in \code{pcAuxData}. See
   \code{\link{miWithPcAux}} for more information.
 }
 \author{

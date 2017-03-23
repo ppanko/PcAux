@@ -96,13 +96,13 @@ createPcAux(pcAuxData,
   
   The \code{interactType} argument can take any of the values in {0, 1, 2,
     3}. \code{interactType = 0} includes no interaction terms.
-  \code{iteractType = 1} incorporates all two-way interations between
+  \code{iteractType = 1} incorporates all two-way interactions between
   the observed variables and the variables specified in the
     \code{moderators} argument of \code{prepData}. \code{iteractType =
     2} incorporates all two-way interactions between the linear
     principal component scores and the variables specified in the
     \code{moderators} argument of \code{prepData}. \code{iteractType
-    = 3} incorporates all two-way interations between linear principal
+    = 3} incorporates all two-way interactions between linear principal
   component scores and the raw observed variables. Note that
   \code{interactType == 2} or \code{interactType == 3} will produce a
   set of "non-linear" component scores in the \code{pcAux$nonLin} field
@@ -142,7 +142,7 @@ createPcAux(pcAuxData,
     }
     \item{maxNetWts: }{
       The maximum number of network weights used by nnet() to fit the
-      polytimous regression models used to impute nominal variables with
+      polytomous regression models used to impute nominal variables with
       mice(). Defaults to \code{maxNetWts = 10000L}.
     }
     \item{nomMaxLev: }{
@@ -292,7 +292,7 @@ createPcAux(pcAuxData,
   Multivariate Behavioral Research. 50(3). 285-299.
 }
 \author{
-  Kyle M. Lang & Steven Chesnut
+  Kyle M. Lang
 }
 \seealso{
   \code{\link{prepData}}, \code{\link{miWithPcAux}}
