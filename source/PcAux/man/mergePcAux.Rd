@@ -5,9 +5,9 @@
   they were constructed.
 }
 \description{
-  Merge Auxiliary Principal Component scores produced by
-  \code{createPcAux} with a data frame containing the raw data from
-  which the component scores were constructed.
+  Merge PcAux scores produced by \code{createPcAux} with a data frame
+  containing the raw data from which the component scores were
+  constructed.
 }
 \usage{
 mergePcAux(pcAuxData, rawData, nComps = NULL, verbose = TRUE)

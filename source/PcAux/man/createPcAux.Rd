@@ -4,7 +4,9 @@
   Extract Principal Component Auxiliaries for Missing Data Analysis
 }
 \description{
-  Implement the ideas of Howard, Rhemtulla, and Little (2015).
+  Extract principal component scores for use as the auxiliary variables
+  in a principled missing data analysis as described by Howard,
+  Rhemtulla, and Little (2015). 
 }
 \usage{
 createPcAux(pcAuxData,

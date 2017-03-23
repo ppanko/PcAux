@@ -4,8 +4,9 @@
   Prepare Data for Extracting Principal Component Auxiliaries
 }
 \description{
-  Data cleaning to facilitate implementation the ideas of Howard,
-  Rhemtulla, and Little (2015).
+  Data cleaning to facilitate execution of a principled missing data
+  analysis that uses principal component scores as the auxiliary
+  variables as described by Howard, Rhemtulla, and Little (2015). 
 }
 \usage{
 prepData(rawData, 
