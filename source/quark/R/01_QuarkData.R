@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-22
+### Modified:     2017-MAR-23
 ### Note:         QuarkData is the metadata class for the quark package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -455,14 +455,15 @@ QuarkData$methods(
         outFlag
     },
 
-    findConstCols  = function(doingQuark = TRUE)                                {
+    findConstCols  = function()                                                 {
         "Locate and fill constant columns in 'data'"
-        tmpNames  <-  setdiff (names(typeVec), dropVars[ , 1])
-        tmpTypes  <-  typeVec [tmpNames                      ]
-        constants <<- tmpNames[tmpTypes == "constant"        ]
-
+        creatingPcAux <-  length(pcAux$lin) == 0 # Are we in createPcAux()?
+        tmpNames      <-  setdiff (names(typeVec), dropVars[ , 1])
+        tmpTypes      <-  typeVec [tmpNames                      ]
+        constants     <<- tmpNames[tmpTypes == "constant"        ]
+        
         if(length(constants) > 0) {# Find any constant columns?
-            if(doingQuark) {
+            if(creatingPcAux) {
                 removeVars(x = constants, reason = "constant")
             } else {
                 fillConstants()

@@ -1,7 +1,7 @@
 ### Title:    Exported Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-OCT-29
-### Modified: 2017-MAR-16
+### Modified: 2017-MAR-23
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -86,7 +86,7 @@ mergePcAux <- function(quarkData, rawData, nComps = NULL, verbose = TRUE)
         
         ## Must use at least 1 linear PcAux
         check <- nComps[1] == 0
-        if(check) errFun("noLinPcAux", doingQuark = FALSE)
+        if(check) errFun("noLinPcAux", creatingPcAux = FALSE)
         
         ## Make sure non-linear PcAux are available, if requested
         check <- quarkData$nComps[2] == 0 & nComps[2] > 0

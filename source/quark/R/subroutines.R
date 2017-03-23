@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byung Jung
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-16
+### Modified:     2017-MAR-23
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -50,9 +50,9 @@ checkInputs <- function(parent) {
         check    <- varNames %in% env$idVars
         if(any(check))
             errFun("idOverlap",
-                   varNames   = varNames,
-                   check      = check,
-                   doingQuark = TRUE)
+                   varNames      = varNames,
+                   check         = check,
+                   creatingPcAux = TRUE)
     }
 
     if(parent == "createPcAux") {
@@ -61,7 +61,7 @@ checkInputs <- function(parent) {
         else if(env$maxPolyPow > 4) errFun("largePower")
         
         ## Check for non-zero linear component counts:
-        if(env$nComps[1] == 0) errFun("noLinPcAux", doingQuark = TRUE)
+        if(env$nComps[1] == 0) errFun("noLinPcAux", creatingPcAux = TRUE)
         
         ## Check for disagreement between nComps and usePoly/useInteract:
         checkVal <-
@@ -99,9 +99,9 @@ checkInputs <- function(parent) {
         check    <- varNames %in% env$quarkData$idVars
         if(any(check))
             errFun("idOverlap",
-                   varNames   = varNames,
-                   check      = check,
-                   doingQuark = FALSE)
+                   varNames      = varNames,
+                   check         = check,
+                   creatingPcAux = FALSE)
     }
     
     check <- env$verbose %in% c(0, 1, 2)
@@ -113,11 +113,12 @@ checkInputs <- function(parent) {
 
 
 ## Check input formatting and cast variables to declared types:
-castData <- function(map, doingQuark = TRUE) {
+castData <- function(map) {
     if(map$verbose > 0) cat("\nChecking data and information provided...\n")
-
-    nVars <- ncol(map$data)
-
+    
+    creatingPcAux <- length(map$pcAux$lin) == 0 # Are we in createPcAux()?
+    nVars         <- ncol(map$data)             # How many variables?
+    
     if(map$verbose > 0) cat("--Examining data...")
     ## Count variable levels:
     map$countVarLevels()
@@ -131,7 +132,7 @@ castData <- function(map, doingQuark = TRUE) {
     map$typeData()
 
     ## If any ID variables are factors, cast them as character objects:
-    if(doingQuark) map$idToCharacter()
+    if(creatingPcAux) map$idToCharacter()
     if(map$verbose > 0) cat("done.\n")
 
     ## Cast all variables to the appropriate measurement level:
@@ -140,10 +141,11 @@ castData <- function(map, doingQuark = TRUE) {
     if(map$verbose > 0) cat("done.\n")
 
     ## Center continuous variables:
-    if(map$verbose > 0) cat("--Centering continuous data...")
-    map$centerData()
-    if(map$verbose > 0) cat("done.\n")
-
+    if(creatingPcAux) {
+        if(map$verbose > 0) cat("--Centering continuous data...")
+        map$centerData()
+        if(map$verbose > 0) cat("done.\n")
+    }
     
     confirmTypes <- !map$simMode
     if(confirmTypes) {
@@ -200,11 +202,13 @@ castData <- function(map, doingQuark = TRUE) {
 
 ## Find and (possibly) remove problematic data columns (i.e., variables with few
 ## or no observations and constants):
-cleanData <- function(map, doingQuark = TRUE) {
+cleanData <- function(map) {
     if(map$verbose > 0)
         cat("\nFinding and addressing problematic data columns...\n")
-
-    if(doingQuark) {
+    
+    creatingPcAux <- length(map$pcAux$lin) == 0 # Are we in createPcAux()?
+    
+    if(creatingPcAux) {
         if(length(map$idVars) > 1) {
             ## Check for missing data on ID variables:
             missIdCounts <- switch(as.character(length(map$idVars)),
@@ -229,19 +233,19 @@ cleanData <- function(map, doingQuark = TRUE) {
             }
             rm(missIdCounts)
         }# CLOSE if(length(map$idVars) > 1)
-    }# CLOSE if(doingQuark)
+    }# CLOSE if(creatingPcAux)
     
     ## Find each variable's number of observations:
     map$countResponses()
 
     ## Flag empty variables:
     if(map$verbose > 0) cat("--Checking for empty columns...")
-    haveEmptyVars <- map$findEmptyVars(remove = doingQuark)
+    haveEmptyVars <- map$findEmptyVars(remove = creatingPcAux)
     if(map$verbose > 0) cat("done.\n")
 
     ## Flag constant columns:
     if(map$verbose > 0) cat("--Checking for constant columns...")
-    haveConstCols <- map$findConstCols(doingQuark = doingQuark)
+    haveConstCols <- map$findConstCols()
     if(map$verbose > 0) cat("done.\n")
 
     ## Flag variables with few responses:
@@ -265,7 +269,7 @@ cleanData <- function(map, doingQuark = TRUE) {
     if(haveEmptyVars) warnFun("emptyVars", map)
     
     if(haveConstCols)
-        warnFun(ifelse(doingQuark, "quarkConstCols", "romConstCols"), map)
+        warnFun(ifelse(creatingPcAux, "quarkConstCols", "romConstCols"), map)
     
     if(map$verbose > 0) cat("Complete.\n")
 }# END cleanData()

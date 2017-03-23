@@ -1,7 +1,7 @@
 ### Title:    Conduct Multiple Imputation with PC Auxiliaries
 ### Author:   Kyle M. Lang & Steven Chesnut
 ### Created:  2015-SEP-17
-### Modified: 2017-MAR-16
+### Modified: 2017-MAR-23
 ### Purpose:  Use the principal component auxiliaries produced by createPcAux()
 ###           to conduct MI.
 
@@ -89,10 +89,10 @@ miWithPcAux <- function(rawData,
     if(!missCheck(control)) quarkData$setControl(x = control)
     
     ## Cast the variables to their appropriate types:
-    castData(map = quarkData, doingQuark = FALSE)
+    castData(map = quarkData)
     
     ## Check and clean the data:
-    if(!simMode) cleanData(map = quarkData, doingQuark = FALSE)
+    if(!simMode) cleanData(map = quarkData)
     
     ## Check for and treat any single nominal variables that are missing
     ## only one datum

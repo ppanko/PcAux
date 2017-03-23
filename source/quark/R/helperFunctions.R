@@ -1,7 +1,7 @@
 ### Title:    Quark Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-16
+### Modified: 2017-MAR-23
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -423,7 +423,7 @@ errFun <- function(type, ...) {
                    "Polynomial powers greater than 4 are not supported.\n",
                noLinPcAux =
                    paste0("You must ",
-                          ifelse(x$doingQuark, "extract", "use"),
+                          ifelse(x$creatingPcAux, "extract", "use"),
                           " at least 1 linear auxiliary principal component ",
                           "score. You have requested 0.\n"),
                nonLinOptionClash =
@@ -455,7 +455,7 @@ errFun <- function(type, ...) {
                idOverlap = {
                    tmpVec <-
                        ifelse(
-                           x$doingQuark,
+                           x$creatingPcAux,
                            "c('nomVars', 'ordVars', 'groupVars', 'dropVars') ",
                            "c('nomVars', 'ordVars', 'dropVars') "
                        )
