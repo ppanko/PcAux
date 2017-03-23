@@ -1,0 +1,18 @@
+export(prepData,
+       createPcAux,
+       miWithPcAux,
+       mergePcAux,
+       makePredMatrix,
+       inspect,
+       getImpData,
+       pcAuxW)
+
+import(methods,
+       mice,
+       vcd,
+       ICC,
+       rlecuyer,
+       parallel)
+
+importFrom("stats", ".lm.fit", "cor", "cov", "prcomp", "sd", "runif", "na.omit")
+importFrom("utils", "combn")

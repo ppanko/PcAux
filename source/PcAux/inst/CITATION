@@ -1,0 +1,11 @@
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(bibtype = "Manual",
+         title = meta$Title,
+         author = c(person(c("Kyle", "M."), "Lang"),
+                    person(c("Todd", "D."), "Little"),
+                    person("PcAux Development Team")),
+         year = year,
+         note = note,
+         url = "https://github.com/PcAux-Package/PcAux")
