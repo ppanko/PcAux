@@ -1,7 +1,7 @@
 Package: PcAux
 Type: Package
 Title: PcAux: Automatically extract auxiliary features for simple, principled missing data analysis
-Version: 0.0.1
+Version: 0.0.0.9001
 Date: 2017-03-23
 Author: Kyle M. Lang [aut, crt], Todd D. Little [aut], Steven Chesnut [ctb], Byung Jung [ctb], Vibhuti Gupta [ctb]
 Maintainer: Kyle M. Lang <kyle.lang@ttu.edu>
