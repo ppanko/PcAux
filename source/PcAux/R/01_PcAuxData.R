@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byung Jung, Vibhuti Gupta
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-23
+### Modified:     2017-MAR-24
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -883,12 +883,23 @@ PcAuxData$methods(
         "Dummy code nominal factors"
         if(action == 0) {# Create dummy codes
             noms <- colnames(data)[colnames(data) %in% nomVars]
+            
             ## Expand factors into dummy codes:
             form <- as.formula(
                 paste0("~", paste0(noms, collapse = " + "))
             )
+            
+            ## Make sure missing values are retained in dummy codes:
+            oldOpt <- options(na.action = "na.pass")
+            
+            ## Create/store dummy codes:
             dumNoms <<- data.frame(model.matrix(form, data = data)[ , -1])
-            facNoms <<- data.frame(data[ , noms])
+            
+            ## Reset the na.action option:
+            options(na.action = oldOpt$na.action)
+
+            ## Store factor representations:
+            facNoms           <<- data.frame(data[ , noms])
             colnames(facNoms) <<- noms
             
             ## Remove dummy codes for empty factor levels:
