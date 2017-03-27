@@ -529,8 +529,7 @@ errFun <- function(type, ...) {
 makePredMat <- function(map) {
     options(warn = -1)
     ## Construct a predictor matrix for mice():
-    predMat <-
-        mice::quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
+    predMat <- quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
     
     ## Make sure we have fewer predictors than rows:
     badPredFlag <- rowSums(predMat) > (nrow(map$data) - 1)

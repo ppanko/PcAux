@@ -9,10 +9,15 @@ export(prepData,
 
 import(methods)
 
+importFrom("mice",
+           "mice",
+           "complete",
+           "quickpred")
 importFrom("parallel",
            "makeCluster",
            "clusterEvalQ",
            "parLapply",
+           "parApply",
            "stopCluster")
 importFrom("stats",
            ".lm.fit",

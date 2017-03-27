@@ -130,15 +130,15 @@ miWithPcAux <- function(rawData,
     
     if(nProcess == 1) {# Impute in serial
         pcAuxData$miceObject <- try(
-            mice::mice(pcAuxData$data,
-                       m               = nImps,
-                       maxit           = 1L,
-                       predictorMatrix = predMat,
-                       method          = pcAuxData$methVec,
-                       printFlag       = verbose == 2,
-                       ridge           = pcAuxData$miceRidge,
-                       seed            = pcAuxData$seed,
-                       nnet.MaxNWts    = pcAuxData$maxNetWts),
+            mice(pcAuxData$data,
+                 m               = nImps,
+                 maxit           = 1L,
+                 predictorMatrix = predMat,
+                 method          = pcAuxData$methVec,
+                 printFlag       = verbose == 2,
+                 ridge           = pcAuxData$miceRidge,
+                 seed            = pcAuxData$seed,
+                 nnet.MaxNWts    = pcAuxData$maxNetWts),
             silent = TRUE)
         
         if(class(pcAuxData$miceObject) != "try-error") {

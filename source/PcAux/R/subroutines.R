@@ -661,18 +661,18 @@ parallelMice <- function(imp, predMat, map) {
     
     ## Create a single imputation:
     miceOut <- try(
-        mice::mice(data            = map$data,
-                   m               = 1L,
-                   maxit           = 1L,
-                   predictorMatrix = predMat,
-                   method          = map$methVec,
-                   printFlag       = map$verbose > 1,
-                   ridge           = map$miceRidge,
-                   nnet.MaxNWts    = map$maxNetWts),
+        mice(data            = map$data,
+             m               = 1L,
+             maxit           = 1L,
+             predictorMatrix = predMat,
+             method          = map$methVec,
+             printFlag       = map$verbose > 1,
+             ridge           = map$miceRidge,
+             nnet.MaxNWts    = map$maxNetWts),
         silent = FALSE)
     
     if(class(miceOut) != "try-error") {
-        impData <- mice::complete(miceOut, 1)
+        impData <- complete(miceOut, 1)
     } else {
         impData <- NULL
         warnFun("miceCrash",
