@@ -1,7 +1,7 @@
 ### Title:    PcAux Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-23
+### Modified: 2017-MAR-27
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -103,14 +103,14 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE, autoType = FALSE)
         }
         else if( all(varType == "nominal" | varType == "binary") ) {
             ## Cramer's V for two nominal
-            corVal <- assocstats( table(map$data[ , varNames]) )$cramer
+            corVal <- vcd::assocstats( table(map$data[ , varNames]) )$cramer
             corType <- "cramer"
         }
         else if(all(varType == "ordinal" |
                         varType == "nominal" |
                             varType == "binary") ) {
             ## Cramer's V for nominal and ordinal
-            corVal <- assocstats( table(map$data[ , varNames]) )$cramer
+            corVal <- vcd::assocstats( table(map$data[ , varNames]) )$cramer
             corType <- "cramer"
         }
         else if( all(varType == "continuous" | varType == "ordinal") ) {
@@ -127,7 +127,7 @@ flexLinearAssoc <- function(varNames, map, checkMat = FALSE, autoType = FALSE)
             ## Itra-class correlation for continuous and nominal
             nomVar  <- varNames[varType == "nominal" | varType == "binary"]
             contVar <- varNames[varType == "continuous"]
-            corVal  <- ICCbare(x = nomVar, y = contVar, data = map$data)
+            corVal  <- ICC::ICCbare(x = nomVar, y = contVar, data = map$data)
             corType <- "icc"
         }
         else {
@@ -529,7 +529,8 @@ errFun <- function(type, ...) {
 makePredMat <- function(map) {
     options(warn = -1)
     ## Construct a predictor matrix for mice():
-    predMat <- quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
+    predMat <-
+        mice::quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
     
     ## Make sure we have fewer predictors than rows:
     badPredFlag <- rowSums(predMat) > (nrow(map$data) - 1)

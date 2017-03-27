@@ -282,8 +282,8 @@ findCollin <- function(map) {
     
     ## Get all unique variable pairings:
     varPairs <- NULL
-    varPairs <-
-        data.frame(t(combn(colnames(map$data), 2)), stringsAsFactors = FALSE)
+    varPairs <- data.frame(t(utils::combn(colnames(map$data), 2)),
+                           stringsAsFactors = FALSE)
     ##If not using any parallel process
     if(map$nProcess == 1)
         linAssocFrame <- data.frame(varPairs,
@@ -661,18 +661,18 @@ parallelMice <- function(imp, predMat, map) {
     
     ## Create a single imputation:
     miceOut <- try(
-        mice(data            = map$data,
-             m               = 1L,
-             maxit           = 1L,
-             predictorMatrix = predMat,
-             method          = map$methVec,
-             printFlag       = map$verbose > 1,
-             ridge           = map$miceRidge,
-             nnet.MaxNWts    = map$maxNetWts),
+        mice::mice(data            = map$data,
+                   m               = 1L,
+                   maxit           = 1L,
+                   predictorMatrix = predMat,
+                   method          = map$methVec,
+                   printFlag       = map$verbose > 1,
+                   ridge           = map$miceRidge,
+                   nnet.MaxNWts    = map$maxNetWts),
         silent = FALSE)
     
     if(class(miceOut) != "try-error") {
-        impData <- complete(miceOut, 1)
+        impData <- mice::complete(miceOut, 1)
     } else {
         impData <- NULL
         warnFun("miceCrash",

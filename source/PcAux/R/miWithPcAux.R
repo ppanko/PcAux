@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut
 ### Created:      2015-SEP-17
-### Modified:     2017-MAR-26
+### Modified:     2017-MAR-27
 ### Purpose:      Use the principal component auxiliaries produced by
 ###               createPcAux() to conduct MI.
 
@@ -130,15 +130,15 @@ miWithPcAux <- function(rawData,
     
     if(nProcess == 1) {# Impute in serial
         pcAuxData$miceObject <- try(
-            mice(pcAuxData$data,
-                 m               = nImps,
-                 maxit           = 1L,
-                 predictorMatrix = predMat,
-                 method          = pcAuxData$methVec,
-                 printFlag       = verbose == 2,
-                 ridge           = pcAuxData$miceRidge,
-                 seed            = pcAuxData$seed,
-                 nnet.MaxNWts    = pcAuxData$maxNetWts),
+            mice::mice(pcAuxData$data,
+                       m               = nImps,
+                       maxit           = 1L,
+                       predictorMatrix = predMat,
+                       method          = pcAuxData$methVec,
+                       printFlag       = verbose == 2,
+                       ridge           = pcAuxData$miceRidge,
+                       seed            = pcAuxData$seed,
+                       nnet.MaxNWts    = pcAuxData$maxNetWts),
             silent = TRUE)
         
         if(class(pcAuxData$miceObject) != "try-error") {
