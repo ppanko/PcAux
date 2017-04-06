@@ -37,6 +37,7 @@ createPcAux <- function(pcAuxData,
     ## Set initial time and status check 
     pcAuxData$setTime()
     if(pcAuxData$checkStatus == "start" | pcAuxData$checkStatus == "all") pcAuxData$setStatus()
+
     
     ## Check for problems with the input values:
     if(missing(pcAuxData)) errFun("noPcAuxData")
