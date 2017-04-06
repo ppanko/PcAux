@@ -153,7 +153,9 @@ castData <- function(map) {
 
         if(length(map$probNoms) > 0) {# Any suspicious nominal variables?
             warnFun("badNoms", map)
-
+            
+            map$setTime("usrNomsStr")
+            
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -163,11 +165,16 @@ castData <- function(map) {
             } else {
                 cat("\nAs you wish.\n")
             }
+
+            map$setTime("usrNomsEnd")
+            
         }
 
         if(length(map$probOrds) > 0) {# Any suspicious ordinal variables?
             warnFun("badOrds", map)
 
+            map$setTime("usrOrdsStr")
+            
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -177,11 +184,16 @@ castData <- function(map) {
             } else {
                 cat("\nAs you wish.\n")
             }
+
+            map$setTime("usrOrdsEnd")
+            
         }
 
         if(length(map$probCons) > 0) {# Any suspicious continuous variables?
             warnFun("badCons", map)
 
+            map$setTime("usrConsStr")
+            
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -191,6 +203,9 @@ castData <- function(map) {
             } else {
                 cat("\nAs you wish.\n")
             }
+
+            map$setTime("usrConsEnd")
+            
         }
         
     }# CLOSE if(confirmTypes)
@@ -255,6 +270,9 @@ cleanData <- function(map) {
 
     if(haveHighPmVars) {# Any low-response variables?
         warnFun("highPm", map)
+
+        map$setTime("usrHighPmStr")
+        
         userAnswer <-
             readline("Would you like to remove them from the analysis? (Y/n) ")
         ansCheck <- grep("n|no", userAnswer, ignore.case = TRUE)
@@ -262,6 +280,9 @@ cleanData <- function(map) {
         if(length(ansCheck) == 0) {# Remove the low-response variables
             map$removeVars(x = map$highPmVars, reason = "low_resp_rate")
         }
+
+        map$setTime("usrHighPmEnd")
+        
         rm(userAnswer)
         rm(ansCheck)
     }

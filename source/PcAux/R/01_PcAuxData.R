@@ -82,7 +82,10 @@ PcAuxData <- setRefClass("PcAuxData",
                              intMeth      = "integer",
                              idCols       = "ANY",
                              dumNoms      = "ANY",
-                             facNoms      = "ANY"
+                             facNoms      = "ANY",
+                             status       = "list",
+                             time         = "list",
+                             checkStatus  = "character"
                          )# END fields
                          )# END PcAuxData
 
@@ -165,7 +168,18 @@ PcAuxData$methods(
         intMeth      = 0L,
         idCols       = NULL,
         dumNoms      = data.frame(NULL),
-        facNoms      = data.frame(NULL)
+        facNoms      = data.frame(NULL),
+        status       = list(
+            prep      = list(),
+            create    = list(),
+            mi        = list()
+        ),
+        time         = list(
+            prep      = vector("numeric"),
+            create    = vector("numeric"),
+            mi        = vector("numeric")
+        ),
+        checkStatus  = "none"
     )                                                                           {
         "Initialize an object of class PcAuxData"
         call         <<- call
@@ -223,6 +237,9 @@ PcAuxData$methods(
         idCols       <<- idCols
         dumNoms      <<- dumNoms
         facNoms      <<- facNoms
+        status       <<- status
+        time         <<- time
+        checkStatus  <<- checkStatus
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -288,6 +305,22 @@ PcAuxData$methods(
         } else {
             nComps[type] <<- length(r2)
         }
+    },
+    
+    setStatus      = function(step = "start")                                   {
+        "Set machine specs and encumbrance"
+        stCall <- sum(sapply(call, function(x) is.null(x)))
+        if     (stCall == 2) status$prep[[step]] <<- procStatus(step)  
+        else if(stCall == 1) status$create[[step]] <<- procStatus(step)
+        else if(stCall == 0) status$mi[[step]] <<- procStatus(step)    
+    },
+    
+    setTime        = function(step = "start")                                   {
+        "Set the elapsed time between processes"
+        stCall <- sum(sapply(call, function(x) is.null(x)))
+        if     (stCall == 2) time$prep[[step]] <<- proc.time()["elapsed"] 
+        else if(stCall == 1) time$create[step] <<- proc.time()["elapsed"]
+        else if(stCall == 0) time$mi[step] <<- proc.time()["elapsed"] 
     },
     
     ##------------------------- "Overloaded" Accessors ------------------------##
