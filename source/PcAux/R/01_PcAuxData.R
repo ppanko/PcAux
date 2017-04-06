@@ -307,7 +307,7 @@ PcAuxData$methods(
         }
     },
     
-    setStatus       = function(step = "start")                                   {
+    setStatus      = function(step = "start")                                   {
         "Set machine specs and encumbrance"
         session <- list(sessionInfo())
         os <- as.character(Sys.info()["sysname"])
