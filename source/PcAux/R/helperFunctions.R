@@ -560,3 +560,4 @@ makePredMat <- function(map) {
     options(warn = 0)
     predMat
 }# END makePredMat()
+

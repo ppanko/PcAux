@@ -82,7 +82,10 @@ PcAuxData <- setRefClass("PcAuxData",
                              intMeth      = "integer",
                              idCols       = "ANY",
                              dumNoms      = "ANY",
-                             facNoms      = "ANY"
+                             facNoms      = "ANY",
+                             status       = "list",
+                             time         = "list",
+                             checkStatus  = "character"
                          )# END fields
                          )# END PcAuxData
 
@@ -165,7 +168,18 @@ PcAuxData$methods(
         intMeth      = 0L,
         idCols       = NULL,
         dumNoms      = data.frame(NULL),
-        facNoms      = data.frame(NULL)
+        facNoms      = data.frame(NULL),
+        status       = list(
+            prep      = list(),
+            create    = list(),
+            mi        = list()
+        ),
+        time         = list(
+            prep      = vector("numeric"),
+            create    = vector("numeric"),
+            mi        = vector("numeric")
+        ),
+        checkStatus  = "none"
     )                                                                           {
         "Initialize an object of class PcAuxData"
         call         <<- call
@@ -223,6 +237,9 @@ PcAuxData$methods(
         idCols       <<- idCols
         dumNoms      <<- dumNoms
         facNoms      <<- facNoms
+        status       <<- status
+        time         <<- time
+        checkStatus  <<- checkStatus
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -257,7 +274,7 @@ PcAuxData$methods(
 
     setControl      = function(x)                                               {
         "Assign the control parameters"
-        nonInts <- c("minPredCor", "collinThresh", "miceRidge")
+        nonInts <- c("minPredCor", "collinThresh", "miceRidge", "checkStatus")
         
         for(n in names(x)) {
             if(n %in% nonInts) field(n, x[[n]])
@@ -288,6 +305,60 @@ PcAuxData$methods(
         } else {
             nComps[type] <<- length(r2)
         }
+    },
+    
+    setStatus      = function(step = "start")                                   {
+        "Set machine specs and encumbrance"
+        session <- list(sessionInfo())
+        os <- as.character(Sys.info()["sysname"])
+        
+        if(os != "Windows" & os != "Linux") 
+            
+            os <- unlist(session)[grep("macOS", unlist(session))]
+        
+        
+        if(os == "Windows")
+            
+            lookFor <- list(
+                "wmic cpu get Name, Architecture, MaxClockSpeed, NumberOfLogicalProcessors, L3CacheSize, L3CacheSpeed, LoadPercentage",
+                "wmic MemoryChip get Capacity, Speed",
+                "wmic OS get FreePhysicalMemory"
+            )
+        
+        else if(os == "Linux") 
+
+            lookFor <- list(
+                "top -bn1|grep 'load average'",
+                "lscpu| egrep 'Model name|^CPU\\(s|L3 cache'",
+                "free -m"            
+            )
+        
+        else if (os == "macOS") 
+            
+            lookFor <- list(
+                "top -l1|egrep 'CPU usage|PhysMem'",
+                "system_profiler SPHardwareDataType|egrep 'Processor|Cache'"
+            )
+        
+        else stop("Sorry, this option is not available for your operating system")
+
+        if(step == "start") session[[2]] <- rapply(lookFor, system, intern = TRUE)
+        else session <- rapply(lookFor, system, intern = TRUE)
+
+        stCall <- sum(sapply(call, function(x) is.null(x)))
+        
+        if     (stCall == 2) status$prep[[step]] <<- session
+        else if(stCall == 1) status$create[[step]] <<- session
+        else if(stCall == 0) status$mi[[step]] <<- session
+        
+    },
+    
+    setTime        = function(step = "start")                                   {
+        "Set the elapsed time between processes"
+        stCall <- sum(sapply(call, function(x) is.null(x)))
+        if     (stCall == 2) time$prep[[step]] <<- proc.time()["elapsed"] 
+        else if(stCall == 1) time$create[step] <<- proc.time()["elapsed"]
+        else if(stCall == 0) time$mi[step] <<- proc.time()["elapsed"] 
     },
     
     ##------------------------- "Overloaded" Accessors ------------------------##
@@ -327,7 +398,8 @@ PcAuxData$methods(
             ordMaxLev    = ordMaxLev,
             conMinLev    = conMinLev,
             nGVarCats    = nGVarCats,
-            pcaMemLev    = pcaMemLev
+            pcaMemLev    = pcaMemLev,
+            checkStatus  = checkStatus
         )
     },
 

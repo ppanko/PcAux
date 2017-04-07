@@ -10,3 +10,4 @@ License: GPL-3 | file LICENSE
 Depends: mice
 Imports: methods, vcd, ICC, rlecuyer, parallel
 NeedsCompilation: no
+
