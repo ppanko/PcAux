@@ -23,12 +23,14 @@
 checkInputs <- function() {
     ## Get access to objects defined in createPcAux():
     env    <- parent.frame()
-    ## Find this function's parent:
-    parent <- sum(sapply(env$pcAuxData$call, function(x) !is.null(x)))
-
+    ## Index this function's parent:
+    ## (2 = prepData, 1 = createPcAux, 0 = miWithPcAux)
+    if(is.null(env$pcAuxData)) parent <- 2
+    else                       parent <- sum(sapply(env$pcAuxData$call, is.null))
+    
     if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
-    if(parent == 1) {
+    if(parent == 2) {
         ## Make sure the data object is a data.frame:
         if(!is.data.frame(env$rawData))
             if(is.matrix(env$rawData)) env$rawData <- as.data.frame(env$rawData)
@@ -58,7 +60,7 @@ checkInputs <- function() {
                    creatingPcAux = TRUE)
     }
 
-    if(parent == 2) {
+    if(parent == 1) {
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
@@ -79,7 +81,7 @@ checkInputs <- function() {
         }
     }
     
-    if(parent == 3) {
+    if(parent == 0) {
         ## Check the existance of all designated variables:
         varNames <-
             with(env$pcAuxData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
