@@ -1,7 +1,8 @@
-### Title:    Exported PcAux Helper Functions
-### Author:   Kyle M. Lang
-### Created:  2015-OCT-29
-### Modified: 2017-MAR-26
+### Title:        Exported PcAux Helper Functions
+### Author:       Kyle M. Lang
+### Contributors: Pavel Panko
+### Created:      2015-OCT-29
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -253,40 +254,36 @@ makePredMatrix <- function(mergedData, nLinear = NULL, nNonLinear = NULL)
 ## Wrapper function to give S3/S4-like access to fields:
 inspect <- function(object, what) object$field(what)
 
+
 ## Wrapper function to return the imputed data sets:
 getImpData <- function(pcAuxData) pcAuxData$miDatasets
 
+
 ##Compute elapsed time at each interval: 
 calcTime <- function(pcAuxData, what) {
-
-    time <- pcAuxData$time[[what]]  
+    time     <- pcAuxData$time[[what]]  
     eachStep <- diff(time)
     
-    nPoints <- length(eachStep)
-    eachStep[nPoints + 1] <- as.vector(time[length(time)] - time["start"])
+    nPoints                      <- length(eachStep)
+    eachStep[nPoints + 1]        <- as.vector(time[length(time)] - time["start"])
     names(eachStep)[nPoints + 1] <- "overall"
 
     usrVars <- lapply(c("End", "usr"), function(x) grep(x, names(eachStep)))
- 
+    
     if(length(unlist(usrVars)) > 1) {
-        
         eachStep["overall"] <- eachStep["overall"] - eachStep[usrVars[[1]]]
-        timeSteps <- eachStep[-usrVars[[2]]]
-        timeSteps["usr"] <- eachStep[usrVars[[1]]]
-        
-    } else
-
-        timeSteps <- eachStep
+        timeSteps           <- eachStep[-usrVars[[2]]]
+        timeSteps["usr"]    <- eachStep[usrVars[[1]]]
+    }
+    else timeSteps <- eachStep
     
-    return(timeSteps)
-    
+    timeSteps
 }
+
 
 ## Write machine status to a text files 
 writeStatus <- function(pcAuxData, outName, what) {
-
     fileName <- file(outName)
     writeLines(capture.output(pcAuxData$status[[what]]), fileName)
     close(fileName)
-    
 }

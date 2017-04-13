@@ -1,8 +1,8 @@
 ### Title:        Create Principal Component Auxiliary Variables
 ### Author:       Kyle M. Lang
-### Contributors: Steven Chesnut
+### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-MAR-26
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -42,7 +42,7 @@ createPcAux <- function(pcAuxData,
     ## Check for problems with the input values:
     if(missing(pcAuxData)) errFun("noPcAuxData")
     if(missing(nComps))    errFun("noNComps")
-    if(!simMode)           checkInputs(parent = "createPcAux")
+    if(!simMode)           checkInputs()
     
     ## Add elements to an extant instance of the PcAuxData class:
     pcAuxData$nComps   <- nComps

@@ -1,8 +1,8 @@
 ### Title:        PcAux Subroutines
 ### Author:       Kyle M. Lang & Stephen Chesnut
-### Contributors: Byung Jung
+### Contributors: Byung Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-23
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -20,12 +20,15 @@
 ### along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-checkInputs <- function(parent) {
+checkInputs <- function() {
     ## Get access to objects defined in createPcAux():
-    env <- parent.frame()
+    env    <- parent.frame()
+    ## Find this function's parent:
+    parent <- sum(sapply(env$pcAuxData$call, function(x) !is.null(x)))
+
     if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
-    if(parent == "prepData") {
+    if(parent == 1) {
         ## Make sure the data object is a data.frame:
         if(!is.data.frame(env$rawData))
             if(is.matrix(env$rawData)) env$rawData <- as.data.frame(env$rawData)
@@ -55,7 +58,7 @@ checkInputs <- function(parent) {
                    creatingPcAux = TRUE)
     }
 
-    if(parent == "createPcAux") {
+    if(parent == 2) {
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
@@ -76,7 +79,7 @@ checkInputs <- function(parent) {
         }
     }
     
-    if(parent == "miWithPcAux") {
+    if(parent == 3) {
         ## Check the existance of all designated variables:
         varNames <-
             with(env$pcAuxData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
@@ -314,8 +317,7 @@ findCollin <- function(map) {
                                               map = map)),
                                     stringsAsFactors = FALSE
                                     )
-    else
-    {
+    else {
         myCluster <- makeCluster(map$nProcess)
         clusterEvalQ(myCluster, library(mice))
         linAssocFrame <- data.frame(varPairs,
@@ -331,7 +333,7 @@ findCollin <- function(map) {
     collinFlag <- !is.na(linAssocFrame$coef) &
         abs(linAssocFrame$coef) > map$collinThresh
     
-    if( any(collinFlag) ) {
+    if(any(collinFlag)) {
         ## Update the data object by removing the collinear variables:
         map$cleanCollinVars(linAssocFrame[collinFlag, ])
         warnFun("collin", map)

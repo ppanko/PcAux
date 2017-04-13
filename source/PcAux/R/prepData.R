@@ -1,8 +1,8 @@
 ### Title:        Data Preperation
 ### Author:       Kyle M. Lang
-### Contributors: Byung Jung
+### Contributors: Byung Jung, Pavel Panko
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-23
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -35,7 +35,7 @@ prepData <- function(rawData,
 {
     ## Check for problems with the input values:
     if(missing(rawData)) errFun("noData")
-    if(!simMode)         checkInputs(parent = "prepData")
+    if(!simMode)         checkInputs()
     
     if(missCheck(dropVars)) dropVars <- "NONE_DEFINED"
             

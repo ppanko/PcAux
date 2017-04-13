@@ -1,8 +1,8 @@
 ### Title:        Conduct Multiple Imputation with PC Auxiliaries
 ### Author:       Kyle M. Lang
-### Contributors: Steven Chesnut
+### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-MAR-27
+### Modified:     2017-APR-13
 ### Purpose:      Use the principal component auxiliaries produced by
 ###               createPcAux() to conduct MI.
 
@@ -73,7 +73,7 @@ miWithPcAux <- function(rawData,
     }
 
     ## Check inputs' validity:
-    if(!simMode) checkInputs(parent = "miWithPcAux")
+    if(!simMode) checkInputs()
 
     pcAuxData$setTime("varTypes")
     if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("varTypes")

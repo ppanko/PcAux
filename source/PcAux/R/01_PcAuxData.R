@@ -1,8 +1,8 @@
 ### Title:        PcAuxData Reference Class Definition
 ### Author:       Kyle M. Lang
-### Contributors: Byung Jung, Vibhuti Gupta
+### Contributors: Byung Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-MAR-27
+### Modified:     2017-APR-13
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -310,15 +310,13 @@ PcAuxData$methods(
     setStatus      = function(step = "start")                                   {
         "Set machine specs and encumbrance"
         session <- list(sessionInfo())
-        os <- as.character(Sys.info()["sysname"])
+        os      <- as.character(Sys.info()["sysname"])
         
         if(os != "Windows" & os != "Linux") 
-            
             os <- unlist(session)[grep("macOS", unlist(session))]
         
         
         if(os == "Windows")
-            
             lookFor <- list(
                 "wmic cpu get Name, Architecture, MaxClockSpeed, NumberOfLogicalProcessors, L3CacheSize, L3CacheSpeed, LoadPercentage",
                 "wmic MemoryChip get Capacity, Speed",
@@ -326,7 +324,6 @@ PcAuxData$methods(
             )
         
         else if(os == "Linux") 
-
             lookFor <- list(
                 "top -bn1|grep 'load average'",
                 "lscpu| egrep 'Model name|^CPU\\(s|L3 cache'",
@@ -334,23 +331,24 @@ PcAuxData$methods(
             )
         
         else if (os == "macOS") 
-            
             lookFor <- list(
                 "top -l1|egrep 'CPU usage|PhysMem'",
                 "system_profiler SPHardwareDataType|egrep 'Processor|Cache'"
             )
         
-        else stop("Sorry, this option is not available for your operating system")
+        else
+            stop("Sorry, this option is not available for your operating system")
 
-        if(step == "start") session[[2]] <- rapply(lookFor, system, intern = TRUE)
-        else session <- rapply(lookFor, system, intern = TRUE)
+        if(step == "start")
+            session[[2]] <- rapply(lookFor, system, intern = TRUE)
+        else
+            session      <- rapply(lookFor, system, intern = TRUE)
 
         stCall <- sum(sapply(call, function(x) is.null(x)))
         
-        if     (stCall == 2) status$prep[[step]] <<- session
+        if     (stCall == 2) status$prep[[step]]   <<- session
         else if(stCall == 1) status$create[[step]] <<- session
-        else if(stCall == 0) status$mi[[step]] <<- session
-        
+        else if(stCall == 0) status$mi[[step]]     <<- session
     },
     
     setTime        = function(step = "start")                                   {
@@ -358,7 +356,7 @@ PcAuxData$methods(
         stCall <- sum(sapply(call, function(x) is.null(x)))
         if     (stCall == 2) time$prep[[step]] <<- proc.time()["elapsed"] 
         else if(stCall == 1) time$create[step] <<- proc.time()["elapsed"]
-        else if(stCall == 0) time$mi[step] <<- proc.time()["elapsed"] 
+        else if(stCall == 0) time$mi[step]     <<- proc.time()["elapsed"] 
     },
     
     ##------------------------- "Overloaded" Accessors ------------------------##
