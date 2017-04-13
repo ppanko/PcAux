@@ -1,6 +1,6 @@
 ### Title:        Data Preperation
 ### Author:       Kyle M. Lang
-### Contributors: Byung Jung, Pavel Panko
+### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2016-JAN-19
 ### Modified:     2017-APR-13
 
