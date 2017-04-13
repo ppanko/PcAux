@@ -79,7 +79,7 @@ You can also work directly with the principal component auxiliaries:
 
         predMat <- makePredMatrix(mergedData = outData)
 
-[builds]:  https://github.com/PcAux-Package/PcAux/tree/improveReadme/builds/
-[docs]:    https://github.com/PcAux-Package/PcAux/tree/improveReadme/documentation/
-[src]:     https://github.com/PcAux-Package/PcAux/tree/improveReadme/source/PcAux
-[LICENSE]: https://github.com/PcAux-Package/PcAux/blob/improveReadme/LICENSE
+[builds]:  https://github.com/PcAux-Package/PcAux/tree/develop/builds/
+[docs]:    https://github.com/PcAux-Package/PcAux/tree/develop/documentation/
+[src]:     https://github.com/PcAux-Package/PcAux/tree/develop/source/PcAux
+[LICENSE]: https://github.com/PcAux-Package/PcAux/blob/develop/LICENSE
