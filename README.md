@@ -21,9 +21,12 @@ The best way to install PcAux is to use the `devtools::install_github` package.
 
 1. First, make sure that you have **devtools** installed on your system
 2. Next, execute the following lines:
+
     library(devtools)
     install_github("PcAux-Package/PcAux/source/PcAux")
+    
 3. Finally, load **PcAux** and enjoy:
+
     library(PcAux)
 
 If the **devtools**-based approach does not work, you can download one of the
@@ -42,6 +45,7 @@ version number for the tar-ball that you downloaded.
 A basic missing data treatment using **PcAux** might look like the following:
 
 1. First, load and prepare your data:
+
     data(iris2)
     cleanData <- prepData(rawData   = iris2,
     	                  nomVars   = "Species",
@@ -51,12 +55,14 @@ A basic missing data treatment using **PcAux** might look like the following:
                       	  groupVars = "Species")
 
 2. Next, create a set of principal component auxiliary variables:
+
     pcAuxOut <- createPcAux(pcAuxData = cleanData,
                             nComps    = c(3, 2)
                             )
 
 3. Finally, use the principal component auxiliaries as the predictors in a
-  multiple imputation run:
+   multiple imputation run:
+
     miOut <- miWithPcAux(rawData   = iris2,
                          pcAuxData = pcAuxOut,
                          nImps     = 5)
@@ -65,11 +71,13 @@ You can also work directly with the principal component auxiliaries:
 
 - You can merge the principal component auxiliaries back onto your raw data (e.g.,
   for use with the Graham, 2007, saturated correlates approach).
+
     outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
 
 - You can also create a stand-alone predictor matrix that can be used to
   correctly incorporate the principal component auxiliaries into a separate
   MI run using the **mice** package.
+
     predMat <- makePredMatrix(mergedData = outData)
 
 [builds]: "https://github.com/PcAux-Package/PcAux/tree/master/builds"
