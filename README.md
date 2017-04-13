@@ -16,7 +16,7 @@ Thank you for your interest in the PcAux project! I hope you find our software
 useful!
 
 ## Installation
-The best way to install PcAux is to use the `devtools::install_github` package.
+The best way to install PcAux is to use the `devtools::install_github` function.
 
 1. First, make sure that you have **devtools** installed on your system
 2. Next, execute the following lines:
@@ -34,7 +34,7 @@ from source by executing the following lines:
 
         install.packages("/SAVE_PATH/PcAux_VERSION.tar.gz",
                          repos = NULL,
-			 type  = "source")
+                         type  = "source")
 
 Where *SAVE_PATH* is replaced by the (relative or absolute) file path to the
 location where you saved the tar-ball, and *VERSION* is replaced with the correct
@@ -47,8 +47,8 @@ A basic missing data treatment using **PcAux** might look like the following:
 
         data(iris2)
         cleanData <- prepData(rawData   = iris2,
-    	                      nomVars   = "Species",
-	                      ordVars   = "Petal.Width",
+                              nomVars   = "Species",
+                              ordVars   = "Petal.Width",
                       	      idVars    = "ID",
                       	      dropVars  = "Junk",
                       	      groupVars = "Species")
@@ -79,4 +79,4 @@ You can also work directly with the principal component auxiliaries:
 
         predMat <- makePredMatrix(mergedData = outData)
 
-[builds]: "https://github.com/PcAux-Package/PcAux/tree/master/builds"
+[builds]: https://github.com/PcAux-Package/PcAux/tree/master/builds/
