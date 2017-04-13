@@ -1,6 +1,6 @@
 ### Title:        PcAux Subroutines
 ### Author:       Kyle M. Lang & Stephen Chesnut
-### Contributors: Byung Jung, Pavel Panko
+### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
 ### Modified:     2017-APR-13
 

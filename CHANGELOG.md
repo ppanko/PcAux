@@ -18,7 +18,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 ## 0.0.0.9005 - 2017-04-07
 
 ### Added
-- @ppanko contributed utilities for timing/benchmarking
+- @ppanko (Pavel Panko) contributed utilities for timing/benchmarking
 
 ## 0.0.0.9004 - 2017-03-27
 
@@ -82,11 +82,16 @@ making no significant effort to maintain backward compatibility. To do so would
 only stagnate development. Once we release a feature-complete version of 
 **PcAux** we will begin to seriously consider backward compatibility.
 
-Note that during previous **quark**-era development @IMMAPbjung contributed a 
-routine to check for collinearity using parallel processing, and @vibhutittu 
-contributed an improved algorithm for selecting which variables to exclude in 
-order to dissolve collinear variable pairs.	
+### Previous Contribution Credits
+The orginal source code for **quark** was adapted from an un-packaged 
+implementation written by Dr. Steven Chesnut.
+
+During **quark**-era development:
+- @IMMAPbjung (Byungkwan Jung) contributed a routine to check for collinearity 
+  using parallel processing
+- @vibhutittu (Vibhuti Gupta) contributed an improved algorithm for selecting 
+  which variables to exclude when dissolving collinear variable pairs
 
 [kacl]: http://keepachangelog.com/
 [sv]:   http://semver.org/
-[hw]:   http://r-pkgs.had.co.nz/description.html/
+[hw]:   http://r-pkgs.had.co.nz/

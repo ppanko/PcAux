@@ -1,6 +1,6 @@
 ### Title:        PcAuxData Reference Class Definition
 ### Author:       Kyle M. Lang
-### Contributors: Byung Jung, Vibhuti Gupta, Pavel Panko
+### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
 ### Modified:     2017-APR-13
 ### Note:         PcAuxData is the metadata class for the PcAux package.
