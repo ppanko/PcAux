@@ -2,11 +2,11 @@
 ---
 This is the repository for the PcAux package which was formerly called "quark."
 
-- Licensing information is given in the 'LICENSE' file.
-- Built tarballs of the PcAux package are available in the 'builds' directory.
-- Stand-alone documentation is available in the 'documentation' directory.
+- Licensing information is given in the [LICENSE] file.
+- Built tarballs of the PcAux package are available in the [builds][] directory.
+- Stand-alone documentation is available in the [documentation][docs] directory.
 - The source files for the most recent stable version of PcAux are available in
-  the 'source' directory.
+  the [source][src] directory.
 
 PcAux is beta software, so please report any bugs that you encounter in the
 issues section of the project page. You may also leave requests for new features
@@ -49,9 +49,9 @@ A basic missing data treatment using **PcAux** might look like the following:
         cleanData <- prepData(rawData   = iris2,
                               nomVars   = "Species",
                               ordVars   = "Petal.Width",
-                      	      idVars    = "ID",
-                      	      dropVars  = "Junk",
-                      	      groupVars = "Species")
+                              idVars    = "ID",
+                              dropVars  = "Junk",
+                              groupVars = "Species")
 
 2. Next, create a set of principal component auxiliary variables:
 
@@ -69,7 +69,7 @@ A basic missing data treatment using **PcAux** might look like the following:
 You can also work directly with the principal component auxiliaries:
 
 - You can merge the principal component auxiliaries back onto your raw data (e.g.,
-  for use with the Graham, 2007, saturated correlates approach).
+  for use with the Graham, 2003, saturated correlates approach).
 
         outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
 
@@ -79,4 +79,7 @@ You can also work directly with the principal component auxiliaries:
 
         predMat <- makePredMatrix(mergedData = outData)
 
-[builds]: https://github.com/PcAux-Package/PcAux/tree/master/builds/
+[builds]:  https://github.com/PcAux-Package/PcAux/tree/improveReadme/builds/
+[docs]:    https://github.com/PcAux-Package/PcAux/tree/improveReadme/documentation/
+[src]:     https://github.com/PcAux-Package/PcAux/tree/improveReadme/source/PcAux
+[LICENSE]: https://github.com/PcAux-Package/PcAux/blob/improveReadme/LICENSE
