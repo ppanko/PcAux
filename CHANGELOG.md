@@ -14,6 +14,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 
 ### Added
 - Added this Change Log
+- Added URL and BugReports links to DESCRIPTION file
 
 ## 0.0.0.9005 - 2017-04-07
 
