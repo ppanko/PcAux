@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for PcAux
 ### Author:   Kyle M. Lang, Pavel Panko
 ### Created:  2015-NOV-01
-### Modified: 2017-JUN-21
+### Modified: 2017-SEP-10 
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -221,10 +221,11 @@ miOut <- miWithPcAux(rawData   = iris2,
                      nImps     = 5)
 
 ## Extract timing infromation:
-timeInfo <- writeStatus(pcAuxData = miOut,
-                        outName   = "miOutStatus.txt",
-                        what      = "mi")
+writeStatus(pcAuxData = miOut,
+            outName   = "miOutStatus.txt",
+            what      = "mi")
 
+read.table("miOutStatus.txt")
 
 ##### DATA PREP TESTING #####
 
@@ -695,7 +696,6 @@ pcAuxOut <- createPcAux(pcAuxData    = tmp,
                         interactType = 3,
                         nComps       = c(5, 5),
                         verbose      = 0)
-
 
 ## Test:   Suppress printed output from mice()
 ## Result: Successful execution

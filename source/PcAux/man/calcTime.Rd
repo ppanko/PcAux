@@ -30,9 +30,9 @@ calcTime(pcAuxData, what)
 \author{
   Pavel Panko
 }
-\seealso{
-  \code{\link{writeStatus}}
-}
+%\seealso{
+%  \code{\link{writeStatus}}
+%}
 \examples{
 ## Load the data:
 data(iris2)

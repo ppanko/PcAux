@@ -6,8 +6,8 @@ export(prepData,
        inspect,
        getImpData,
        pcAuxW,
-       calcTime,
-       writeStatus)
+       calcTime) #,
+                                        #writeStatus)
 
 import(methods)
 

@@ -70,5 +70,9 @@ miOut <- miWithPcAux(rawData   = iris2,
                      nImps     = 5)
 
 ## Extract timing infromation:
-timeInfo <- writeStatus(pcAuxData = miOut, outName = "miOutStatus.txt", what = "mi")
+writeStatus(pcAuxData = miOut, outName = "miOutStatus.txt", what = "mi")
+
+## Read in and view the status summary:
+timeInfo <- read.table("miOutStatus.txt")
+timeInfo
 }

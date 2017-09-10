@@ -12,6 +12,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 ### Added
 - @ppanko contributed documentation for his timing/benchmarking utilities
 - Included tutorial document in the "documentation" directory
+- @kylelang removed "writeStatus" from the exports until the bug therewith has can be resolved
 
 ## 0.0.0.9006 - 2017-04-13
 
