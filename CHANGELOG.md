@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
+## 0.0.0.9007 - 2017-06-12
+
+### Added
+- @ppanko contributed documentation for his timing/benchmarking utilities
+- Included tutorial document in the "documentation" directory
+
 ## 0.0.0.9006 - 2017-04-13
 
 ### Changed
