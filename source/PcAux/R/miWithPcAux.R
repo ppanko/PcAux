@@ -1,8 +1,8 @@
 ### Title:        Conduct Multiple Imputation with PC Auxiliaries
 ### Author:       Kyle M. Lang
-### Contributors: Steven Chesnut
+### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-MAR-27
+### Modified:     2017-APR-13
 ### Purpose:      Use the principal component auxiliaries produced by
 ###               createPcAux() to conduct MI.
 
@@ -40,6 +40,9 @@ miWithPcAux <- function(rawData,
 {
     pcAuxData$setCall(match.call(), parent = "miWithPcAux")
 
+    pcAuxData$setTime()
+    if(pcAuxData$checkStatus == "start" | pcAuxData$checkStatus == "all") pcAuxData$setStatus()
+    
     if(missing(rawData))   errFun("noData")
     if(missing(pcAuxData)) errFun("noPcAuxData")
     
@@ -70,13 +73,19 @@ miWithPcAux <- function(rawData,
     }
 
     ## Check inputs' validity:
-    if(!simMode) checkInputs(parent = "miWithPcAux")
+    if(!simMode) checkInputs()
+
+    pcAuxData$setTime("varTypes")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("varTypes")
     
     ## Combine the principal component auxiliaries with the raw data:
     mergePcAux(pcAuxData = pcAuxData,
                rawData   = rawData,
                nComps    = nComps,
                intern    = TRUE)
+
+    pcAuxData$setTime("mergePcAux")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("mergePcAux")
     
     ## Populate new fields in the extant PcAuxData object:
     pcAuxData$nImps      <- as.integer(nImps)
@@ -89,12 +98,18 @@ miWithPcAux <- function(rawData,
     
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) pcAuxData$setControl(x = control)
+
+    pcAuxData$setTime("popNew")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("popNew")
     
     ## Cast the variables to their appropriate types:
     castData(map = pcAuxData)
     
     ## Check and clean the data:
     if(!simMode) cleanData(map = pcAuxData)
+
+    pcAuxData$setTime("reCast")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("reCast")
     
     ## Check for and treat any single nominal variables that are missing
     ## only one datum
@@ -103,6 +118,9 @@ miWithPcAux <- function(rawData,
                           )
     if(any(singleMissNom))
         pcAuxData$fillNomCell(colnames(pcAuxData$data[singleMissNom]))
+
+    pcAuxData$setTime("nomMis")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("nomMis")
     
     if(verbose > 1) cat("\nMultiply imputing missing data...\n")
     
@@ -117,11 +135,17 @@ miWithPcAux <- function(rawData,
                               nLinear    = nLin,
                               nNonLinear = nNonLin)
     if(verbose > 1) cat("done.\n")
+
+    pcAuxData$setTime("predMat")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("predMat")
     
     ## Specify a vector of elementary imputation methods:
     if(verbose > 1) cat("--Creating method vector...")
     pcAuxData$createMethVec()
     if(verbose > 1) cat("done.\n")
+
+    pcAuxData$setTime("methVec")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("methVec")
     
     if(forcePmm & verbose > 1) cat("PMM forced by user.\n")
     
@@ -140,12 +164,19 @@ miWithPcAux <- function(rawData,
                  seed            = pcAuxData$seed,
                  nnet.MaxNWts    = pcAuxData$maxNetWts),
             silent = TRUE)
+
+        pcAuxData$setTime("impSerial")
+        if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("impSerial")
         
         if(class(pcAuxData$miceObject) != "try-error") {
             pcAuxData$data <- "Removed to save resources."
             
             ## Complete the incomplete data sets:
             pcAuxData$completeMiData()
+
+            pcAuxData$setTime("completeMi")
+            if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("completeMi")
+            
         } else {
             errFun("miceCrash", map = pcAuxData)
         }
@@ -161,12 +192,22 @@ miWithPcAux <- function(rawData,
                                           map     = pcAuxData)
         
         stopCluster(myCluster)
+
+        pcAuxData$setTime("impParallel")
+        if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("impParallel")
         
         pcAuxData$transformMiData()
+
+        pcAuxData$setTime("transformMI")
+        if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("transformMI")
+        
     }
     
     if(verbose > 1) cat("\n--done.\n")
     if(verbose > 1) cat("Complete.\n")
+
+    pcAuxData$setTime("miEnd")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("miEnd")
     
     pcAuxData
 }# END miWithPcAux()

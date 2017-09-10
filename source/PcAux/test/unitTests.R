@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for PcAux
-### Author:   Kyle M. Lang
+### Author:   Kyle M. Lang, Pavel Panko
 ### Created:  2015-NOV-01
-### Modified: 2017-MAR-26
+### Modified: 2017-SEP-10 
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -23,7 +23,6 @@ rm(list = ls(all = TRUE))
 library(PcAux)
 library(mvtnorm)
 source("makeTestData.R")
-
 
 ##### DOCUMENTATION EXAMPLES ######
 
@@ -172,6 +171,61 @@ pcAuxW()
 ### iris2:
 data(iris2)
 
+### calcTime():
+
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
+
+## Conduct MI with the pcAux:
+miOut <- miWithPcAux(rawData   = iris2,
+                     pcAuxData = pcAuxOut,
+                     nImps     = 5)
+
+## Extract timing infromation:
+timeInfo <- calcTime(pcAuxData = miOut, what = "mi")
+
+### writeStatus():
+
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
+
+## Conduct MI with the pcAux:
+miOut <- miWithPcAux(rawData   = iris2,
+                     pcAuxData = pcAuxOut,
+                     nImps     = 5)
+
+## Extract timing infromation:
+writeStatus(pcAuxData = miOut,
+            outName   = "miOutStatus.txt",
+            what      = "mi")
+
+read.table("miOutStatus.txt")
 
 ##### DATA PREP TESTING #####
 
@@ -642,7 +696,6 @@ pcAuxOut <- createPcAux(pcAuxData    = tmp,
                         interactType = 3,
                         nComps       = c(5, 5),
                         verbose      = 0)
-
 
 ## Test:   Suppress printed output from mice()
 ## Result: Successful execution

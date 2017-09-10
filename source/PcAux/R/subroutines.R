@@ -1,8 +1,8 @@
 ### Title:        PcAux Subroutines
 ### Author:       Kyle M. Lang & Stephen Chesnut
-### Contributors: Byung Jung
+### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2017-MAR-23
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -20,12 +20,17 @@
 ### along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-checkInputs <- function(parent) {
+checkInputs <- function() {
     ## Get access to objects defined in createPcAux():
-    env <- parent.frame()
+    env    <- parent.frame()
+    ## Index this function's parent:
+    ## (2 = prepData, 1 = createPcAux, 0 = miWithPcAux)
+    if(is.null(env$pcAuxData)) parent <- 2
+    else                       parent <- sum(sapply(env$pcAuxData$call, is.null))
+    
     if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
-    if(parent == "prepData") {
+    if(parent == 2) {
         ## Make sure the data object is a data.frame:
         if(!is.data.frame(env$rawData))
             if(is.matrix(env$rawData)) env$rawData <- as.data.frame(env$rawData)
@@ -55,7 +60,7 @@ checkInputs <- function(parent) {
                    creatingPcAux = TRUE)
     }
 
-    if(parent == "createPcAux") {
+    if(parent == 1) {
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
@@ -76,7 +81,7 @@ checkInputs <- function(parent) {
         }
     }
     
-    if(parent == "miWithPcAux") {
+    if(parent == 0) {
         ## Check the existance of all designated variables:
         varNames <-
             with(env$pcAuxData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
@@ -153,7 +158,9 @@ castData <- function(map) {
 
         if(length(map$probNoms) > 0) {# Any suspicious nominal variables?
             warnFun("badNoms", map)
-
+            
+            map$setTime("usrNomsStr")
+            
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -163,11 +170,16 @@ castData <- function(map) {
             } else {
                 cat("\nAs you wish.\n")
             }
+
+            map$setTime("usrNomsEnd")
+            
         }
 
         if(length(map$probOrds) > 0) {# Any suspicious ordinal variables?
             warnFun("badOrds", map)
 
+            map$setTime("usrOrdsStr")
+            
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -177,11 +189,16 @@ castData <- function(map) {
             } else {
                 cat("\nAs you wish.\n")
             }
+
+            map$setTime("usrOrdsEnd")
+            
         }
 
         if(length(map$probCons) > 0) {# Any suspicious continuous variables?
             warnFun("badCons", map)
 
+            map$setTime("usrConsStr")
+            
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -191,6 +208,9 @@ castData <- function(map) {
             } else {
                 cat("\nAs you wish.\n")
             }
+
+            map$setTime("usrConsEnd")
+            
         }
         
     }# CLOSE if(confirmTypes)
@@ -255,6 +275,9 @@ cleanData <- function(map) {
 
     if(haveHighPmVars) {# Any low-response variables?
         warnFun("highPm", map)
+
+        map$setTime("usrHighPmStr")
+        
         userAnswer <-
             readline("Would you like to remove them from the analysis? (Y/n) ")
         ansCheck <- grep("n|no", userAnswer, ignore.case = TRUE)
@@ -262,6 +285,9 @@ cleanData <- function(map) {
         if(length(ansCheck) == 0) {# Remove the low-response variables
             map$removeVars(x = map$highPmVars, reason = "low_resp_rate")
         }
+
+        map$setTime("usrHighPmEnd")
+        
         rm(userAnswer)
         rm(ansCheck)
     }
@@ -293,8 +319,7 @@ findCollin <- function(map) {
                                               map = map)),
                                     stringsAsFactors = FALSE
                                     )
-    else
-    {
+    else {
         myCluster <- makeCluster(map$nProcess)
         clusterEvalQ(myCluster, library(mice))
         linAssocFrame <- data.frame(varPairs,
@@ -310,7 +335,7 @@ findCollin <- function(map) {
     collinFlag <- !is.na(linAssocFrame$coef) &
         abs(linAssocFrame$coef) > map$collinThresh
     
-    if( any(collinFlag) ) {
+    if(any(collinFlag)) {
         ## Update the data object by removing the collinear variables:
         map$cleanCollinVars(linAssocFrame[collinFlag, ])
         warnFun("collin", map)

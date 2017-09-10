@@ -1,8 +1,8 @@
 ### Title:        Create Principal Component Auxiliary Variables
 ### Author:       Kyle M. Lang
-### Contributors: Steven Chesnut
+### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-MAR-26
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -33,11 +33,16 @@ createPcAux <- function(pcAuxData,
                         ...)
 {
     pcAuxData$setCall(match.call(), parent = "createPcAux")
+
+    ## Set initial time and status check 
+    pcAuxData$setTime()
+    if(pcAuxData$checkStatus == "start" | pcAuxData$checkStatus == "all") pcAuxData$setStatus()
+
     
     ## Check for problems with the input values:
     if(missing(pcAuxData)) errFun("noPcAuxData")
     if(missing(nComps))    errFun("noNComps")
-    if(!simMode)           checkInputs(parent = "createPcAux")
+    if(!simMode)           checkInputs()
     
     ## Add elements to an extant instance of the PcAuxData class:
     pcAuxData$nComps   <- nComps
@@ -51,6 +56,9 @@ createPcAux <- function(pcAuxData,
     
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) pcAuxData$setControl(x = control)
+
+    pcAuxData$setTime("dataCheck")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("dataCheck")
     
     ## Check for extant moderators when interactType == 1 or 2:
     check <- interactType %in% c(1, 2) & missCheck(pcAuxData$moderators)
@@ -58,9 +66,15 @@ createPcAux <- function(pcAuxData,
         pcAuxData$moderators <- colnames(pcAuxData$data)
         warnFun("noMods")
     }
+
+    pcAuxData$setTime("modExt")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("modExt")
     
     ## Re-cast the data if needed
     if(castData) castData(map = pcAuxData)
+
+    pcAuxData$setTime("cast")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("cast")
     
     if(doImputation) {
         ## Check for and treat any nominal variables that are missing only one
@@ -74,6 +88,9 @@ createPcAux <- function(pcAuxData,
                                  pcAuxData$dropVars[ , 1])
         
         if(length(singleMissNom) > 0) pcAuxData$fillNomCell(singleMissNom)
+
+        pcAuxData$setTime("doImp")
+        if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("doImp")
     }
     
     ## Compute interactions for use during initial imputation:
@@ -82,19 +99,35 @@ createPcAux <- function(pcAuxData,
         pcAuxData$data     <- with(pcAuxData, data.frame(data, interact))
         pcAuxData$interact <- "Removed to save resources"
     }
-        
+
+    pcAuxData$setTime("compInt")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("compInt")
+    
     ## Compute polynomials for use during initial imputation:
     if(pcAuxData$maxPower > 1) {
         pcAuxData$computePoly()
         pcAuxData$data <- with(pcAuxData, data.frame(data, poly))
         if(pcAuxData$intMeth == 1) pcAuxData$poly <- "Removed to save resources"
     }
+
+    pcAuxData$setTime("compPoly")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("compPoly")
     
     ## Execute the initial, single imputation:
-    if(doImputation) doSingleImputation(map = pcAuxData)
+    if(doImputation) {
+
+        doSingleImputation(map = pcAuxData)
+        
+        pcAuxData$setTime("doSingle")
+        if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("doSingle")
+
+    }
     
     ## Extract the linear principal component scores:
     doPCA(map = pcAuxData)
+
+    pcAuxData$setTime("doPCA")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("doPCA")
     
     ## Are we constructing seperate non-linear PcAux?
     if(pcAuxData$nComps[2] != 0) {
@@ -106,11 +139,18 @@ createPcAux <- function(pcAuxData,
         
         ## Extract the nonlinear principal component scores:
         doPCA(map = pcAuxData)
+
+        pcAuxData$setTime("doNLinear")
+        if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("doNLinear")
+        
     }
 
     ## Remove unnecessary representation of nominal variables:
     pcAuxData$facNoms <- "Removed to save resources"
     pcAuxData$dumNoms <- "Removed to save resources"
+
+    pcAuxData$setTime("rmVars")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("rmVars")
     
     pcAuxData
 }# END createPcAux()

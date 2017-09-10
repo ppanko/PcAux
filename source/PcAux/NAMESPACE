@@ -5,7 +5,9 @@ export(prepData,
        makePredMatrix,
        inspect,
        getImpData,
-       pcAuxW)
+       pcAuxW,
+       calcTime) #,
+                                        #writeStatus)
 
 import(methods)
 
@@ -32,3 +34,6 @@ importFrom("rlecuyer",
            ".lec.GetStreams",
            ".lec.CreateStream",
            ".lec.CurrentStream")
+importFrom("utils",
+           "capture.output",
+           "sessionInfo")

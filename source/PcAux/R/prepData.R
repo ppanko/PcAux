@@ -1,8 +1,8 @@
 ### Title:        Data Preperation
 ### Author:       Kyle M. Lang
-### Contributors: Byung Jung
+### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2016-JAN-19
-### Modified:     2017-MAR-23
+### Modified:     2017-APR-13
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -35,7 +35,7 @@ prepData <- function(rawData,
 {
     ## Check for problems with the input values:
     if(missing(rawData)) errFun("noData")
-    if(!simMode)         checkInputs(parent = "prepData")
+    if(!simMode)         checkInputs()
     
     if(missCheck(dropVars)) dropVars <- "NONE_DEFINED"
             
@@ -49,9 +49,13 @@ prepData <- function(rawData,
                            )
 
     pcAuxData$setCall(match.call(), parent = "prepData")
+    pcAuxData$setTime()
     
     ## Make sure the control list is fully populated:
     if(!missCheck(control)) pcAuxData$setControl(x = control)
+
+    ## Set initial machine check 
+    if(pcAuxData$checkStatus == "start" | pcAuxData$checkStatus == "all") pcAuxData$setStatus()
     
     ## Check for special variable arguments and fill the appropriate slots in the
     ## pcAuxData object:
@@ -65,7 +69,10 @@ prepData <- function(rawData,
     if(!missCheck(nomVars))    pcAuxData$nomVars    <- nomVars
     if(!missCheck(ordVars))    pcAuxData$ordVars    <- ordVars
     if(!missCheck(moderators)) pcAuxData$moderators <- moderators
-                                           
+
+    pcAuxData$setTime("checkSpecial")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("checkSpecial")
+    
 ### Pre-process the data ###
     
     ## Cast the variables to their declared types:
@@ -78,5 +85,9 @@ prepData <- function(rawData,
         ## Find any (bivariate) collinear variables:
         findCollin(map = pcAuxData)
     }
+    
+    pcAuxData$setTime("cast")
+    if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("cast")
+    
     pcAuxData
 }# END prepData()
