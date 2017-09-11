@@ -23,3 +23,6 @@ PcAux.Rcheck
 
 # Emacs-generated backup files
 *~
+
+# Hidden files
+.*

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Pavel Panko
 ### Created:      2015-OCT-29
-### Modified:     2017-APR-13
+### Modified:     2017-SEP-11
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -85,7 +85,7 @@ mergePcAux <- function(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
                 nComps[i] <- length(r2)
             }
         }
-        
+
         ## Must use at least 1 linear PcAux
         check <- nComps[1] == 0
         if(check) errFun("noLinPcAux", creatingPcAux = FALSE)
@@ -139,7 +139,7 @@ mergePcAux <- function(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
                 errFun("nonLinVarExp", pcAuxData = pcAuxData, varExp = varExp)    
         }
     }# CLOSE if(missCheck(nComps))
-
+    
     badId <- FALSE
     
     ## Check for shared ID variables:
@@ -188,12 +188,16 @@ mergePcAux <- function(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
             badId <- TRUE
         }
     }
-    
+
+    ## Are we using any non-linear PcAux?
+    useNonLin <- pcAuxData$intMeth != 1 & nComps[2] > 0
+        
     ## Merge the PcAux scores onto the raw data:
     linPcNames    <- paste0("linPC",    c(1 : nComps[1]))
-    nonLinPcNames <- paste0("nonLinPC", c(1 : nComps[2]))
+    if(useNonLin) nonLinPcNames <- paste0("nonLinPC", c(1 : nComps[2]))
+    
     if(badId) {
-        if(pcAuxData$intMeth > 1)
+        if(useNonLin)
             outData <-
                 data.frame(rawData,
                            pcAuxData$pcAux$lin[ , linPcNames],
@@ -203,9 +207,9 @@ mergePcAux <- function(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
             outData <- data.frame(rawData, pcAuxData$pcAux$lin[ , linPcNames])
     } else {
         linPcNames    <- c(useId, linPcNames)
-        nonLinPcNames <- c(useId, nonLinPcNames)
+        if(useNonLin) nonLinPcNames <- c(useId, nonLinPcNames)
         
-        if(pcAuxData$intMeth > 1)
+        if(useNonLin)
             tmp <- merge(pcAuxData$pcAux$lin[ , linPcNames],
                          pcAuxData$pcAux$nonLin[ , nonLinPcNames]
                          )
