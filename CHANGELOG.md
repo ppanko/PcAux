@@ -7,12 +7,18 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
+## 0.0.0.9008 - 2017-09-11
+
+### Fixed
+- Bug causing fatal errors when computing polynomial terms in *createPcAux*
+- Bug causing fatal errors when merging PcAux in *miWithPcAux* with no non-linear component scores
+
 ## 0.0.0.9007 - 2017-06-12
 
 ### Added
 - @ppanko contributed documentation for his timing/benchmarking utilities
 - Included tutorial document in the "documentation" directory
-- @kylelang removed "writeStatus" from the exports until the bug therewith has can be resolved
+- @kylelang removed *writeStatus* from the exports until the bug therewith has can be resolved
 
 ## 0.0.0.9006 - 2017-04-13
 

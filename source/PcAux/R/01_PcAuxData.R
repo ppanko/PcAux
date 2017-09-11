@@ -943,11 +943,20 @@ PcAuxData$methods(
 
         ## Make sure missing values are retained in dummy codes:
         oldOpt <- options(na.action = "na.pass")
-       
+        
         ## Create the polynominal terms:
-        poly <<- data.frame(
-            model.matrix(form, data = data[ , dataNames])[ , -1]
-        )
+        if(length(dataNames) == 1) # Hack for only one continuous variable
+            poly <<- data.frame(
+                model.matrix(form,
+                             data = as.data.frame(          
+                                 list(data[ , dataNames]),
+                                 col.names = dataNames)       
+                             )[ , -1]
+            )
+        else
+            poly <<- data.frame(
+                model.matrix(form, data = data[ , dataNames])
+            )[ , -1]
         
         ## Reset the na.action option:
         options(na.action = oldOpt$na.action)
