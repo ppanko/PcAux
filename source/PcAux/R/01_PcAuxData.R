@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-APR-13
+### Modified:     2017-SEP-11
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -477,19 +477,25 @@ PcAuxData$methods(
         "Calculate the variable-wise response counts"
         if(asProportion) {
             if(countMissing) {
-                respCounts <<- colMeans(is.na(data)            )
-                noMissing  <-  all     (respCounts == 0.0      )
+                respCounts        <<- colMeans(is.na(data)             )
+                ## KML 2017-09-11: Manually name 'respCounts' to hack issue with
+                ##                 is.na() dropping some column names
+                names(respCounts) <<- colnames(data                    )
+                noMissing         <-  all     (respCounts == 0.0       )
             } else {
-                respCounts <<- colMeans(!is.na(data)           )
-                noMissing  <-  all     (respCounts == 1.0      )
+                respCounts        <<- colMeans(!is.na(data)            )
+                names(respCounts) <<- colnames(data                    )
+                noMissing         <-  all     (respCounts == 1.0       )
             }
         } else {
             if(countMissing) {
-                respCounts <<- colSums(is.na(data)             )
-                noMissing  <-  all    (respCounts == 0         )
+                respCounts        <<- colSums (is.na(data)             )
+                names(respCounts) <<- colnames(data                    )
+                noMissing         <-  all     (respCounts == 0         )
             } else {
-                respCounts <<- colSums(!is.na(data)            )
-                noMissing  <-  all    (respCounts == nrow(data))
+                respCounts        <<- colSums (!is.na(data)            )
+                names(respCounts) <<- colnames(data                    )
+                noMissing         <-  all     (respCounts == nrow(data))
             }
         }
 
