@@ -239,16 +239,25 @@ makePredMatrix <- function(mergedData, nLinear = NULL, nNonLinear = NULL)
         predVars <- c(paste0("linPC", c(1 : nLinear)),
                       paste0("nonLinPC", c(1 : nNonLinear))
                       )
+        
+        nonPredVars <- colnames(mergedData[-c(grep("linPC",colnames(mergedData)),
+                                              grep("nonLinPC",colnames(mergedData)))])
+        
+        predMat <- quickpred(mergedData, mincor = PcAuxData$minPredCor,exclude = nonPredVars)
+        
     } else {
         predVars <- paste0("linPC", c(1 : nLinear))
+        nonPredVars <- colnames(mergedData[-c(grep("linPC",colnames(mergedData)))])
+        
+        predMat <- quickpred(mergedData, mincor = PcAuxData$minPredCor,exclude = nonPredVars)
     }
     
-    predMat              <- matrix(0, ncol(mergedData), ncol(mergedData))
-    colnames(predMat)    <- rownames(predMat) <- colnames(mergedData)
-    predMat[ , predVars] <- 1
-    
-    compFlag            <- colSums(is.na(mergedData)) == 0
-    predMat[compFlag, ] <- 0
+    # predMat              <- matrix(0, ncol(mergedData), ncol(mergedData))
+    # colnames(predMat)    <- rownames(predMat) <- colnames(mergedData)
+    # predMat[ , predVars] <- 1
+    # 
+    # compFlag            <- colSums(is.na(mergedData)) == 0
+    # predMat[compFlag, ] <- 0
     
     predMat
 }# END makePredMatrix()
