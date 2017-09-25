@@ -1,0 +1,1051 @@
+\documentclass[letterpaper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\usepackage[latin1]{inputenc} % @SET ENCODING@
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge \R{} documentation}} \par\bigskip{{\Large of \file{./calcTime.Rd} etc.}}
+\par\bigskip{\large \today}
+\end{center}
+\inputencoding{utf8}
+\HeaderA{calcTime}{Calculates the time between PcAux processes.}{calcTime}
+%
+\begin{Description}\relax
+This function records the system time for the PcAux functions at set intervals 
+to help determine issues with lengthy runs. calcTime allows the user
+to extract timing information for specific functions of PcAux
+individually. 
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+calcTime(pcAuxData, what)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pcAuxData}] 
+A fitted object of class \code{PcAuxData} produced as output of
+\code{prepData}, \code{createPcAux}, or \code{miWithPcAux} functions.
+
+\item[\code{what}] 
+A character vector indicating the name of a function for which to
+extract status information. abbreviates the functions
+\code{prepData}, \code{createPcAux}, and \code{miWithPcAux} as
+"prep", "create", and "mi", respectively. 
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A named vector with an entry per interval.
+\end{Value}
+%
+\begin{Author}\relax
+Pavel Panko
+\end{Author}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
+
+## Conduct MI with the pcAux:
+miOut <- miWithPcAux(rawData   = iris2,
+                     pcAuxData = pcAuxOut,
+                     nImps     = 5)
+
+## Extract timing infromation:
+timeInfo <- calcTime(pcAuxData = miOut, what = "mi")
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{createPcAux}{Extract Principal Component Auxiliaries for Missing Data Analysis}{createPcAux}
+%
+\begin{Description}\relax
+Extract principal component scores for use as the auxiliary variables
+in a principled missing data analysis as described by Howard,
+Rhemtulla, and Little (2015). 
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+createPcAux(pcAuxData,
+            nComps,       
+            interactType = 1L,
+            maxPolyPow   = 3L,
+            simMode      = FALSE,
+            seed         = NULL,
+            verbose      = 2L,
+            doImputation = TRUE,
+            castData     = !doImputation,
+            control,
+            ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pcAuxData}] 
+An object of class PcAuxData returned from \code{prepData}. 
+
+\item[\code{nComps}] 
+A two-element, numeric vector giving the number of linear and
+nonlinear, respectively, component scores to extract. See the
+\emph{Details} section for more information.
+
+\item[\code{interactType}] 
+An integer code indicating which method is used to incorporate
+interactions into the initial, single imputation model. See the
+\emph{Details} section for more information. Defaults to
+\code{interactType = 1L}.
+
+\item[\code{maxPolyPow}] 
+An integer giving the maximum power used when constructing the
+polynomial terms. Setting \code{maxPolyPow = 1L} has the effect of
+excluding any polynomial terms from the imputation model. Defaults
+to \code{maxPolyPow = 3L}. 
+
+\item[\code{simMode}] 
+A logical switch turning 'Simulation Mode' on or off. In Simulation
+Mode all of the automatic data checks will be suppressed. This mode
+is intended for use when \code{pcAux} is being called as part of a
+Monte Carlo simulation study in which the data properties are
+well-known by the user. This mode should not be used for
+'real-world' data analysis. Defaults to \code{simMode = FALSE}.
+
+\item[\code{seed}] 
+An optional integer used to seed the random number generator used by the
+imputation algorithm. Defaults to \code{seed = NULL} which leaves
+the default random number generator unaltered.
+
+\item[\code{verbose}] 
+An integer code in 0, 1, 2 defining the verbosity of output printed to the
+screen. \code{verbose = 0} prints no output; \code{verbose = 1}
+prints all output except for the messages returned by \pkg{mice};
+\code{verbose = 2} prints all output, including the messages
+returned by \pkg{mice}. Warnings are always printed, regardless of the value
+assigned to \code{verbose}. Defaults to \code{verbose = 2}.
+
+\item[\code{doImputation}] 
+A logical switch indicating whether the data should be imputed
+before extracting the principal component scores. Set to
+\code{FALSE} if the data element in \code{pcAuxData} has no missing
+values (e.g., the imputation was done elsewhere). Defaults to
+\code{doImputation = TRUE}.
+
+\item[\code{castData}] 
+A logical switch indicating whether the data element in
+\code{pcAuxData} should have its variables re-typed. Keep as
+\code{FALSE} unless the data have been manipulated after running
+\code{prepData}. Defaults to \code{castData = FALSE}.
+
+\item[\code{control}] 
+An optional list of control parameters (see 'Details').
+
+\item[\code{...}] 
+Not currently used.
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+The number of component scores requested via the \code{nComps}
+argument can be defined in two ways: as simple counts, or in terms of
+the proportion of variance in the data explained by the set of
+extracted components. When specifying \code{nComps}, positive integer
+arguments are interpreted as counts of components; real-valued
+arguments in [0, 1.0) are interpreted as proportions of
+variance explained. Additionally, two special options are available. A
+value of \code{Inf} will employ the smallest number of component
+scores such that adding one more component score does not explain a
+differentiably larger amount of variance. Specifying any negative
+value will employ all possible component scores.
+
+The \code{interactType} argument can take any of the values in 0, 1, 2,
+3. \code{interactType = 0} includes no interaction terms.
+\code{iteractType = 1} incorporates all two-way interactions between
+the observed variables and the variables specified in the
+\code{moderators} argument of \code{prepData}. \code{iteractType =
+    2} incorporates all two-way interactions between the linear
+principal component scores and the variables specified in the
+\code{moderators} argument of \code{prepData}. \code{iteractType
+    = 3} incorporates all two-way interactions between linear principal
+component scores and the raw observed variables. Note that
+\code{interactType == 2} or \code{interactType == 3} will produce a
+set of "non-linear" component scores in the \code{pcAux\$nonLin} field
+of the PcAuxData object (in addition to the "linear" component
+scores in the \code{pcAux\$lin} field), while \code{interactType ==
+    0} and \code{interactType == 1} will produce component scores only
+in the \code{pcAux\$lin} field. 
+
+The \code{control} argument is a key-paired list with the following
+possible entries:
+\begin{itemize}
+
+\item miceIters: 
+Number of EM iterations supplied to the \code{maxit} argument of
+mice() during the initial single imputation. Defaults to
+\code{miceIters = 10L}.
+
+\item miceRidge: 
+Value of the ridge penalty parameter used to stabilize the
+imputation models used by mice(). Defaults to \code{miceRidge =
+	1e-5}.
+
+\item collinThresh: 
+The strength of linear association used to flag collinear variable
+for removal. Note that any variable specified in the 'moderators'
+argument of \code{prepData} will be retained, regardless of its
+collinearity with other variables. Defaults to \code{collinThresh = 0.95}.
+
+\item minRespCount: 
+The minimum number of observations allowed on each variable without
+triggering a warning. Defaults to \code{floor(0.05 * nrow(rawData))}.
+
+\item minPredCor: 
+The minimum magnitude of correlation supplied to the
+\code{mincor} argument of mice::quickpred() when constructing the
+predictor matrix used by mice() during the initial single
+imputation. Defaults to \code{minPredCor = 0.1}.
+
+\item maxNetWts: 
+The maximum number of network weights used by nnet() to fit the
+polytomous regression models used to impute nominal variables with
+mice(). Defaults to \code{maxNetWts = 10000L}.
+
+\item nomMaxLev: 
+The maximum number of response levels for nominal variables that
+won't trigger a warning. Defaults to \code{nomMaxLev = 10L}.
+
+\item ordMaxLev: 
+The maximum number of response levels for ordinal variables that
+won't trigger a warning. Defaults to \code{ordMaxLev = 10L}.
+
+\item conMinLev: 
+The minimum number of unique responses for continuous variables that
+won't trigger a warning. Defaults to \code{minConLev = 10L}.
+
+\item nGVarCats: 
+The number of categories into which continuous grouping variables
+will be split, if applicable. Defaults to \code{nGVarCats = 3L}.
+
+\item pcaMemLevel:
+An integer code representing a trade-off between memory usage and
+numerical accuracy in the algorithm used to extract the principal
+component scores. A value of '0L' (the default) will extract the PC
+scores with the stats::prcomp() package for maximal accuracy. A
+value of '1L' will use the PcAux:::simplePca() subroutine to extract
+the PC scores with considerably lower memory usage but, possibly,
+less numerical accuracy than the prcomp() approach. Leaving this
+option at the default value should be sufficient for most
+applications.
+
+
+\end{itemize}
+
+\end{Details}
+%
+\begin{Value}
+An Reference Class object of class PcAuxData with fields for each of
+the \code{createPcAux} function's arguments (except for the raw data
+which are removed to save resources) and the following modified or
+additional fields: 
+\begin{itemize}
+
+\item call: 
+A list containing the matched function call to \code{PcAux}.
+
+\item pcAux: 
+A list of length 2. The first element contains the linear principal
+component auxiliary scores. The second element contains the
+non-linear principal component auxiliary scores.
+
+\item rSquared: 
+A list of length 2. The first element contains the cumulative
+proportion of variance explained by the linear principal component
+auxiliary scores. The second element contains the cumulative
+proportion of variance explained by the non-linear principal
+component auxiliary scores.
+
+\item typeVec: 
+A character vector giving the types assigned to each variable in
+\code{rawData}. 
+
+\item methVec: 
+A character vector giving the elementary imputation methods used
+by \pkg{mice}.
+
+\item respCounts: 
+An integer vector giving the variable-wise counts of any missing
+data in \code{rawData} that remain after the initial single
+imputation. Any variables with non-zero entries in respCounts are
+dropped from the data before extracting the principal component
+scores to keep the PCA from using listwise-deletion.
+
+\item initialPm: 
+A numeric vector giving the initial, variable-wise percents
+missing for \code{rawData} before any treatment.
+
+\item dropVars: 
+A two-column character matrix. The first column contains the names
+of all variables dropped from the analysis. The second column
+contains the reason that the corresponding variable was dropped.
+
+\item dummyVars: 
+A character vector containing the names of the dummy-coded
+representations of the nominal variables.
+
+\item probNoms: 
+A character vector giving the variable names for any nominal
+variables with more levels than \code{control\$nomMaxLev}.
+
+\item probOrds: 
+A character vector giving the variable names for any ordinal
+variables with more levels than \code{control\$ordMaxLev}.
+
+\item probCons: 
+A character vector giving the variable names for any continuous
+variables with fewer levels than \code{control\$conMinLev}.
+
+\item levelVec: 
+An integer vector giving the number of unique, non-missing, levels
+for each variable in \code{rawData}.
+
+\item highPmVars: 
+A character vector containing the names of variables with fewer
+observed responses than \code{control\$minRespCount}.
+
+\item emptyVars: 
+A character vector giving the names of empty columns in
+\code{rawData}.
+
+\item constants: 
+A character vector giving the names of constant columns in
+\code{rawData}.
+
+\item collinVars: 
+A three-column character matrix. The first two columns contain the
+names of pairs of approximately collinear variables. The third
+column contains their observed linear association.
+
+\item impFails: 
+A named list of length 4 with elements: 'firstPass', 'pmm',
+'groupMean', and 'grandMean' containing the names of any variables
+that were not successfully imputed via the named imputation
+strategy. 'First Pass' imputation refers to the ideal approach
+that assigns the elementary imputation methods according to each
+variables declared type. The remaining three methods are
+less-optimal fall-back approaches. 
+
+\item patterns: 
+If the imputation process falls back to group mean substitution,
+this field contains a list of the concatenated grouping patterns
+used to define the strata within which the group means were
+computed. This list will have length equal to
+\code{length(groupVars)}.
+
+\item frozenGVars: 
+If group mean substitution is attempted and some grouping
+variables are continuous, this field contains the binned versions
+of the continuous grouping variables that were used for the group
+mean substitution.
+
+\item idFills: 
+A list containing the values used to deterministically fill any
+missing data that occurred on the ID variables. The length of this
+argument will equal the number of incomplete ID variables in
+\code{rawData}.
+
+
+\end{itemize}
+
+\end{Value}
+%
+\begin{Author}\relax
+Kyle M. Lang
+\end{Author}
+%
+\begin{References}\relax
+Howard, W. H., Rhemtulla, M., \& Little, T. D. (2015). Using principal
+components as auxiliary variables in missing data estimation.
+Multivariate Behavioral Research. 50(3). 285-299.
+\end{References}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{prepData}{prepData}}, \code{\LinkA{miWithPcAux}{miWithPcAux}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create the principal component auxiliaries:
+pcAuxOut <- createPcAux(pcAuxData = cleanData, nComps = c(3, 0))
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{getImpData}{Extract multiply imputed datasets from a PcAuxData object.}{getImpData}
+%
+\begin{Description}\relax
+This is a simple wrapper function that extracts the completed,
+multiply imputed data sets from a fitted PcAuxData object produced by
+running the \code{miWithPcAux} function.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+getImpData(pcAuxData)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pcAuxData}] 
+A fitted object of class \code{PcAuxData} produced as output of the
+\code{miWithPcAux} function.
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A set of multiply imputed data sets. The format of these data sets is
+defined by the \code{compFormat} value in \code{pcAuxData}. See
+\code{\LinkA{miWithPcAux}{miWithPcAux}} for more information.
+\end{Value}
+%
+\begin{Author}\relax
+Kyle M. Lang
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{miWithPcAux}{miWithPcAux}}, \code{\LinkA{createPcAux}{createPcAux}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
+
+## Conduct MI with the pcAux:
+miOut <- miWithPcAux(rawData   = iris2,
+                     pcAuxData = pcAuxOut,
+                     nImps     = 5)
+
+## Extract a list of imputed data sets:
+impList <- getImpData(pcAuxData = miOut)
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{inspect}{Access fields of a PcAuxData object.}{inspect}
+%
+\begin{Description}\relax
+Provide S3/S4-like access to fields of a PcAuxData Reference Class
+object.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+inspect(object, what)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] 
+An initialized RC object of class PcAuxData.
+
+\item[\code{what}] 
+A character string naming the field to access in \code{object}.
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+The current value stored in the \code{what} field of \code{object}.
+\end{Value}
+%
+\begin{Author}\relax
+Kyle M. Lang
+\end{Author}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load data:
+data(iris2)
+
+## Prepare the data:
+newData <- prepData(rawData   = iris2,
+                    nomVars   = "Species",
+                    ordVars   = "Petal.Width",
+                    idVars    = "ID",
+                    dropVars  = "Junk",
+                    groupVars = "Species")
+
+## Pull the 'data' field from 'newData':
+inspect(object = newData, what = "data")
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{iris2}{A modified version of the Fisher/Anderson iris data. }{iris2}
+\keyword{datasets}{iris2}
+%
+\begin{Description}\relax
+This is a slight modification of the famous Fisher/Anderson iris
+data. I've binned petal width and added an ID and junk variable to
+demonstrate the usage of \pkg{package:PcAux} more effectively.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+data("iris2")
+\end{verbatim}
+\end{Usage}
+%
+\begin{Format}
+A data frame with 150 observations on the following 7 variables
+describing the characteristics of a sample of three species of iris.
+\begin{description}
+
+\item[\code{ID}] 
+A numeric vector of IDs
+
+\item[\code{Sepal.Length}] 
+A numeric vector of sepal lengths
+
+\item[\code{Sepal.Width}] 
+A numeric vector of sepal widths
+
+\item[\code{Petal.Length}] 
+A numeric vector of petal lengths
+
+\item[\code{Petal.Width}] 
+An ordered factor with levels \code{1} < \code{2} < \code{3} <
+\code{4} < \code{5} giving a categorized measure of petal width
+
+\item[\code{Species}] 
+A factor with levels \code{setosa} \code{versicolor}
+\code{virginica} giving the iris' species
+
+\item[\code{Junk}] 
+A constant nuisance factor with levels \code{badVar}
+
+
+\end{description}
+
+\end{Format}
+%
+\begin{Source}\relax
+Fisher, R. A. (1936) The use of multiple measurements in taxonomic
+problems. Annals of Eugenics, 7, 179-188.
+
+The data were collected by:
+Anderson, Edgar (1935). The irises of the Gaspe Peninsula, Bulletin
+of the American Iris Society, 59, 2-5.
+\end{Source}
+%
+\begin{References}\relax
+Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988) The new s
+language. Wadsworth \& Brooks/Cole.
+\end{References}
+%
+\begin{Examples}
+\begin{ExampleCode}
+data(iris2)
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{makePredMatrix}{Make a predictor matrix for use with \pkg{mice}.}{makePredMatrix}
+%
+\begin{Description}\relax
+Make a predictor matrix for use with \pkg{mice} that correctly
+specifies the auxiliary principal component scores produced by
+\code{createPcAux} as the sole predictors in the imputation model.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+makePredMatrix(mergedData, nLinear, nNonLinear)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{mergedData}] 
+A data frame, such as one returned by \code{PcAux::mergePcAux},
+containing the incomplete variables to be imputed and the principal
+component auxiliary variable scores.
+
+\item[\code{nLinear}] 
+The number of linear principal component auxiliaries to use as
+predictors in the imputation model. If not specified, all linear PcAux
+scores contained in \code{mergedData} will be used.
+
+\item[\code{nNonLinear}] 
+The number of non-linear principal component auxiliaries to use as
+predictors in the imputation model. If not specified, all non-linear
+PcAux scores contained in \code{mergedData} will be used.
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A pattern matrix with dimensions: \code{c(ncol(mergedData),
+    ncol(mergedData))} that can be supplied to the
+\code{predictorMatrix} argument of \pkg{mice}.
+\end{Value}
+%
+\begin{Author}\relax
+Kyle M. Lang
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{miWithPcAux}{miWithPcAux}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData = cleanData, nComps = c(3, 0))
+
+## Merge the PC auxiliaries with the original data:
+outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
+
+## Create a predictor matrix:
+predMat <- makePredMatrix(mergedData = outData)
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{mergePcAux}{Merge Principal Component Auxiliaries with the raw data from which they were constructed.}{mergePcAux}
+%
+\begin{Description}\relax
+Merge PcAux scores produced by \code{createPcAux} with a data frame
+containing the raw data from which the component scores were
+constructed.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+mergePcAux(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pcAuxData}] 
+An object of class \emph{PcAuxData} produced by a call to
+\code{createPcAux}.
+
+\item[\code{rawData}] 
+A data frame containing the raw data used to run
+\code{createPcAux}. 
+
+\item[\code{nComps}] 
+A two-element vector giving the number of linear and
+nonlinear, respectively, component scores to extract. See the
+\emph{Details} section for more information. When not specified, all
+component scores that exist in \code{pcAuxData} are used.
+
+\item[\code{verbose}] 
+A logical flag indicating whether verbose output should be printed
+to stdout. Defaults to \code{verbose = TRUE}.
+
+\item[\code{...}] 
+Only used when \code{mergePcAux} is called from within other
+\pkg{PcAux} functions.
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+This function will attempt to use the ID variables defined in PcAux's
+\code{idVars} argument to align rows for merging. If these ID
+variables are not suitable (i.e., because they don't exist in the raw
+data or they're not unique row-identifiers), the merging will be
+accomplished via naive column-binding.
+
+The number of component scores requested via the \code{nComps}
+argument can be defined in two ways: as simple counts, or in terms of
+the proportion of variance in the data explained by the set of
+extracted components. When specifying \code{nComps}, integer
+arguments are interpreted as counts of components; real-valued
+arguments in [0, 1.0). Additionally, two special options are available. A
+value of \code{Inf} will employ the smallest number of component
+scores such that adding one more component score does not explain a
+differentiably larger amount of variance. Specifying any negative
+value will employ all possible component scores. An error is returned
+when more components are requested than exist in \code{pcAuxData}.  
+\end{Details}
+%
+\begin{Value}
+A data frame with (a subset of) the principal component auxiliary
+scores from \code{pcAuxData\$pcAux} merged onto the end of the raw
+data. 
+\end{Value}
+%
+\begin{Author}\relax
+Kyle M. Lang
+\end{Author}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 3)
+
+## Merge the PC auxiliaries with the original data:
+outData <- mergePcAux(pcAuxData = pcAuxOut, rawData = iris2)
+\end{ExampleCode}
+\end{Examples}
+\inputencoding{utf8}
+\HeaderA{miWithPcAux}{Create multiple imputations using the PcAux produced by \code{createPcAux}.}{miWithPcAux}
+%
+\begin{Description}\relax
+Create multiple imputations with the \pkg{mice} package using the
+principal component auxiliary variable scores produced by
+\code{createPcAux} as the predictors in the imputation model.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+miWithPcAux(rawData,
+            pcAuxData,
+            nImps      = 100L,
+            nomVars    = NULL,
+            ordVars    = NULL,
+            idVars     = NULL,
+            dropVars   = "useExtant",
+            nComps     = NULL,
+            compFormat = "list",
+            seed       = NULL,
+            simMode    = FALSE,
+            forcePmm   = FALSE,
+            nProcess   = 1L,
+            verbose    = 2L,
+            control)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{rawData}] 
+A data frame containing the incomplete data for which to create
+the multiple imputations.
+
+\item[\code{pcAuxData}] 
+An object of class \code{PcAuxData} produced by a run of
+\code{createPcAux}.
+
+\item[\code{nImps}] 
+An integer giving the number of imputations to create. Defaults to
+\code{nImps = 100L}.
+
+\item[\code{nomVars}] 
+An optional character vector containing names of any nominal
+variables (i.e., unordered factors) that exist in \code{rawData}. If
+unspecified, any \code{nomVars} defined in \code{pcAuxData} will be
+used.
+
+\item[\code{ordVars}] 
+An optional character vector containing names of any ordinal
+variables (i.e., ordered factors) that exist in \code{rawData}. If
+unspecified, any \code{ordVars} defined in \code{pcAuxData} will be
+used.
+
+\item[\code{idVars}] 
+An optional character vector containing names of any ID variables
+that exist in \code{rawData}. Any columns flagged as ID variables
+should not be represented in \code{nomVars}, \code{ordVars},
+\code{dropVars}, or \code{groupVars}. If unspecified, any
+\code{idVars} defined in \code{pcAuxData} will be used.
+
+\item[\code{dropVars}] 
+An optional character vector containing names of any nuisance
+variables that should be excluded from the imputation process. If
+unspecified, the default value of \code{dropVars = "useExtant"}
+causes any user-defined \code{dropVars} defined in \code{pcAuxData}
+to be used.
+
+\item[\code{nComps}] 
+A two-element vector giving the number of linear and
+nonlinear, respectively, component scores to extract. See the
+\emph{Details} section for more information. When not specified, all
+component scores that exist in \code{pcAuxData} are used.
+
+\item[\code{compFormat}] 
+The format in which the multiply-imputed data sets are
+returned. Valid arguments are "list", which returns a list of length
+\code{nImps} with each entry containing one imputed data set,
+"long", "broad", and "repeated". The latter three options are passed
+directly to the \code{action} argument of the \code{mice::complete}
+function. See the documentation for \code{mice::complete} for more
+details on the behavior of the "long", "broad", and "repeated"
+options. Defaults to \code{compFormat = "list"}. 
+
+\item[\code{seed}] 
+An optional integer used to seed the random number generator used by the
+imputation algorithm. Defaults to \code{seed = NULL} which employs
+any seed defined in \code{createPcAux} and, otherwise, leaves the
+default random number generator unaltered.
+
+\item[\code{simMode}] 
+A logical switch turning 'Simulation Mode' on or off. In Simulation
+Mode all of the automatic data checks will be suppressed. This mode
+is intended for use when \code{miWithPcAux} is being called as part of a
+Monte Carlo simulation study in which the data properties are
+well-known by the user. This mode should not be used for
+'real-world' data analysis. Defaults to \code{simMode = FALSE}.
+
+\item[\code{forcePmm}] 
+A logical flag indicating whether or not the imputation should use
+predictive mean matching as the elementary imputation method for
+(almost) all variables. If \code{forcePmm == FALSE}, the elementary
+imputation methods are chosen to match each variable's declared
+type. When \code{forcePmm == TRUE}, nominal variables are still
+imputed with GLM-based methods appropriate for their declared types,
+but all other variables are imputed with PMM. Defaults to
+\code{forcePmm = FALSE}.
+
+\item[\code{nProcess}] 
+An integer that gives the number of parallel processes to use when
+for parallel MI. Must be less than or equal to the number
+of available logical processor cores. A value of \code{nProcess =
+      1L} results in serial MI processing. Defaults to \code{nProcess =
+      1L}.
+
+\item[\code{verbose}] 
+An integer code in 0, 1, 2 defining the verbosity of output printed to the
+screen. \code{verbose = 0} prints no output; \code{verbose = 1}
+prints all output except for the messages returned by \pkg{mice};
+\code{verbose = 2} prints all output, including the messages
+returned by \pkg{mice}. Warnings are always printed, regardless of the value
+assigned to \code{verbose}. Defaults to \code{verbose = 2}.
+
+\item[\code{control}] 
+An optional list of control parameters (see 'Details').
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+The number of component scores requested via the \code{nComps}
+argument can be defined in two ways: as simple counts, or in terms of
+the proportion of variance in the data explained by the set of
+extracted components. When specifying \code{nComps}, integer
+arguments are interpreted as counts of components; real-valued
+arguments in [0, 1.0) are interpreted as proportions of
+variance explained. Additionally, two special options are available. A
+value of \code{Inf} will employ the smallest number of component
+scores such that adding one more component score does not explain a
+differentiably larger amount of variance. Specifying any negative
+value will employ all possible component scores. An error is returned
+when more components are requested than exist in \code{pcAuxData}. 
+
+The \code{control} argument is a key-paired list with the following
+possible entries:
+\begin{itemize}
+
+\item miceRidge: 
+Value of the ridge penalty parameter used to stabilize the
+imputation models used by mice(). Defaults to \code{miceRidge =
+	1e-5}.
+
+\item minRespCount: 
+The minimum number of observations allowed on each variable without
+triggering a warning. Defaults to \code{floor(0.05 * nrow(rawData))}.
+
+\item maxNetWts: 
+The maximum number of network weights used by nnet() to fit the
+polytomous regression models used to impute nominal variables with
+mice(). Defaults to \code{maxNetWts = 10000L}.
+
+\item nomMaxLev: 
+The maximum number of response levels for nominal variables that
+won't trigger a warning. Defaults to \code{nomMaxLev = 10L}.
+
+\item ordMaxLev: 
+The maximum number of response levels for ordinal variables that
+won't trigger a warning. Defaults to \code{ordMaxLev = 10L}.
+
+\item conMinLev: 
+The minimum number of unique responses for continuous variables that
+won't trigger a warning. Defaults to \code{minConLev = 10L}.
+
+
+\end{itemize}
+
+\end{Details}
+%
+\begin{Value}
+A Reference Class object of class PcAuxData with all of the fields
+from the object provided to the \code{pcAuxData} argument preserved,
+new fields for each of the \code{miWithPcAux} function's arguments and
+the following modified or additional fields:
+\begin{itemize}
+
+\item call: 
+A list containing the matched function call to \code{miWithPcAux}.
+
+\item miDatasets: 
+The completed, multiply imputed data sets. The structure of this
+field's contents is dictated by the \code{compFormat} argument to
+\code{miWithPcAux}.
+
+\item miceObject: 
+The \code{mids} object returned by \pkg{mice} in the process of
+creating the multiple imputations of \code{rawData}.
+
+\item nComps: 
+An integer vector of length 2 that contains the number of linear
+and non-linear, respectively, principal component auxiliary
+variable scores used as predictors in the multiple imputation
+models.
+
+\item typeVec: 
+A character vector giving the types assigned to each variable in
+\code{rawData}. 
+
+\item methVec: 
+A character vector giving the elementary imputation methods used
+by \pkg{mice}.
+
+\item respCounts: 
+An integer vector giving the variable-wise response counts for
+\code{rawData}. 
+
+\item initialPm: 
+A numeric vector giving the initial, variable-wise percents
+missing for \code{rawData}, before any treatment.
+
+\item dropVars: 
+A two-column character matrix. The first column contains the names
+of all variables that were excluded from the imputation process
+(these variables appear in their original, incomplete, form in the
+multiply imputed data sets). The second column contains the
+reason that the corresponding variable was excluded.
+
+\item probNoms: 
+A character vector giving the variable names for any nominal
+variables with more levels than \code{control\$nomMaxLev}.
+
+\item probOrds: 
+A character vector giving the variable names for any ordinal
+variables with more levels than \code{control\$ordMaxLev}.
+
+\item probCons: 
+A character vector giving the variable names for any continuous
+variables with fewer levels than \code{control\$conMinLev}.
+
+\item levelVec: 
+An integer vector giving the number of unique, non-missing, levels
+for each column of \code{rawData}.
+
+\item highPmVars: 
+A character vector containing the names of variables with fewer
+observed responses than \code{control\$minRespCount}.
+
+\item emptyVars: 
+A character vector giving the names of empty columns in
+\code{rawData}.
+
+\item constants: 
+A character vector giving the names of constant columns in
+\code{rawData}.
+
+
+\end{itemize}
+
+\end{Value}
+%
+\begin{Author}\relax
+Kyle M. Lang
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{createPcAux}{createPcAux}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
+
+## Conduct MI with the pcAux:
+miOut <- miWithPcAux(rawData = iris2, pcAuxData = pcAuxOut, nImps = 5)
+\end{ExampleCode}
+\end{Examples}
