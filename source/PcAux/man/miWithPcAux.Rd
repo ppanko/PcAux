@@ -166,6 +166,19 @@ miWithPcAux(rawData,
       The minimum number of unique responses for continuous variables that
       won't trigger a warning. Defaults to \code{minConLev = 10L}.
     }
+    \item{useQuickPred: }{
+      A logical flag indicator whether or not to subject the predictor
+      matrix used in the MI procedure to the \code{mice::quickpred}
+      prodecure. Specifying \code{useQuickPred = TRUE} will screen the PcAux
+      scores used as predictors in the MI model and only employ those that
+      correlate with the imputation target more strongly than the threshold
+      defined by the \code{minPredCor} option.
+    }
+    \item{minPredCor: }{
+      The minimum bivariate correlation used by the \code{mice::quickpred}
+      function to screen the PcAux candidates when the
+      \code{useQuickPred} option is specified.
+    }
   }
 }
 \value{

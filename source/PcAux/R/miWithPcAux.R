@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-APR-13
+### Modified:     2017-SEP-25
 ### Purpose:      Use the principal component auxiliaries produced by
 ###               createPcAux() to conduct MI.
 
@@ -97,8 +97,12 @@ miWithPcAux <- function(rawData,
     if(!missCheck(seed)) pcAuxData$seed <- as.integer(seed)
     
     ## Make sure the control list is fully populated:
-    if(!missCheck(control)) pcAuxData$setControl(x = control)
-
+    if(!missCheck(control)) {
+        if(!is.null(control$minPredCor))
+            control$minPredCor <- c(pcAuxData$minPredCor[1], control$minPredCor)
+        pcAuxData$setControl(x = control)
+    }
+    
     pcAuxData$setTime("popNew")
     if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("popNew")
     
@@ -131,9 +135,14 @@ miWithPcAux <- function(rawData,
                       0,
                       length(grep("^nonLinPC\\d", colnames(pcAuxData$data)))
                       )
-    predMat <- makePredMatrix(mergedData = pcAuxData$data,
-                              nLinear    = nLin,
-                              nNonLinear = nNonLin)
+    predMat <- makePredMatrix(mergedData   = pcAuxData$data,
+                              nLinear      = nLin,
+                              nNonLinear   = nNonLin,
+                              useQuickPred = pcAuxData$useQuickPred,
+                              minCor       = ifelse(pcAuxData$useQuickPred,
+                                                    pcAuxData$minPredCor[2],
+                                                    NULL)
+                              )
     if(verbose > 1) cat("done.\n")
 
     pcAuxData$setTime("predMat")

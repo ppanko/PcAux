@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-SEP-11
+### Modified:     2017-SEP-25
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -66,7 +66,7 @@ PcAuxData <- setRefClass("PcAuxData",
                              interact     = "ANY",
                              poly         = "ANY",
                              collinThresh = "numeric",
-                             minPredCor   = "numeric",
+                             minPredCor   = "vector",
                              nGVarCats    = "integer",
                              collinVars   = "data.frame",
                              impFails     = "list",
@@ -85,7 +85,8 @@ PcAuxData <- setRefClass("PcAuxData",
                              facNoms      = "ANY",
                              status       = "list",
                              time         = "list",
-                             checkStatus  = "character"
+                             checkStatus  = "character",
+                             useQuickPred = "logical"
                          )# END fields
                          )# END PcAuxData
 
@@ -139,7 +140,7 @@ PcAuxData$methods(
         interact     = NULL,
         poly         = NULL,
         collinThresh = 0.95,
-        minPredCor   = 0.1,
+        minPredCor   = c(0.1, NULL),
         nGVarCats    = 3L,
         collinVars   = data.frame(NULL),
         patterns     = list(),
@@ -179,7 +180,8 @@ PcAuxData$methods(
             create    = vector("numeric"),
             mi        = vector("numeric")
         ),
-        checkStatus  = "none"
+        checkStatus  = "none",
+        useQuickPred = FALSE
     )                                                                           {
         "Initialize an object of class PcAuxData"
         call         <<- call
@@ -240,6 +242,7 @@ PcAuxData$methods(
         status       <<- status
         time         <<- time
         checkStatus  <<- checkStatus
+        useQuickPred <<- useQuickPred
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -274,7 +277,11 @@ PcAuxData$methods(
 
     setControl      = function(x)                                               {
         "Assign the control parameters"
-        nonInts <- c("minPredCor", "collinThresh", "miceRidge", "checkStatus")
+        nonInts <- c("minPredCor",
+                     "collinThresh",
+                     "miceRidge",
+                     "checkStatus",
+                     "useQuickPred")
         
         for(n in names(x)) {
             if(n %in% nonInts) field(n, x[[n]])

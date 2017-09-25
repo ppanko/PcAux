@@ -1,8 +1,8 @@
 ### Title:        Exported PcAux Helper Functions
 ### Author:       Kyle M. Lang
-### Contributors: Pavel Panko
+### Contributors: Pavel Panko, Vibhuti Gupta
 ### Created:      2015-OCT-29
-### Modified:     2017-SEP-11
+### Modified:     2017-SEP-25
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -227,7 +227,11 @@ mergePcAux <- function(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
 ### Make a predictor matrix suitable for use by mice() that designated subset of
 ### the principle component auxiliaries produced by pcAux() as the imputation
 ### model predictors:
-makePredMatrix <- function(mergedData, nLinear = NULL, nNonLinear = NULL)
+makePredMatrix <- function(mergedData,
+                           nLinear      = NULL,
+                           nNonLinear   = NULL,
+                           useQuickPred = FALSE,
+                           minCor       = NULL)
 {    
     if(missCheck(nLinear))
         nLinear <- length(grep("linPC", colnames(mergedData)))
@@ -235,29 +239,26 @@ makePredMatrix <- function(mergedData, nLinear = NULL, nNonLinear = NULL)
     if(missCheck(nNonLinear))
         nNonLinear <- length(grep("nonLinPC", colnames(mergedData)))
     
-    if(nNonLinear > 0) {
-        predVars <- c(paste0("linPC", c(1 : nLinear)),
-                      paste0("nonLinPC", c(1 : nNonLinear))
-                      )
-        
-        nonPredVars <- colnames(mergedData[-c(grep("linPC",colnames(mergedData)),
-                                              grep("nonLinPC",colnames(mergedData)))])
-        
-        predMat <- quickpred(mergedData, mincor = PcAuxData$minPredCor,exclude = nonPredVars)
-        
-    } else {
-        predVars <- paste0("linPC", c(1 : nLinear))
-        nonPredVars <- colnames(mergedData[-c(grep("linPC",colnames(mergedData)))])
-        
-        predMat <- quickpred(mergedData, mincor = PcAuxData$minPredCor,exclude = nonPredVars)
-    }
+    if(nNonLinear > 0)
+        predVars    <- c(paste0("linPC", c(1 : nLinear)),
+                         paste0("nonLinPC", c(1 : nNonLinear))
+                         )
+    else 
+        predVars    <- paste0("linPC", c(1 : nLinear))
     
-    # predMat              <- matrix(0, ncol(mergedData), ncol(mergedData))
-    # colnames(predMat)    <- rownames(predMat) <- colnames(mergedData)
-    # predMat[ , predVars] <- 1
-    # 
-    # compFlag            <- colSums(is.na(mergedData)) == 0
-    # predMat[compFlag, ] <- 0
+    if(useQuickPred) {
+        nonPredVars <- setdiff(colnames(mergedData), predVars)
+        
+        predMat <-
+            quickpred(mergedData, mincor  = minCor, exclude = nonPredVars)
+    } else {
+        predMat              <- matrix(0, ncol(mergedData), ncol(mergedData))
+        colnames(predMat)    <- rownames(predMat) <- colnames(mergedData)
+        predMat[ , predVars] <- 1
+        
+        compFlag            <- colSums(is.na(mergedData)) == 0
+        predMat[compFlag, ] <- 0
+    }
     
     predMat
 }# END makePredMatrix()

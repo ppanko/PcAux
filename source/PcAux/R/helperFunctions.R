@@ -1,7 +1,7 @@
 ### Title:    PcAux Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-MAR-27
+### Modified: 2017-SEP-25
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -529,7 +529,8 @@ errFun <- function(type, ...) {
 makePredMat <- function(map) {
     options(warn = -1)
     ## Construct a predictor matrix for mice():
-    predMat <- quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
+    predMat <-
+        quickpred(map$data, mincor = map$minPredCor[1], exclude = map$idVars)
     
     ## Make sure we have fewer predictors than rows:
     badPredFlag <- rowSums(predMat) > (nrow(map$data) - 1)

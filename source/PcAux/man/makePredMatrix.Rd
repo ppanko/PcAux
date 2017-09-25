@@ -9,7 +9,11 @@
   \code{createPcAux} as the sole predictors in the imputation model.
 }
 \usage{
-makePredMatrix(mergedData, nLinear, nNonLinear)
+makePredMatrix(mergedData,
+               nLinear      = NULL,
+               nNonLinear   = NULL,
+               useQuickPred = FALSE,
+               minCor       = NULL)
 }
 \arguments{
   \item{mergedData}{
@@ -26,6 +30,19 @@ makePredMatrix(mergedData, nLinear, nNonLinear)
     The number of non-linear principal component auxiliaries to use as
     predictors in the imputation model. If not specified, all non-linear
     PcAux scores contained in \code{mergedData} will be used.
+  }
+  \item{useQuickPred}{
+    A logical flag indicator whether or not to subject the final predictor
+    matrix to the \code{mice::quickpred} prodecure. Specifying
+    \code{useQuickPred = TRUE} will screen the PcAux scores used as
+    predictors and only employ those that correlate with the imputation
+    target more strongly than the threshold defined by the
+    \code{minCor} option.
+  }
+  \item{minCor}{
+    The minimum bivariate correlation used by the \code{mice::quickpred}
+    function to screen the PcAux candidates when the
+    \code{useQuickPred} option is specified.
   }
 }
 \value{
