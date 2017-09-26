@@ -1,7 +1,7 @@
 ### Title:    PcAux Helper Functions
 ### Author:   Kyle M. Lang
 ### Created:  2015-AUG-03
-### Modified: 2017-SEP-25
+### Modified: 2017-SEP-26
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -518,7 +518,8 @@ errFun <- function(type, ...) {
                           ") is greated than the number of non-linear component ",
                           "scores available in 'pcAuxData' (i.e., ",
                           x$pcAuxData$nComps[2],
-                          ").\nPlease adjust your analysis accordingly.\n")
+                          ").\nPlease adjust your analysis accordingly.\n"),
+               noMinCor = "You have requested 'quickpred' screening but have not specified a minimum correlation to use in this screening. Please provide a value for the control$minPredCor argument."
                )# CLOSE switch()
 
     stop(errMessage, call. = FALSE)

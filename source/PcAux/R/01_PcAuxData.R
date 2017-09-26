@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-SEP-25
+### Modified:     2017-SEP-26
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -140,7 +140,7 @@ PcAuxData$methods(
         interact     = NULL,
         poly         = NULL,
         collinThresh = 0.95,
-        minPredCor   = c(0.1, NULL),
+        minPredCor   = 0.1,
         nGVarCats    = 3L,
         collinVars   = data.frame(NULL),
         patterns     = list(),

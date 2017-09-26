@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-SEP-25
+### Modified:     2017-SEP-26
 ### Purpose:      Use the principal component auxiliaries produced by
 ###               createPcAux() to conduct MI.
 
@@ -135,6 +135,11 @@ miWithPcAux <- function(rawData,
                       0,
                       length(grep("^nonLinPC\\d", colnames(pcAuxData$data)))
                       )
+    
+    ## Make sure the quickpred procedure is well-defined (if requested):
+    check <- pcAuxData$useQuickPred && length(pcAuxData$minPredCor) == 1 
+    if(check) errFun("noMinCor")
+    
     predMat <- makePredMatrix(mergedData   = pcAuxData$data,
                               nLinear      = nLin,
                               nNonLinear   = nNonLin,

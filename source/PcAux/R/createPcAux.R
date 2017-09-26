@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-SEP-25
+### Modified:     2017-SEP-26
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -36,7 +36,8 @@ createPcAux <- function(pcAuxData,
 
     ## Set initial time and status check 
     pcAuxData$setTime()
-    if(pcAuxData$checkStatus == "start" | pcAuxData$checkStatus == "all") pcAuxData$setStatus()
+    if(pcAuxData$checkStatus == "start" | pcAuxData$checkStatus == "all")
+        pcAuxData$setStatus()
 
     
     ## Check for problems with the input values:
@@ -55,11 +56,7 @@ createPcAux <- function(pcAuxData,
     if(!missCheck(seed)) pcAuxData$seed <- as.integer(seed)
     
     ## Make sure the control list is fully populated:
-    if(!missCheck(control)) {
-        if(!is.null(control$minPredCor))
-            control$minPredCor <- c(control$minPredCor, NULL)
-        pcAuxData$setControl(x = control)
-    }
+    if(!missCheck(control)) pcAuxData$setControl(x = control)
     
     pcAuxData$setTime("dataCheck")
     if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("dataCheck")
