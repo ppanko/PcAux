@@ -13,6 +13,10 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - @vibhutittu contributed a modified version of *makePredMatrix* that includes
   the option to screen the PcAux variables with *mice::quickpred*
 
+### Fixed
+- Bug causing fatal errors when using parallel MI and requesting *compFormat =
+  "repeated"* (Issue #14).
+  
 ## 0.0.0.9008 - 2017-09-11
 
 ### Fixed

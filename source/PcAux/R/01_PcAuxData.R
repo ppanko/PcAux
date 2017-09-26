@@ -846,8 +846,8 @@ PcAuxData$methods(
             miDatasets <<- do.call(cbind.data.frame, miDatasets)
             
             if(compFormat == "repeated") {
-                tmp        <-  rep       (c(1 : ncol(data)), nImps)
-                miDatasets <<- miDatasets[ , order(tmp)           ]
+                tmp        <-  rep(c(1 : (ncol(data) - length(pcCols))), nImps)
+                miDatasets <<- miDatasets[ , order(tmp)]
             }
         }
     },
