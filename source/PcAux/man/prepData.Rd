@@ -6,10 +6,10 @@
 \description{
   Data cleaning to facilitate execution of a principled missing data
   analysis that uses principal component scores as the auxiliary
-  variables as described by Howard, Rhemtulla, and Little (2015). 
+  variables as described by Howard, Rhemtulla, and Little (2015).
 }
 \usage{
-prepData(rawData, 
+prepData(rawData,
          moderators = NULL,
          nomVars    = NULL,
          ordVars    = NULL,
@@ -25,7 +25,7 @@ prepData(rawData,
 \arguments{
   \item{rawData}{
     A data frame from which to extract the auxiliary principal
-    components. 
+    components.
   }
   \item{moderators}{
     An optional character vector containing names of any moderator
@@ -54,14 +54,14 @@ prepData(rawData,
   \item{dropVars}{
     An optional character vector containing names of any nuisance
     variables that  should be dropped before extracting the auxiliary
-    principal component scores. 
+    principal component scores.
   }
   \item{groupVars}{
     An optional character vector containing names of any grouping
     variables that can be used to create the strata that define the
     groups used by the fall-back group-mean substitution. If continuous
     grouping variables are specified, they are binned via the
-    \code{cut()} function with \code{breaks = control$nGVarCuts}. 
+    \code{cut()} function with \code{breaks = control$nGVarCuts}.
   }
   \item{simMode}{
     A logical switch turning 'Simulation Mode' on or off. In Simulation
@@ -147,14 +147,14 @@ prepData(rawData,
 \value{
   An Reference Class object of class PcAuxData with fields for each of
   the \code{prepData} function's arguments and the following additional,
-  non-trivial fields: 
+  non-trivial fields:
   \itemize{
     \item{call: }{
       A list containing the matched function call to \code{prepData}.
     }
     \item{typeVec: }{
       A character vector giving the types assigned to each variable in
-      \code{rawData}. 
+      \code{rawData}.
     }
     \item{initialPm: }{
       A numeric vector giving the initial, variable-wise percents
@@ -203,6 +203,12 @@ prepData(rawData,
       missing data that occurred on the ID variables. The length of this
       argument will equal the number of incomplete ID variables in
       \code{rawData}.
+    }
+    \item{corPairs: }{
+      A dataframe containing unique variable pairs and their correlations
+      returned from \code{findCollin} function. it is used used in later
+      in \code{makePredMat} function to search pairwise correlation except
+      variable pairs containing \code{badVar}.
     }
   }
 }

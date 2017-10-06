@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2017-APR-13
+### Modified:     2017-OCT-05
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -27,7 +27,7 @@ checkInputs <- function() {
     ## (2 = prepData, 1 = createPcAux, 0 = miWithPcAux)
     if(is.null(env$pcAuxData)) parent <- 2
     else                       parent <- sum(sapply(env$pcAuxData$call, is.null))
-    
+
     if(env$verbose > 0) cat("\nChecking inputs' validity...\n")
 
     if(parent == 2) {
@@ -35,13 +35,13 @@ checkInputs <- function() {
         if(!is.data.frame(env$rawData))
             if(is.matrix(env$rawData)) env$rawData <- as.data.frame(env$rawData)
             else                       errFun("badDataType")
-        
+
         ## Check the existance of all designated variables:
         varNames <- with(env, c(idVars, nomVars, ordVars, groupVars, dropVars))
         check    <- !varNames %in% colnames(env$rawData)
         if(any(check))
             errFun("missingVars", varNames = varNames, check = check)
-        
+
         ## Check for a non-empty intersection between 'dropVars' and the other
         ## arguments:
         varNames <- with(env, c(idVars, nomVars, ordVars, groupVars))
@@ -64,10 +64,10 @@ checkInputs <- function() {
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")
         else if(env$maxPolyPow > 4) errFun("largePower")
-        
+
         ## Check for non-zero linear component counts:
         if(env$nComps[1] == 0) errFun("noLinPcAux", creatingPcAux = TRUE)
-        
+
         ## Check for disagreement between nComps and usePoly/useInteract:
         checkVal <-
             env$interactType == 0 & env$maxPolyPow == 1 & env$nComps[2] > 0
@@ -80,24 +80,24 @@ checkInputs <- function() {
             warnFun("nonLinPcAuxClash")
         }
     }
-    
+
     if(parent == 0) {
         ## Check the existance of all designated variables:
         varNames <-
             with(env$pcAuxData, c(idVars, nomVars, ordVars, dropVars[ , 1]))
-        
+
         varNames <- setdiff(varNames, "NONE_DEFINED")
         check    <- !varNames %in% colnames(env$rawData)
         if(any(check))
             errFun("missingVars", varNames = varNames, check = check)
-        
+
         ## Check for a non-empty intersection between newly specified 'dropVars'
         ## and the other newly specified arguments:
         varNames <- with(env, c(idVars, nomVars, ordVars))
         check    <- varNames %in% env$dropVars
         if(length(check) > 0 && any(check))
             errFun("dropVarOverlap", varNames = varNames, check = check)
-        
+
         ## Check for a non-empty intersection between 'idVars' and the other
         ## arguments:
         varNames <- with(env$pcAuxData, c(nomVars, ordVars, dropVars))
@@ -108,10 +108,10 @@ checkInputs <- function() {
                    check         = check,
                    creatingPcAux = FALSE)
     }
-    
+
     check <- env$verbose %in% c(0, 1, 2)
     if(!check) errFun("badVerb")
-    
+
     if(env$verbose > 0) cat("Complete.\n")
 }# END checkInputs()
 
@@ -120,10 +120,10 @@ checkInputs <- function() {
 ## Check input formatting and cast variables to declared types:
 castData <- function(map) {
     if(map$verbose > 0) cat("\nChecking data and information provided...\n")
-    
+
     creatingPcAux <- length(map$pcAux$lin) == 0 # Are we in createPcAux()?
     nVars         <- ncol(map$data)             # How many variables?
-    
+
     if(map$verbose > 0) cat("--Examining data...")
     ## Count variable levels:
     map$countVarLevels()
@@ -151,16 +151,16 @@ castData <- function(map) {
         map$centerData()
         if(map$verbose > 0) cat("done.\n")
     }
-    
+
     confirmTypes <- !map$simMode
     if(confirmTypes) {
         map$checkTypes()
 
         if(length(map$probNoms) > 0) {# Any suspicious nominal variables?
             warnFun("badNoms", map)
-            
+
             map$setTime("usrNomsStr")
-            
+
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -172,14 +172,14 @@ castData <- function(map) {
             }
 
             map$setTime("usrNomsEnd")
-            
+
         }
 
         if(length(map$probOrds) > 0) {# Any suspicious ordinal variables?
             warnFun("badOrds", map)
 
             map$setTime("usrOrdsStr")
-            
+
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -191,14 +191,14 @@ castData <- function(map) {
             }
 
             map$setTime("usrOrdsEnd")
-            
+
         }
 
         if(length(map$probCons) > 0) {# Any suspicious continuous variables?
             warnFun("badCons", map)
 
             map$setTime("usrConsStr")
-            
+
             userAnswer <-
                 readline("Do you want to continue the analysis? (y/N) ")
             ansCheck <- grep("y|yes", userAnswer, ignore.case = TRUE)
@@ -210,9 +210,9 @@ castData <- function(map) {
             }
 
             map$setTime("usrConsEnd")
-            
+
         }
-        
+
     }# CLOSE if(confirmTypes)
 
     if(map$verbose > 0) cat("Complete.\n")
@@ -225,9 +225,9 @@ castData <- function(map) {
 cleanData <- function(map) {
     if(map$verbose > 0)
         cat("\nFinding and addressing problematic data columns...\n")
-    
+
     creatingPcAux <- length(map$pcAux$lin) == 0 # Are we in createPcAux()?
-    
+
     if(creatingPcAux) {
         if(length(map$idVars) > 1) {
             ## Check for missing data on ID variables:
@@ -236,16 +236,16 @@ cleanData <- function(map) {
                                    colSums(is.na(map$idCols))
                                    )
             missIds <- map$idVars[missIdCounts > 0]
-                    
+
             ## If there are any missing IDs, fill them with dummy values:
             if(length(missIds) > 1) {# More than 1 incomplete ID
                 map$idFills <-
                     lapply(map$idCols, FUN = createDummyIdValues)
-                
+
                 ## Fill missing IDs with their dummy values
                 for(i in missIds)
                     map$idCols[ , i][is.na(map$idCols[ , i])] <- map$idFills[[i]]
-                
+
             } else if(length(missIds) == 1) {# Only 1 incomplete ID
                 map$idFills <- createDummyIdValues(map$idCols[ , missIds])
                 map$idCols[ , missIds][is.na(map$idCols[ , missIds])] <-
@@ -254,7 +254,7 @@ cleanData <- function(map) {
             rm(missIdCounts)
         }# CLOSE if(length(map$idVars) > 1)
     }# CLOSE if(creatingPcAux)
-    
+
     ## Find each variable's number of observations:
     map$countResponses()
 
@@ -277,7 +277,7 @@ cleanData <- function(map) {
         warnFun("highPm", map)
 
         map$setTime("usrHighPmStr")
-        
+
         userAnswer <-
             readline("Would you like to remove them from the analysis? (Y/n) ")
         ansCheck <- grep("n|no", userAnswer, ignore.case = TRUE)
@@ -287,16 +287,16 @@ cleanData <- function(map) {
         }
 
         map$setTime("usrHighPmEnd")
-        
+
         rm(userAnswer)
         rm(ansCheck)
     }
 
     if(haveEmptyVars) warnFun("emptyVars", map)
-    
+
     if(haveConstCols)
         warnFun(ifelse(creatingPcAux, "pcAuxConstCols", "romConstCols"), map)
-    
+
     if(map$verbose > 0) cat("Complete.\n")
 }# END cleanData()
 
@@ -305,7 +305,7 @@ cleanData <- function(map) {
 ## Flag variables with perfect bivariate correlations (within some epsilon):
 findCollin <- function(map) {
     if(map$verbose > 0) cat("\nExamining data for collinear relationships...\n")
-    
+
     ## Get all unique variable pairings:
     varPairs <- NULL
     varPairs <- data.frame(t(utils::combn(colnames(map$data), 2)),
@@ -331,16 +331,16 @@ findCollin <- function(map) {
         stopCluster(myCluster)
     }
     colnames(linAssocFrame) <- c("var1", "var2", "coef")
-    
+
     collinFlag <- !is.na(linAssocFrame$coef) &
         abs(linAssocFrame$coef) > map$collinThresh
-    
+
     if(any(collinFlag)) {
         ## Update the data object by removing the collinear variables:
         map$cleanCollinVars(linAssocFrame[collinFlag, ])
         warnFun("collin", map)
     }
-    
+    map$corPairs <- linAssocFrame
     if(map$verbose > 0) cat("Complete.\n")
 }# END findCollin()
 
@@ -349,21 +349,21 @@ findCollin <- function(map) {
 ## Do the initial single imputation:
 doSingleImputation <- function(map) {
     if(map$verbose > 0) cat("\nDoing initial, single imputation...\n")
-    
+
     ## Construct a design matrix of predictors:
     if(map$verbose > 0) cat("--Constructing predictor matrix...")
     predMat <- makePredMat(map = map)
     if(map$verbose > 0) cat("done.\n")
-    
+
     passCount <- ifelse(map$forcePmm, 1, 0)
     while(passCount < 2) {
         passCount <- passCount + 1
-        
+
         ## Specify a vector of elementary imputation methods:
         if(map$verbose > 0) cat("--Creating method vector...")
         map$createMethVec(initialImp = TRUE)
         if(map$verbose > 0) cat("done.\n")
-        
+
         ## Initially fill-in the data with a single imputation:
         if(map$verbose > 0) cat("--Filling missing values...")
         map$data <- try(
@@ -378,17 +378,17 @@ doSingleImputation <- function(map) {
                  ridge           = map$miceRidge),
             silent = TRUE)
         if(map$verbose > 0) cat("done.\n")
-        
+
         if(class(map$data) != "try-error") # mice() didn't crash
             ## Fill missing values with the imputations
             map$data <- complete(map$data)
         else
             errFun("miceCrash", map = map)
-        
+
         ## Check for any remaining missing data:
         ## NOTE: map$respCounts now contains counts of missing data
         map$countResponses(countMissing = TRUE)
-        
+
         if(all(map$respCounts == 0)) {# All is well :)
             passCount <- 2
             if(map$verbose > 0)
@@ -402,31 +402,31 @@ doSingleImputation <- function(map) {
             warnFun(switch(passCount, "firstImpFail", "pmmFail"), map)
         }
     }# CLOSE while(passCount < 2)
-    
+
     rm(predMat)
-    
+
     ## If there are any more missing data, fill them through mean substitution:
     meanSubstitute(map)
 
     ## Do a final check for remaining missing values:
     map$countResponses(countMissing = TRUE)
-    
+
     if(any(map$respCounts > 0)) {
         ## If any missingness remains exclude the incomplete columns:
         map$updateImpFails(
                 colnames(map$data)[map$respCounts > 0], type = "grandMean"
             )
         warnFun("grandMeanFail", map)
-        
+
         map$removeVars(x      = colnames(map$data)[map$respCounts > 0],
                        reason = "imp_fail")
     }# CLOSE if( any(map$respCounts > 0) )
-    
+
     if(map$verbose > 0) cat("Complete.\n")
 }# END doSingleImputation()
 
-     
-  
+
+
 ## Implement group-mean substitution:
 doGroupMeanSub <- function(map) {
     ## Construct the grouping patterns:
@@ -446,7 +446,7 @@ doGroupMeanSub <- function(map) {
             patLevels <- unique(map$patterns[[i]])
 
             ## Fill the missing data with approprite group means:
-            if(sum(map$respCounts > 0) > 1) 
+            if(sum(map$respCounts > 0) > 1)
                 map$data[ , map$respCounts > 0] <-
                     data.frame(
                         lapply(map$data[ , map$respCounts > 0],
@@ -454,12 +454,12 @@ doGroupMeanSub <- function(map) {
                                pat     = map$patterns[[i]],
                                patLevs = patLevels)
                     )
-            else 
+            else
                 map$data[ , map$respCounts > 0] <-
                     fillWithGroupMean(map$data[ , map$respCounts > 0],
                                       pat     = map$patterns[[i]],
                                       patLevs = patLevels)
-            
+
             map$countResponses(countMissing = TRUE)
             if(all(map$respCounts == 0)) return(0)
 
@@ -469,24 +469,24 @@ doGroupMeanSub <- function(map) {
         }
     }
 }# END doGroupMeanSub()
-    
+
 
 
 ## Fill a variable's missing values with appropriate group-means:
 fillWithGroupMean <- function(v, pat, patLevs) {
     for(k in 1 : length(patLevs)) {
         subData <- subset(v, pat == patLevs[k])
-        
+
         if(all(is.na(subData))) tmp <- NA
         else                    tmp <- flexCenTen(subData)
-        
+
         ## With multiple modes, break ties randomly:
         groupMean <- ifelse(length(tmp) > 1, sample(tmp, size = 1), tmp)
-        
+
         ## Make sure the group mean is non-missing and finite:
         badMean <- is.na(groupMean) | is.nan(groupMean) |
             is.infinite(groupMean) | is.null(groupMean)
-        
+
         if(!badMean) v[pat == patLevs[k] & is.na(v)] <- groupMean
     }
     v
@@ -497,10 +497,10 @@ fillWithGroupMean <- function(v, pat, patLevs) {
 doGrandMeanSub <- function(map) {
     missCols <- map$respCounts > 0
 
-    if(sum(missCols) == 1) 
+    if(sum(missCols) == 1)
         map$data[ , missCols][is.na(map$data[ , missCols])] <-
             flexCenTen(map$data[ , missCols])
-    else 
+    else
         map$data[ , missCols] <-
             do.call(data.frame,
                     lapply(map$data[ , missCols],
@@ -510,46 +510,46 @@ doGrandMeanSub <- function(map) {
                            })
                     )
 }# END doGrandMeanSub()
-    
+
 
 
 ## Do the various flavors of mean substitution:
 meanSubstitute <- function(map) {
     if(missCheck(map$groupVars)) {# No grouping variables
         warnFun("noGroupVars", map)
-        
+
         if(map$verbose > 0) cat("--Filling missing values...")
         doGrandMeanSub(map)
         if(map$verbose > 0) cat("done.\n")
-        
+
         return(1)
-    }  
-    
+    }
+
     ## Make sure we don't try to use dropped grouping variables:
     map$groupVars <- setdiff(map$groupVars, map$dropVars[ , 1])
-    
+
     if(missCheck(map$groupVars)) {# All groupVars have been dropped
         warnFun("dropGroupVars", map)
-        
+
         if(map$verbose > 0) cat("--Filling missing values...")
         doGrandMeanSub(map)
         if(map$verbose > 0) cat("done.\n")
 
         return(2)
     }
-    
+
     ## Try group-mean substitution:
     if(map$verbose > 0) cat("--Filling missing values...")
     doGroupMeanSub(map)
     if(map$verbose > 0) cat("done.\n")
-    
+
     if(any(map$respCounts > 0)) {# Still have missing?
         ## If all else fails, do global-mean substitution
         map$updateImpFails(
                 colnames(map$data)[map$respCounts > 0], "groupMean"
             )
         warnFun("groupMeanFail", map)
-        
+
         if(map$verbose > 0) cat("--Filling missing values...")
         doGrandMeanSub(map)
         if(map$verbose > 0) cat("done.\n")
@@ -562,11 +562,11 @@ doPCA <- function(map) {
     ## Are we extracting linear or nonlinear PC scores?
     if(length(map$pcAux$lin) == 0) {linVal <- "lin";    pcType <- 1}
     else                           {linVal <- "nonLin"; pcType <- 2}
-    
+
     ## Do we need to parse the nComps argument?
     parseCheck <- is.infinite(map$nComps[pcType]) |
         (map$nComps[pcType] < 1 & map$nComps[pcType] != 0)
-    
+
     if(linVal == "lin") {
         if(map$verbose > 0)
             cat("\nCalculating linear principal component scores...\n")
@@ -581,12 +581,12 @@ doPCA <- function(map) {
                              data[ , setdiff(colnames(data), colnames(poly))]
                              )
         }
-        
+
         ## Cast ordinal factors to numeric formats:
-        if(!missCheck(map$ordVars)) map$castOrdVars() 
+        if(!missCheck(map$ordVars)) map$castOrdVars()
         ## Dummy code nominal variables:
-        if(!missCheck(map$nomVars)) map$castNomVars() 
-        
+        if(!missCheck(map$nomVars)) map$castNomVars()
+
         if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than the number
             ## of columns in our data object:
@@ -601,7 +601,7 @@ doPCA <- function(map) {
 
         ## Redefine the data object:
         if(map$intMeth > 1) map$data <- map$interact
-        
+
         if(map$maxPower > 1) {
             ## Orthogonalize the polynomial terms w.r.t. the linear PcAux:
             map$poly <- data.frame(
@@ -618,12 +618,12 @@ doPCA <- function(map) {
             else                map$data <- map$poly
         }
         colnames(map$data) <- c(colnames(map$interact), colnames(map$poly))
-        
+
         ## Remove the contents of the 'interact' and 'poly' fields when they are
         ## no longer necessary:
         map$interact <- "Removed to save resources"
         map$poly     <- "Removed to save resources"
-        
+
         if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than
             ## the number of columns in our data object:
@@ -638,7 +638,7 @@ doPCA <- function(map) {
     if(map$pcaMemLev == 0) {
         ## Higher numerical accuracy, but more memory usage
         pcaOut <- prcomp(map$data, scale = TRUE, retx  = TRUE)
-                
+
         ## Save the components' variances and compute variance explained:
         map$rSquared[[linVal]] <- pcaOut$sdev
         map$calcRSquared()
@@ -646,7 +646,7 @@ doPCA <- function(map) {
         ## Set component counts when some are defined in terms of variance
         ## explained:
         if(parseCheck) map$setNComps(type = pcType)
-                
+
         ## Extract the principal component scores:
         if(is.null(map$idCols))
             map$pcAux[[linVal]] <- pcaOut$x[ , 1 : map$nComps[pcType]]
@@ -660,17 +660,17 @@ doPCA <- function(map) {
     } else {
         errFun("badPcaMemLev", map = map)
     }
-        
+
     ## Remove the contents of the 'data' field when they're no longer needed:
     if(linVal == "nonLin") map$data <- "Removed to save resources"
-    
+
     ## Give some informative column names:
     colnames(map$pcAux[[linVal]]) <-
         c(map$idVars,
           paste0(ifelse(linVal == "lin", "linPC", "nonLinPC"),
                  c(1 : map$nComps[ifelse(linVal == "lin", 1, 2)])
                  )
-          )    
+          )
     if(map$verbose > 0) cat("Complete.\n")
 }# END doPCA()
 
@@ -683,7 +683,7 @@ parallelMice <- function(imp, predMat, map) {
     .lec.SetPackageSeed(rep(tmpSeed, 6))
     if(!imp %in% .lec.GetStreams()) .lec.CreateStream(c(1 : map$nImps))
     .lec.CurrentStream(imp)
-    
+
     ## Create a single imputation:
     miceOut <- try(
         mice(data            = map$data,
@@ -695,7 +695,7 @@ parallelMice <- function(imp, predMat, map) {
              ridge           = map$miceRidge,
              nnet.MaxNWts    = map$maxNetWts),
         silent = FALSE)
-    
+
     if(class(miceOut) != "try-error") {
         impData <- complete(miceOut, 1)
     } else {

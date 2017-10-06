@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-SEP-26
+### Modified:     2017-SEP-11
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -66,7 +66,7 @@ PcAuxData <- setRefClass("PcAuxData",
                              interact     = "ANY",
                              poly         = "ANY",
                              collinThresh = "numeric",
-                             minPredCor   = "vector",
+                             minPredCor   = "numeric",
                              nGVarCats    = "integer",
                              collinVars   = "data.frame",
                              impFails     = "list",
@@ -86,7 +86,7 @@ PcAuxData <- setRefClass("PcAuxData",
                              status       = "list",
                              time         = "list",
                              checkStatus  = "character",
-                             useQuickPred = "logical"
+                             corPairs     = "data.frame"
                          )# END fields
                          )# END PcAuxData
 
@@ -143,6 +143,7 @@ PcAuxData$methods(
         minPredCor   = 0.1,
         nGVarCats    = 3L,
         collinVars   = data.frame(NULL),
+        corPairs     = data.frame(NULL),
         patterns     = list(),
         frozenGVars  = NULL,
         idFills      = list(),
@@ -180,8 +181,7 @@ PcAuxData$methods(
             create    = vector("numeric"),
             mi        = vector("numeric")
         ),
-        checkStatus  = "none",
-        useQuickPred = FALSE
+        checkStatus  = "none"
     )                                                                           {
         "Initialize an object of class PcAuxData"
         call         <<- call
@@ -226,6 +226,7 @@ PcAuxData$methods(
         minPredCor   <<- minPredCor
         nGVarCats    <<- nGVarCats
         collinVars   <<- collinVars
+        corPairs     <<- corPairs
         patterns     <<- patterns
         frozenGVars  <<- frozenGVars
         idFills      <<- idFills
@@ -242,7 +243,6 @@ PcAuxData$methods(
         status       <<- status
         time         <<- time
         checkStatus  <<- checkStatus
-        useQuickPred <<- useQuickPred
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -277,12 +277,8 @@ PcAuxData$methods(
 
     setControl      = function(x)                                               {
         "Assign the control parameters"
-        nonInts <- c("minPredCor",
-                     "collinThresh",
-                     "miceRidge",
-                     "checkStatus",
-                     "useQuickPred")
-        
+        nonInts <- c("minPredCor", "collinThresh", "miceRidge", "checkStatus")
+
         for(n in names(x)) {
             if(n %in% nonInts) field(n, x[[n]])
             else               field(n, as.integer(x[[n]]))
@@ -299,7 +295,7 @@ PcAuxData$methods(
         if(is.null(index)) methVec        <<- x
         else               methVec[index] <<- x
     },
-    
+
     setNComps       = function(type)                                            {
         "Set the number of PcAux to extract"
         r2 <- rSquared[[type]]
@@ -313,36 +309,36 @@ PcAuxData$methods(
             nComps[type] <<- length(r2)
         }
     },
-    
+
     setStatus      = function(step = "start")                                   {
         "Set machine specs and encumbrance"
         session <- list(sessionInfo())
         os      <- as.character(Sys.info()["sysname"])
-        
-        if(os != "Windows" & os != "Linux") 
+
+        if(os != "Windows" & os != "Linux")
             os <- unlist(session)[grep("macOS", unlist(session))]
-        
-        
+
+
         if(os == "Windows")
             lookFor <- list(
                 "wmic cpu get Name, Architecture, MaxClockSpeed, NumberOfLogicalProcessors, L3CacheSize, L3CacheSpeed, LoadPercentage",
                 "wmic MemoryChip get Capacity, Speed",
                 "wmic OS get FreePhysicalMemory"
             )
-        
-        else if(os == "Linux") 
+
+        else if(os == "Linux")
             lookFor <- list(
                 "top -bn1|grep 'load average'",
                 "lscpu| egrep 'Model name|^CPU\\(s|L3 cache'",
-                "free -m"            
+                "free -m"
             )
-        
-        else if (os == "macOS") 
+
+        else if (os == "macOS")
             lookFor <- list(
                 "top -l1|egrep 'CPU usage|PhysMem'",
                 "system_profiler SPHardwareDataType|egrep 'Processor|Cache'"
             )
-        
+
         else
             stop("Sorry, this option is not available for your operating system")
 
@@ -352,22 +348,22 @@ PcAuxData$methods(
             session      <- rapply(lookFor, system, intern = TRUE)
 
         stCall <- sum(sapply(call, function(x) is.null(x)))
-        
+
         if     (stCall == 2) status$prep[[step]]   <<- session
         else if(stCall == 1) status$create[[step]] <<- session
         else if(stCall == 0) status$mi[[step]]     <<- session
     },
-    
+
     setTime        = function(step = "start")                                   {
         "Set the elapsed time between processes"
         stCall <- sum(sapply(call, function(x) is.null(x)))
-        if     (stCall == 2) time$prep[[step]] <<- proc.time()["elapsed"] 
+        if     (stCall == 2) time$prep[[step]] <<- proc.time()["elapsed"]
         else if(stCall == 1) time$create[step] <<- proc.time()["elapsed"]
-        else if(stCall == 0) time$mi[step]     <<- proc.time()["elapsed"] 
+        else if(stCall == 0) time$mi[step]     <<- proc.time()["elapsed"]
     },
-    
+
     ##------------------------- "Overloaded" Accessors ------------------------##
-    
+
     getPoly         = function(power = NULL)                                    {
         "Retrieve the polynomial expansions of 'data'"
         if(is.null(power)) return(poly         )
@@ -424,7 +420,7 @@ PcAuxData$methods(
         )
         names(levelVec) <<- colnames(data)
     },
-    
+
     typeData       = function()                                                 {
         "Populate a vector containing each variable's type"
         cn <- colnames(data); nv <- ncol(data)
@@ -456,13 +452,13 @@ PcAuxData$methods(
                        )
         }
     },
-    
+
     centerData      = function()                                                {
         conNames <- names(typeVec)[typeVec == "continuous"]
         data[ , conNames] <<-
             scale(data[ , conNames], center = TRUE, scale = FALSE)
     },
-    
+
     checkTypes     = function()                                                 {
         "Check each variable for a sensible number of levels"
         tmpN <- (typeVec == "nominal" | typeVec == "binary") &
@@ -544,7 +540,7 @@ PcAuxData$methods(
         tmpNames      <-  setdiff (names(typeVec), dropVars[ , 1])
         tmpTypes      <-  typeVec [tmpNames                      ]
         constants     <<- tmpNames[tmpTypes == "constant"        ]
-        
+
         if(length(constants) > 0) {# Find any constant columns?
             if(creatingPcAux) {
                 removeVars(x = constants, reason = "constant")
@@ -576,7 +572,7 @@ PcAuxData$methods(
         }
         data[ , targets] <<- tmp2
     },
-     
+
     fillNomCell     = function(name)                                            {
         "Fill single missing nominal cells via marginal sampling"
         for(n in name) {
@@ -594,7 +590,7 @@ PcAuxData$methods(
         sameNaCntVec   <- NULL
         diffNaCntVec   <- NULL
         diffMaxCntVec  <- NULL
-        
+
         ## KML 2017-MAR-09: First, drop any variable that is collinear with a key
         ##                  moderator to ensure that all moderators are retained
         if(length(moderators) > 0) {
@@ -609,7 +605,7 @@ PcAuxData$methods(
         } else {
             filter <- TRUE
         }
-        
+
         if(any(!filter)) {
             ## Gather names of variables that are collinear with moderators:
             dropList <- list()
@@ -618,34 +614,34 @@ PcAuxData$methods(
                 if(length(tmp) == 1) dropList[[i]] <- tmp
                 else                 warnFun("collinMods", map = collinVars[i, ])
             }
-            
+
             ## Exclude variables collected above:
             ## NOTE: Need to check extent in case only moderators are collinear
             ## and no variables are excluded
             tmp <- unlist(dropList)
-            if(length(tmp) > 0) 
+            if(length(tmp) > 0)
                 removeVars(x = unique(tmp), reason = "collinear")
-            
+
             ## Redifine the collinear pairs:
             collinVarPairs <- collinVarPairs[filter, ]
         }
-        
+
         while(nrow(collinVarPairs) > 0) {
             varCount     <- data.frame(table(unlist(collinVarPairs)))
             maxVarCount  <-
                 varCount[which(varCount$Freq == max(varCount$Freq)), ]
             maxVarCommon <- intersect(names(naCount), maxVarCount[ , 1])
-            
+
             ## Check for missing value counts if maximum counts are equal
             if(nrow(maxVarCount) > 1) {
                 maxNaCountValue <- max(naCount[maxVarCommon])
                 maxNaVarNames   <-
-                    names(which(naCount[maxVarCommon] == maxNaCountValue)) 
+                    names(which(naCount[maxVarCommon] == maxNaCountValue))
                 maxNaCount      <-
                     data.frame(t(append(maxNaVarNames, maxNaCountValue)))
-                
+
                 colnames(maxNaCount) <- c("var1", "count")
-                
+
                 ## Check if missing counts are same
                 if(nrow(maxNaCount) > 1) {
                     maxNaCount     <- maxNaCount[1, ]
@@ -675,25 +671,25 @@ PcAuxData$methods(
                 diffMaxCntVec  <- append(diffMaxCntVec, firstVar)
             }
         }
-        
+
         varsToRemove <- c(sameNaCntVec, diffNaCntVec, diffMaxCntVec)
         if(!is.null(varsToRemove))
             removeVars(x = unique(varsToRemove), reason = "collinear")
     },
-    
+
     createMethVec  = function(initialImp = FALSE)                               {
         "Populate a vector of elementary imputation methods"
         cn0 <- setdiff(colnames(data), c(intVars, colnames(poly)))
         cn1 <- setdiff(colnames(data), cn0)
-        
+
         if(forcePmm) {
             methVec        <<- rep     ("pmm", ncol(data))
             names(methVec) <<- colnames(data             )
-            
+
             ## KML 2016-JUL-31: Don't use PMM for nominal variables
             binNames <- cn0[typeVec[cn0] == "binary"]
             nomNames <- cn0[typeVec[cn0] == "nominal"]
-            
+
             tmpIndex <- names(methVec) %in% binNames
             setMethVec(x = "logreg", index = tmpIndex)
 
@@ -729,7 +725,7 @@ PcAuxData$methods(
         ## Don't impute fully observed variables:
         setMethVec(x = "", index = colSums(is.na(data)) == 0)
     },
-    
+
     addVars         = function(x, names = NULL)                                 {
         "Add columns to 'data'"
         if(is.null(names)) names <-  colnames  (x              )
@@ -749,7 +745,7 @@ PcAuxData$methods(
             }
         }
     },
-    
+
     binGroupVars    = function(undo = FALSE)                                    {
         "Discretize continuous grouping variables"
         gvTypes  <- typeVec[groupVars                       ]
@@ -824,7 +820,7 @@ PcAuxData$methods(
             }
         }
     },
-    
+
     transformMiData = function()                                                {
         "Format imputed data sets after parallelMice()"
         ## Remove the PcAux:
@@ -842,39 +838,39 @@ PcAuxData$methods(
                 colnames(miDatasets[[m]]) <<-
                     paste0(colnames(miDatasets[[m]]), ".", m)
             }
-            
+
             miDatasets <<- do.call(cbind.data.frame, miDatasets)
-            
+
             if(compFormat == "repeated") {
-                tmp        <-  rep(c(1 : (ncol(data) - length(pcCols))), nImps)
-                miDatasets <<- miDatasets[ , order(tmp)]
+                tmp        <-  rep       (c(1 : ncol(data)), nImps)
+                miDatasets <<- miDatasets[ , order(tmp)           ]
             }
         }
     },
-    
+
     computeInteract = function()                                                {
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
             pcNames <- setdiff(colnames(pcAux$lin), idVars)
-             
+
         ## Cast ordered factors to numeric:
         if(length(ordVars) > 0) castOrdVars()
-        
+
         ## Interactions involving key moderators:
         if(intMeth < 3) mods <- moderators
         ## All observed variables as moderators:
         else            mods <- colnames(data)
-        
+
         if(intMeth == 1) # Interactions among raw variables
             varCombs <- combn(colnames(data), 2)
         else             # Interactions involving linear PcAux
             varCombs <- t(expand.grid(mods, pcNames, stringsAsFactors = FALSE))
         filter   <- varCombs[1, ] %in% mods
-              
+
         ## Generate interaction terms:
         intTerms <-
             apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "*"))
-        
+
         ## Build a formula defining interactions:
         form <- as.formula(
             paste0("~",
@@ -884,10 +880,10 @@ PcAuxData$methods(
                        sep = " - ")
                    )
         )
-               
+
         ## Make sure missing values are retained in dummy codes:
         oldOpt <- options(na.action = "na.pass")
-        
+
         ## Create product variables:
         if(intMeth == 1) {
             interact <<- data.frame(model.matrix(form, data = data)[ , -1])
@@ -896,45 +892,45 @@ PcAuxData$methods(
             colnames(tmp) <-  c(colnames(data), pcNames)
             interact      <<- data.frame(model.matrix(form, data = tmp)[ , -1])
         }
-        
+
         ## Reset the na.action option:
         options(na.action = oldOpt$na.action)
-        
+
         ## Remove dummy codes for empty cells:
         levVec <- unlist(
             lapply(interact, function(x) length(unique(na.omit(x))))
         )
-        
+
         interact <<- interact[ , levVec > 1]
         intVars  <<- colnames(interact)
-        
+
         ## Cast dummy codes as factors:
         dumFlag <- unlist(
             lapply(interact, function(x) all(unique(na.omit(x)) %in% c(0, 1)))
         )
-        
+
         if(sum(dumFlag) > 1)
             interact[ , dumFlag] <<-
                 data.frame(lapply(interact[ , dumFlag], as.factor))
         else if(sum(dumFlag) == 1)
             interact[ , dumFlag] <<- as.factor(interact[ , dumFlag])
-        
+
         ## If any PcAux are involved, orthogonalize the interaction terms w.r.t.
         ## the linear PcAux scores:
-        if(intMeth > 1)        
+        if(intMeth > 1)
             for(v in 1 : ncol(interact))
                 interact[ , v] <<-
                     .lm.fit(y = interact[ , v],
                             x = as.matrix(pcAux$lin[ , pcNames]))$resid
-        
+
         ## Undo type-cast of ordered factors:
         if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
     },
-    
+
     computePoly     = function()                                                {
         "Compute polynomial terms"
         dataNames <- setdiff(colnames(data), c(intVars, nomVars, ordVars))
-        
+
         ## Construct a formula to define the polynomial transformations:
         form <- as.formula(
             paste0("~",
@@ -950,73 +946,73 @@ PcAuxData$methods(
 
         ## Make sure missing values are retained in dummy codes:
         oldOpt <- options(na.action = "na.pass")
-        
+
         ## Create the polynominal terms:
         if(length(dataNames) == 1) # Hack for only one continuous variable
             poly <<- data.frame(
                 model.matrix(form,
-                             data = as.data.frame(          
+                             data = as.data.frame(
                                  list(data[ , dataNames]),
-                                 col.names = dataNames)       
+                                 col.names = dataNames)
                              )[ , -1]
             )
         else
             poly <<- data.frame(
                 model.matrix(form, data = data[ , dataNames])
             )[ , -1]
-        
+
         ## Reset the na.action option:
         options(na.action = oldOpt$na.action)
     },
-    
+
     calcRSquared    = function()                                                {
         "Compute the proportion of variance explained by PcAux"
         if(length(pcAux$lin) == 0) lv <- "lin"
         else                       lv <- "nonLin"
-        
+
         ## Compute the cumulative variance explained:
         totalVar <- sum(rSquared[[lv]], na.rm = TRUE)
-        
+
         rSquared[[lv]][1] <<- rSquared[[lv]][1] / totalVar
-        
+
         for(i in 2 : length(rSquared[[lv]]))
             rSquared[[lv]][i] <<-
                 rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
     },
-    
+
     castNomVars     = function(action = 0)                                      {
         "Dummy code nominal factors"
         if(action == 0) {# Create dummy codes
             noms <- colnames(data)[colnames(data) %in% nomVars]
-            
+
             ## Expand factors into dummy codes:
             form <- as.formula(
                 paste0("~", paste0(noms, collapse = " + "))
             )
-            
+
             ## Make sure missing values are retained in dummy codes:
             oldOpt <- options(na.action = "na.pass")
-            
+
             ## Create/store dummy codes:
             dumNoms <<- data.frame(model.matrix(form, data = data)[ , -1])
-            
+
             ## Reset the na.action option:
             options(na.action = oldOpt$na.action)
 
             ## Store factor representations:
             facNoms           <<- data.frame(data[ , noms])
             colnames(facNoms) <<- noms
-            
+
             ## Remove dummy codes for empty factor levels:
             levVec <- unlist(
                 lapply(dumNoms, function(x) length(unique(na.omit(x))))
             )
             dumNoms <<- dumNoms[ , levVec > 1]
-            
+
             ## Cast binary interaction terms as numeric dummy codes:
             if(intMeth == 1) {
                 facFlag <- unlist(lapply(data[ , intVars], is.factor))
-                
+
                 if(any(facFlag)) {
                     facInts <- intVars[facFlag]
                     dumNoms <<- data.frame(
@@ -1031,7 +1027,7 @@ PcAuxData$methods(
             } else {
                 facInts <- NULL
             }
-            
+
             ## Replace factors in the data with dummy codes:
             data <<- data.frame(
                 data[ , setdiff(colnames(data), c(noms, facInts))],
@@ -1049,7 +1045,7 @@ PcAuxData$methods(
             )
         }
     },
-    
+
     castOrdVars     = function(toNumeric = TRUE)                                {
         "Cast ordinal factors to numeric variables"
         ## Find ordinal variables that are still on the data set:
@@ -1069,5 +1065,5 @@ PcAuxData$methods(
                 data[ , ords] <<- as.ordered(data[ , ords])
         }
     }
-     
+
 )# END PcAuxData$methods()

@@ -1,7 +1,8 @@
-### Title:    PcAux Helper Functions
-### Author:   Kyle M. Lang
-### Created:  2015-AUG-03
-### Modified: 2017-SEP-26
+### Title:         PcAux Helper Functions
+### Author:        Kyle M. Lang
+### Contributors:  Byungkwan Jung
+### Created:       2015-AUG-03
+### Modified:      2017-OCT-05
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -58,21 +59,21 @@ createDummyIdValues <- function(x) {
 flexLinearAssoc <- function(varNames, map, checkMat = FALSE, autoType = FALSE)
 {
     options(warn = -1)# Suppress warnings
-    
+
     ## Find the class of the target variables:
     if(autoType) {# HACK: Find a better way to do this.
         varType <- rep("continuous", 2)
         tmp     <- map$data[ , varNames]
-        
+
         check <- unlist(lapply(tmp, is.factor))
         if(any(check)) varType[check] <- "nominal"
-        
+
         check <- unlist(lapply(tmp, is.ordered))
         if(any(check)) varType[check] <- "ordinal"
     } else {
         varType <- map$typeVec[varNames]
     }
-    
+
     if(.Platform$OS.type == "unix") nullFile <- "/dev/null"
     else                            nullFile <- "nul"
 
@@ -211,9 +212,9 @@ simplePca <- function(map, lv, parse, scale = TRUE)
 
     ## Set component counts when some are defined by variance explained:
     if(parse) map$setNComp(type = lv)
-    
+
     nc <- map$nComps[lv]
-    
+
     ## Compute and save the PcAux scores:
     if(is.null(map$idCols))
         map$pcAux[[lv]] <- data.frame(
@@ -518,8 +519,7 @@ errFun <- function(type, ...) {
                           ") is greated than the number of non-linear component ",
                           "scores available in 'pcAuxData' (i.e., ",
                           x$pcAuxData$nComps[2],
-                          ").\nPlease adjust your analysis accordingly.\n"),
-               noMinCor = "You have requested 'quickpred' screening but have not specified a minimum correlation to use in this screening. Please provide a value for the control$minPredCor argument."
+                          ").\nPlease adjust your analysis accordingly.\n")
                )# CLOSE switch()
 
     stop(errMessage, call. = FALSE)
@@ -530,35 +530,46 @@ errFun <- function(type, ...) {
 makePredMat <- function(map) {
     options(warn = -1)
     ## Construct a predictor matrix for mice():
-    predMat <-
-        quickpred(map$data, mincor = map$minPredCor[1], exclude = map$idVars)
-    
+    predMat <- quickpred(map$data, mincor = map$minPredCor, exclude = map$idVars)
+
     ## Make sure we have fewer predictors than rows:
     badPredFlag <- rowSums(predMat) > (nrow(map$data) - 1)
-    
+    tempCor <- map$corPairs
+
     if(any(badPredFlag)) {# Some models have P > (N - 1)
         badVars <- colnames(map$data)[badPredFlag]
+        cat("\nbadVarLength...\n")
+        View(length(badVars))
+        start.time <- Sys.time()
         for(v in badVars) {
             ## Get names of potential predictors:
             candidates <- setdiff(colnames(map$data), c(map$dropVars[ , 1], v))
-            
+
             ## Find the bivariate linear associations with the target:
             tmp <- unlist(
-                lapply(candidates,
-                       FUN = function(x, y, map)
-                           flexLinearAssoc(varNames = c(x, y),
-                                           map      = map,
-                                           autoType = TRUE)$value,
-                       y   = v,
-                       map = map)
+              lapply(candidates,
+                     FUN = function(x, y, map)
+                       flexLinearAssoc(varNames = c(x, y),
+                                       map      = map,
+                                       autoType = TRUE)$value,
+                     y   = v,
+                     map = map)
             )
+            View(tmp)
+            # tempCor <- as.data.frame(tempCor[which(tempCor$var1 %in% candidates),])
+            # tempCor <- as.data.frame(tempCor[which(tempCor$var2 %in% candidates),])
+            # tmp <-tempCor$coef
             ## Select the strongest N - 1 candidates to use as predictors:
             predNames <- candidates[order(abs(tmp))][1 : (nrow(map$data) - 1)]
             ## Modify the predictor matrix accordingly:
             predMat[v, ] <- 0
             predMat[v, colnames(predMat) %in% predNames] <- 1
         }
+        end.time <- Sys.time()
+        time.taken <- end.time - start.time
+       View(time.taken)
     }
+    cat("\nReturn from makePredMat...\n")
     options(warn = 0)
     predMat
 }# END makePredMat()
