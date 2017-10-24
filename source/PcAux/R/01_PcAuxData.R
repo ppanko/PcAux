@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-SEP-26
+### Modified:     2017-OCT-24
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -95,7 +95,7 @@ PcAuxData <- setRefClass("PcAuxData",
 #################################################################################
 #####---------------------------- DEFINE METHODS ---------------------------#####
 #################################################################################
-/usr/bin/bash: q: command not found
+
 PcAuxData$methods(
 
     ##------------------------------ Constructor ------------------------------##

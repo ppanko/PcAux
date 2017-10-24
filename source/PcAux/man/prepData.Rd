@@ -205,10 +205,8 @@ prepData(rawData,
       \code{rawData}.
     }
     \item{corPairs: }{
-      A dataframe containing unique variable pairs and their correlations
-      returned from \code{findCollin} function. it is used used in later
-      in \code{makePredMat} function to search pairwise correlation except
-      variable pairs containing \code{badVar}.
+      A dataframe containing unique variable pairs and their linear
+      associations.
     }
   }
 }

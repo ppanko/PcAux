@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
+## 0.0.0.9010 - 2017-10-24
+
+### Changed
+- @IMMAPbjung contributed improvements to the way that predictor matrices are 
+  constructed for the initial, single imputation when *P* > *N*.
+- @kylelang adjusted the way that the predictor sets for interactions and 
+  polynomial terms are defined during the initial, single imputation when *P* > 
+  *N*.
+	  - Polynomial terms are imputed using the same predictor set used for the 
+		untransformed version of the variable.
+	  - Interactions are imputed using the intersection of the predictor sets of
+		the constituent variables.
+- Updated the maintainer email address.
+
 ## 0.0.0.9009 - 2017-09-26
 
 ### Added
@@ -109,7 +123,7 @@ only stagnate development. Once we release a feature-complete version of
 **PcAux** we will begin to seriously consider backward compatibility.
 
 ### Previous Contribution Credits
-The orginal source code for **quark** was adapted from an un-packaged 
+The original source code for **quark** was adapted from an un-packaged 
 implementation written by Dr. Steven Chesnut.
 
 During **quark**-era development:
