@@ -15,10 +15,11 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - @kylelang adjusted the way that the predictor sets for interactions and 
   polynomial terms are defined during the initial, single imputation when *P* > 
   *N*.
-	  - Polynomial terms are imputed using the same predictor set used for the 
-		untransformed version of the variable.
-	  - Interactions are imputed using the intersection of the predictor sets of
-		the constituent variables.
+    - Polynomial terms are imputed using the same predictor set used for the 
+	  untransformed version of the variable.
+	- Interactions are imputed using the intersection of the predictor sets of
+	  the constituent variables.
+		
 - Updated the maintainer email address.
 
 ## 0.0.0.9009 - 2017-09-26
