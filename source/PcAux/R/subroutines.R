@@ -340,7 +340,7 @@ findCollin <- function(map) {
         map$cleanCollinVars(linAssocFrame[collinFlag, ])
         warnFun("collin", map)
     }
-    
+    map$corPairs <- linAssocFrame
     if(map$verbose > 0) cat("Complete.\n")
 }# END findCollin()
 

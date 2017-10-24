@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-SEP-26
+### Modified:     2017-OCT-24
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -86,7 +86,8 @@ PcAuxData <- setRefClass("PcAuxData",
                              status       = "list",
                              time         = "list",
                              checkStatus  = "character",
-                             useQuickPred = "logical"
+                             useQuickPred = "logical",
+                             corPairs     = "data.frame"
                          )# END fields
                          )# END PcAuxData
 
@@ -143,6 +144,7 @@ PcAuxData$methods(
         minPredCor   = 0.1,
         nGVarCats    = 3L,
         collinVars   = data.frame(NULL),
+        corPairs     = data.frame(NULL),
         patterns     = list(),
         frozenGVars  = NULL,
         idFills      = list(),
@@ -226,6 +228,7 @@ PcAuxData$methods(
         minPredCor   <<- minPredCor
         nGVarCats    <<- nGVarCats
         collinVars   <<- collinVars
+        corPairs     <<- corPairs
         patterns     <<- patterns
         frozenGVars  <<- frozenGVars
         idFills      <<- idFills

@@ -1,7 +1,8 @@
-### Title:    PcAux Helper Functions
-### Author:   Kyle M. Lang
-### Created:  2015-AUG-03
-### Modified: 2017-SEP-26
+### Title:        PcAux Helper Functions
+### Author:       Kyle M. Lang
+### Contributors: Byungkwan Jung
+### Created:      2015-AUG-03
+### Modified:     2017-OCT-24
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -537,26 +538,49 @@ makePredMat <- function(map) {
     badPredFlag <- rowSums(predMat) > (nrow(map$data) - 1)
     
     if(any(badPredFlag)) {# Some models have P > (N - 1)
-        badVars <- colnames(map$data)[badPredFlag]
+        badVars    <- colnames(map$data)[badPredFlag]
+        
+        ## Store names of potential predictors:
+        candidates <- setdiff(unique(unlist(map$corPairs[ , 1 : 2])),
+                              c(map$dropVars[ , 1], map$idVars))
+        
         for(v in badVars) {
-            ## Get names of potential predictors:
-            candidates <- setdiff(colnames(map$data), c(map$dropVars[ , 1], v))
+            ## Exclude current target from potential predictors:
+            candidates2 <- setdiff(candidates, v)     
             
-            ## Find the bivariate linear associations with the target:
-            tmp <- unlist(
-                lapply(candidates,
-                       FUN = function(x, y, map)
-                           flexLinearAssoc(varNames = c(x, y),
-                                           map      = map,
-                                           autoType = TRUE)$value,
-                       y   = v,
-                       map = map)
-            )
-            ## Select the strongest N - 1 candidates to use as predictors:
-            predNames <- candidates[order(abs(tmp))][1 : (nrow(map$data) - 1)]
-            ## Modify the predictor matrix accordingly:
-            predMat[v, ] <- 0
-            predMat[v, colnames(predMat) %in% predNames] <- 1
+            ## Select only correlation pairs involving the current target:
+            tmp <-
+                map$corPairs[map$corPairs$var1 == v | map$corPairs$var2 == v, ]
+            
+            ## Select only the correlations involving candidate predictors:
+            tmp <-
+                tmp[tmp$var1 %in% candidates | tmp$var2 %in% candidates, ]
+            
+            if(v %in% candidates) { # 'v' is a raw variable
+                ## Name the correlations with the non-target variable's name:
+                filter      <- tmp[ , 1 : 2] != v
+                tmp2        <- tmp$coef
+                names(tmp2) <- tmp[ , 1 : 2][filter]
+                
+                ## Select the strongest N - 1 candidates to use as predictors:
+                predNames <- names(sort(tmp2))[1 : (nrow(map$data) - 1)]
+                
+                ## Modify the predictor matrix accordingly:
+                predMat[v,                                 ] <- 0
+                predMat[v, colnames(predMat) %in% predNames] <- 1
+            } else { # 'v' is a polynomial or interaction
+                tmp <- strsplit(v, "\\.")[[1]]
+                
+                if(length(tmp) == 2) { # 'v' is an interaction
+                    ## Impute interactions using the intersection of the
+                    ## predictor sets of the constituent raw variables:
+                    predMat[v, ] <- predMat[tmp[1], ] * predMat[tmp[2], ]       
+                } else { # 'v' is a polynomial
+                    ## Use the same predictor pattern from the raw variable for
+                    ## its polynomial version:
+                    predMat[v, ] <- predMat[tmp[2], ]
+                }
+            }
         }
     }
     options(warn = 0)
