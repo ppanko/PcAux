@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung
 ### Created:      2015-AUG-03
-### Modified:     2017-OCT-24
+### Modified:     2017-NOV-14
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -520,9 +520,13 @@ errFun <- function(type, ...) {
                           "scores available in 'pcAuxData' (i.e., ",
                           x$pcAuxData$nComps[2],
                           ").\nPlease adjust your analysis accordingly.\n"),
-               noMinCor = "You have requested 'quickpred' screening but have not specified a minimum correlation to use in this screening. Please provide a value for the control$minPredCor argument."
+               noMinCor = "You have requested 'quickpred' screening but have not specified a minimum correlation to use in this screening. Please provide a value for the control$minPredCor argument.",
+               catPolyClash = paste0("You have requested polynomial terms up to order ",
+                                     x,
+                                     " , but all of your variables are categorical. I cannot create polynomial transformations of categorical variables, please specify some continuous variables or set 'maxPolyPow = 1'."
+                                     )
                )# CLOSE switch()
-
+    
     stop(errMessage, call. = FALSE)
 }# END errFun()
 

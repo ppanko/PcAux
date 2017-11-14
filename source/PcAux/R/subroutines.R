@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2017-APR-13
+### Modified:     2017-NOV-14
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -59,7 +59,7 @@ checkInputs <- function() {
                    check         = check,
                    creatingPcAux = TRUE)
     }
-
+    
     if(parent == 1) {
         ## Check the polynomial specification:
         if(env$maxPolyPow < 1)      errFun("smallPower")

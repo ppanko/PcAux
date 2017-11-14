@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-SEP-26
+### Modified:     2017-NOV-14
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -106,6 +106,14 @@ createPcAux <- function(pcAuxData,
     
     ## Compute polynomials for use during initial imputation:
     if(pcAuxData$maxPower > 1) {
+        ## Check for clash between 'maxPolyPow' and variable type:
+        tmp <- with(pcAuxData, setdiff(colnames(data),
+                                       c(nomVars, ordVars, idVars, dropVars)
+                                       )
+                    )
+        check <- length(tmp) == 0
+        if(check) errFun("catPolyClash", x = pcAuxData$maxPower)
+        
         pcAuxData$computePoly()
         pcAuxData$data <- with(pcAuxData, data.frame(data, poly))
         if(pcAuxData$intMeth == 1) pcAuxData$poly <- "Removed to save resources"

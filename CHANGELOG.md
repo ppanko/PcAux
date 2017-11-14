@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
+## 0.0.0.9011 - 2017-11-14
+
+### Fixed
+- Bug causing crashes by trying to construct polynomials with only categorical 
+  variables (added an appropriate error message). 
+  
 ## 0.0.0.9010 - 2017-10-24
 
 ### Changed
