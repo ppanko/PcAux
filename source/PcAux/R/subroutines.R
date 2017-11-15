@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2017-NOV-14
+### Modified:     2017-NOV-15
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -143,6 +143,11 @@ castData <- function(map) {
     ## Cast all variables to the appropriate measurement level:
     if(map$verbose > 0) cat("--Casting data...")
     map$castData()
+
+    ## Dummy code nominal variables if in creatPcAux():
+    check <- creatingPcAux & length(map$nomVars) > 0
+    if(check) map$codeNomVars()
+    
     if(map$verbose > 0) cat("done.\n")
 
     ## Center continuous variables:

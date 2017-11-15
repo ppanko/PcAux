@@ -7,6 +7,23 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
+## 0.0.0.9012 - XXXX-XX-XX
+
+### Fixed
+- Changed way interactions are computed to avoid protection stack overflows 
+  caused by constructing huge formulae
+  
+### Changed
+- Fix noted in version 0.0.0.9011 partially reverted
+
+    - Polynomials are now constructed from ordinal variables as well as 
+	  continuous variables
+	- It makes as much sense to construct a polynomial from an ordinal variable 
+	  as it does to cast it as numeric and use it in an iteraction (which we've 
+	  always done)
+	- Accordingly, asking for polynomials with only ordinal variables will no 
+	  longer trigger an error
+	  
 ## 0.0.0.9011 - 2017-11-14
 
 ### Fixed
@@ -21,6 +38,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - @kylelang adjusted the way that the predictor sets for interactions and 
   polynomial terms are defined during the initial, single imputation when *P* > 
   *N*.
+  
     - Polynomial terms are imputed using the same predictor set used for the 
 	  untransformed version of the variable.
 	- Interactions are imputed using the intersection of the predictor sets of

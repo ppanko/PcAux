@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-NOV-14
+### Modified:     2017-NOV-15
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -87,7 +87,8 @@ PcAuxData <- setRefClass("PcAuxData",
                              time         = "list",
                              checkStatus  = "character",
                              useQuickPred = "logical",
-                             corPairs     = "data.frame"
+                             corPairs     = "data.frame",
+                             dumVars      = "character"
                          )# END fields
                          )# END PcAuxData
 
@@ -170,7 +171,7 @@ PcAuxData$methods(
         moderators   = vector("character"),
         intMeth      = 0L,
         idCols       = NULL,
-        dumNoms      = data.frame(NULL),
+        dumNoms      = list(),
         facNoms      = data.frame(NULL),
         status       = list(
             prep      = list(),
@@ -183,7 +184,8 @@ PcAuxData$methods(
             mi        = vector("numeric")
         ),
         checkStatus  = "none",
-        useQuickPred = FALSE
+        useQuickPred = FALSE,
+        dumVars      = vector("character")
     )                                                                           {
         "Initialize an object of class PcAuxData"
         call         <<- call
@@ -246,6 +248,7 @@ PcAuxData$methods(
         time         <<- time
         checkStatus  <<- checkStatus
         useQuickPred <<- useQuickPred
+        dumVars      <<- dumVars
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
@@ -854,54 +857,44 @@ PcAuxData$methods(
             }
         }
     },
-    
+
     computeInteract = function()                                                {
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
             pcNames <- setdiff(colnames(pcAux$lin), idVars)
-             
-        ## Cast ordered factors to numeric:
+        
+        ## Cast factors to numeric:
         if(length(ordVars) > 0) castOrdVars()
+        if(length(nomVars) > 0) castNomVars()
         
-        ## Interactions involving key moderators:
-        if(intMeth < 3) mods <- moderators
-        ## All observed variables as moderators:
-        else            mods <- colnames(data)
+        mods <- moderators
         
-        if(intMeth == 1) # Interactions among raw variables
-            varCombs <- combn(colnames(data), 2)
-        else             # Interactions involving linear PcAux
-            varCombs <- t(expand.grid(mods, pcNames, stringsAsFactors = FALSE))
-        filter   <- varCombs[1, ] %in% mods
-              
-        ## Generate interaction terms:
-        intTerms <-
-            apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "*"))
-        
-        ## Build a formula defining interactions:
-        form <- as.formula(
-            paste0("~",
-                   paste(
-                       paste0(intTerms, collapse = " + "),
-                       paste0(unique(varCombs[ , filter]), collapse = " - "),
-                       sep = " - ")
-                   )
-        )
-               
-        ## Make sure missing values are retained in dummy codes:
-        oldOpt <- options(na.action = "na.pass")
-        
-        ## Create product variables:
-        if(intMeth == 1) {
-            interact <<- data.frame(model.matrix(form, data = data)[ , -1])
-        } else {
-            tmp           <-  data.frame(data, pcAux$lin[ , pcNames])
-            colnames(tmp) <-  c(colnames(data), pcNames)
-            interact      <<- data.frame(model.matrix(form, data = tmp)[ , -1])
+        ## Use dummy-coded nominal moderators:
+        check <- mods %in% nomVars
+        if(any(check)) {
+            tmp  <- mods[check]
+            mods <- c(mods[!check],
+                      as.character(unlist(lapply(dumNoms[tmp], colnames)))
+                      )
         }
         
-        ## Reset the na.action option:
-        options(na.action = oldOpt$na.action)
+        if(intMeth == 1) # Interactions among raw variables
+            varCombs <- combn(mods, 2)
+        else             # Interactions involving linear PcAux
+            varCombs <- t(expand.grid(mods, pcNames, stringsAsFactors = FALSE))
+        filter <- varCombs[1, ] %in% mods
+        
+        ## Generate interaction terms:
+        intVars <<-
+            apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = ":"))
+        
+        interact <<- data.frame(
+            apply(varCombs[ , filter],
+                  2,
+                  function(x, dat) dat[ , x[1]] * dat[ , x[2]],
+                  dat = data)
+        )
+        colnames(interact) <<- intVars
         
         ## Remove dummy codes for empty cells:
         levVec <- unlist(
@@ -932,11 +925,15 @@ PcAuxData$methods(
         
         ## Undo type-cast of ordered factors:
         if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
+        if(length(nomVars) > 0) castNomVars(toNumeric = FALSE)
     },
     
     computePoly     = function()                                                {
         "Compute polynomial terms"
-        dataNames <- setdiff(colnames(data), c(intVars, nomVars, ordVars))
+        ## Cast ordered factors to numeric:
+        if(length(ordVars) > 0) castOrdVars()
+        
+        dataNames <- setdiff(colnames(data), c(intVars, nomVars))
         
         ## Construct a formula to define the polynomial transformations:
         form <- as.formula(
@@ -955,7 +952,7 @@ PcAuxData$methods(
         oldOpt <- options(na.action = "na.pass")
         
         ## Create the polynominal terms:
-        if(length(dataNames) == 1) # Hack for only one continuous variable
+        if(length(dataNames) == 1) # Hack for only one target variable
             poly <<- data.frame(
                 model.matrix(form,
                              data = as.data.frame(          
@@ -970,6 +967,9 @@ PcAuxData$methods(
         
         ## Reset the na.action option:
         options(na.action = oldOpt$na.action)
+
+        ## Revert ordinal variable casting:
+        if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
     },
     
     calcRSquared    = function()                                                {
@@ -986,78 +986,47 @@ PcAuxData$methods(
             rSquared[[lv]][i] <<-
                 rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
     },
-    
-    castNomVars     = function(action = 0)                                      {
+
+    codeNomVars     = function()                                                {
         "Dummy code nominal factors"
-        if(action == 0) {# Create dummy codes
-            noms <- colnames(data)[colnames(data) %in% nomVars]
-            
+        noms <- colnames(data)[colnames(data) %in% nomVars]
+        
+        ## Store factor representations:
+        facNoms           <<- data.frame(data[ , noms])
+        colnames(facNoms) <<- noms
+        
+        for(v in noms) {
             ## Expand factors into dummy codes:
-            form <- as.formula(
-                paste0("~", paste0(noms, collapse = " + "))
-            )
             
             ## Make sure missing values are retained in dummy codes:
             oldOpt <- options(na.action = "na.pass")
             
             ## Create/store dummy codes:
-            dumNoms <<- data.frame(model.matrix(form, data = data)[ , -1])
+            tmp      <- data.frame(
+                model.matrix(as.formula(paste0("~", v)), data = data)
+            )
+            dumNames <- colnames(tmp)
             
             ## Reset the na.action option:
             options(na.action = oldOpt$na.action)
-
-            ## Store factor representations:
-            facNoms           <<- data.frame(data[ , noms])
-            colnames(facNoms) <<- noms
             
             ## Remove dummy codes for empty factor levels:
             levVec <- unlist(
-                lapply(dumNoms, function(x) length(unique(na.omit(x))))
+                lapply(tmp, function(x) length(unique(na.omit(x))))
             )
-            dumNoms <<- dumNoms[ , levVec > 1]
-            
-            ## Cast binary interaction terms as numeric dummy codes:
-            if(intMeth == 1) {
-                facFlag <- unlist(lapply(data[ , intVars], is.factor))
-                
-                if(any(facFlag)) {
-                    facInts <- intVars[facFlag]
-                    dumNoms <<- data.frame(
-                        dumNoms,
-                        lapply(data[ , facInts],
-                               function(x) as.numeric(as.character(x))
-                               )
-                    )
-                } else {
-                    facInts <- NULL
-                }
-            } else {
-                facInts <- NULL
-            }
-            
-            ## Replace factors in the data with dummy codes:
-            data <<- data.frame(
-                data[ , setdiff(colnames(data), c(noms, facInts))],
-                dumNoms
-            )
-        } else if(action == 1) {# Undo dummy codes
-            data <<- data.frame(
-                data[ , setdiff(colnames(data), colnames(dumNoms))],
-                facNoms
-            )
-        } else {# Redo dummy codes
-            data <<- data.frame(
-                data[ , setdiff(colnames(data), colnames(facNoms))],
-                dumNoms
-            )
+            dumNoms[[v]]           <<- data.frame(tmp[ , levVec > 1])
+            colnames(dumNoms[[v]]) <<- dumNames[levVec > 1]
         }
+        
+        ## Save dummy code names:
+        dumVars <<- as.character(unlist(lapply(dumNoms, colnames)))
     },
-    
+
     castOrdVars     = function(toNumeric = TRUE)                                {
         "Cast ordinal factors to numeric variables"
         ## Find ordinal variables that are still on the data set:
         ords <- colnames(data)[colnames(data) %in% ordVars]
-
+        
         if(toNumeric) {
             ## Cast the ordinal variables as numeric:
             if(length(ords) > 1)
@@ -1070,6 +1039,22 @@ PcAuxData$methods(
                 data[ , ords] <<- data.frame(lapply(data[ , ords], as.ordered))
             else
                 data[ , ords] <<- as.ordered(data[ , ords])
+        }
+    },
+    
+    castNomVars     = function(toNumeric = TRUE)                                {
+        "Swap factor and dummy-coded representations of nominal variables"
+        if(toNumeric) {# Replace factors in the data with dummy codes
+            otherNames     <- setdiff(colnames(data), nomVars)
+            data           <<- data.frame(data[ , otherNames],
+                                          do.call(cbind, dumNoms)
+                                          )
+            colnames(data) <<- c(otherNames, dumVars)
+        } else {# Undo dummy coding
+            data <<- data.frame(
+                data[ , setdiff(colnames(data), dumVars)],
+                facNoms
+            )
         }
     }
      
