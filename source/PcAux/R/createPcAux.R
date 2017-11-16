@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut, Pavel Panko
 ### Created:      2015-SEP-17
-### Modified:     2017-NOV-15
+### Modified:     2017-NOV-16
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -61,11 +61,11 @@ createPcAux <- function(pcAuxData,
     pcAuxData$setTime("dataCheck")
     if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("dataCheck")
     
-    ## Check for extant moderators when interactType == 1 or 2:
-    check <- interactType %in% c(1, 2) & missCheck(pcAuxData$moderators)
+    ## Check for extant moderators:
+    check <- missCheck(pcAuxData$moderators)
     if(check) {
         pcAuxData$moderators <- colnames(pcAuxData$data)
-        warnFun("noMods")
+        if(pcAuxData$intMeth < 3) warnFun("noMods")
     }
 
     pcAuxData$setTime("modExt")

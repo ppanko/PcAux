@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-NOV-15
+### Modified:     2017-NOV-16
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
 ### Copyright (C) 2017 Kyle M. Lang
@@ -887,13 +887,22 @@ PcAuxData$methods(
         ## Generate interaction terms:
         intVars <<-
             apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = ":"))
-        
-        interact <<- data.frame(
-            apply(varCombs[ , filter],
-                  2,
-                  function(x, dat) dat[ , x[1]] * dat[ , x[2]],
-                  dat = data)
-        )
+
+        if(intMeth == 1)
+            interact <<- data.frame(
+                apply(varCombs[ , filter],
+                      2,
+                      function(x, dat) dat[ , x[1]] * dat[ , x[2]],
+                      dat = data)
+            )
+        else
+            interact <<- data.frame(
+                apply(varCombs[ , filter],
+                      2,
+                      function(x, dat) dat[ , x[1]] * dat[ , x[2]],
+                      dat = data.frame(data, pcAux$lin[ , pcNames])
+                      )
+            )
         colnames(interact) <<- intVars
         
         ## Remove dummy codes for empty cells:
