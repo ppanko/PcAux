@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9012 - XXXX-XX-XX
+## 0.0.0.9012 - 2017-11-16
 
 ### Fixed
 - Changed way interactions are computed to avoid protection stack overflows 
@@ -24,6 +24,8 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 	- Accordingly, asking for polynomials with only ordinal variables will no 
 	  longer trigger an error
 	  
+- Added linewrapping for startup, error, and warning messages.
+
 ## 0.0.0.9011 - 2017-11-14
 
 ### Fixed

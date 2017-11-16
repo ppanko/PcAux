@@ -591,6 +591,13 @@ doPCA <- function(map) {
         if(!missCheck(map$ordVars)) map$castOrdVars() 
         ## Dummy code nominal variables:
         if(!missCheck(map$nomVars)) map$castNomVars() 
+
+        ## Cast any remaining factors to numeric formats:
+        check <- unlist(lapply(map$data, is.factor))
+        if(sum(check) > 1)
+            map$data[ , check] <- data.frame(lapply(map$data[ , check], f2n))
+        if(sum(check) == 1)
+            map$data[ , check] <- f2n(map$data[ , check])
         
         if(!map$simMode & !parseCheck) {
             ## Make sure the number of PC scores we want is less than the number

@@ -886,7 +886,7 @@ PcAuxData$methods(
         
         ## Generate interaction terms:
         intVars <<-
-            apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = ":"))
+            apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "."))
 
         if(intMeth == 1)
             interact <<- data.frame(

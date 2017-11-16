@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung
 ### Created:      2015-AUG-03
-### Modified:     2017-NOV-14
+### Modified:     2017-NOV-16
 
 ### Copyright (C) 2017 Kyle M. Lang
 ###
@@ -24,15 +24,23 @@
 .onAttach <- function(libname, pkgname) {
     version <- read.dcf(file = system.file("DESCRIPTION", package = pkgname),
                         fields = "Version")
-    packageStartupMessage(
-        "Loading: ", paste(pkgname, version), ", Copyright (C) 2017 Kyle M. Lang."
-    )
-    packageStartupMessage(
-        pkgname, " comes with ABSOLUTELY NO WARRANTY; execute 'pcAuxW()' for details."
-    )
-    packageStartupMessage(
-        pkgname, " is beta software. Please report any bugs. Thank You."
-    )
+
+    greet <-
+        strwrap(
+            paste0("Loading: ",
+                   pkgname,
+                   " ",
+                   version,
+                   ", Copyright (C) ",
+                   format(Sys.time(), "%Y"),
+                   " Kyle M. Lang. ",
+                   pkgname,
+                   " comes with ABSOLUTELY NO WARRANTY; execute 'pcAuxW()' for details. ",
+                   pkgname,
+                   " is beta software. Please report any bugs. Thank You."),
+            width = 81)
+
+    for(i in greet) packageStartupMessage(i)
 }
 
 
@@ -398,7 +406,10 @@ warnFun <- function(type, map) {
 
     ## Print the warning message
     options(warn = 1) # Print warnings immediately
-    warning(warnMessage, call. = FALSE)
+    warning(
+        paste0(c("\r", strwrap(warnMessage, width = 81)), collapse = "\n"),
+        call. = FALSE
+    )
     options(warn = 0) # Back to normal
 }# END warnFun()
 
@@ -527,7 +538,10 @@ errFun <- function(type, ...) {
                                      )
                )# CLOSE switch()
     
-    stop(errMessage, call. = FALSE)
+    stop(
+        paste0(c("\r", strwrap(errMessage, width = 81)), collapse = "\n"),
+        call. = FALSE
+    )
 }# END errFun()
 
 
@@ -591,3 +605,5 @@ makePredMat <- function(map) {
     predMat
 }# END makePredMat()
 
+## Safely convert factors to numeric formats:
+f2n <- function(x) as.numeric(as.character(x))

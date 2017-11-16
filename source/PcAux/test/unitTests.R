@@ -221,11 +221,11 @@ miOut <- miWithPcAux(rawData   = iris2,
                      nImps     = 5)
 
 ## Extract timing infromation:
-writeStatus(pcAuxData = miOut,
-            outName   = "miOutStatus.txt",
-            what      = "mi")
+                                        #writeStatus(pcAuxData = miOut,
+                                        #            outName   = "miOutStatus.txt",
+                                        #            what      = "mi")
 
-read.table("miOutStatus.txt")
+                                        #read.table("miOutStatus.txt")
 
 ##### DATA PREP TESTING #####
 
@@ -361,7 +361,7 @@ pcAuxData <- prepData(rawData    = testData,
                       )
 
 ## Test:   Make sure moderators' collinear partner is dropped
-## Result: Successful execution
+## Result: Successful 
 pcAuxData <- prepData(rawData    = testData,
                       moderators = "x2",
                       nomVars    = c("nom1", "nom2"),
@@ -392,7 +392,6 @@ pcAuxData <- prepData(rawData    = testData,
                       groupVars  = c("nom1", "nom2", "ord1")
                       )
 frozenPcAuxData4 <- pcAuxData$copy()
-
 ## Test:   Suppress all printed output
 ## Result: Successful execution
 pcAuxData <- prepData(rawData    = testData,
