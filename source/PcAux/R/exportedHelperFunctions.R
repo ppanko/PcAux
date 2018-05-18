@@ -300,8 +300,8 @@ writeStatus <- function(pcAuxData, outName, what) {
     status   <- pcAuxData$status[[what]]
     fileName <- file(outName)
     ##
-    writeLines(capture.output(status, fileName))
+    writeLines(capture.output(status, file = fileName))
     close(fileName)
     ##
-    return(status)
+    return(paste("Wrote status to", outName))
 }
