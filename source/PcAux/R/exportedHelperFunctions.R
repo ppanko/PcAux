@@ -2,9 +2,9 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Pavel Panko, Vibhuti Gupta
 ### Created:      2015-OCT-29
-### Modified:     2017-SEP-25
+### Modified:     2018-MAY-25
 
-### Copyright (C) 2017 Kyle M. Lang
+### Copyright (C) 2018 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -281,7 +281,7 @@ calcTime <- function(pcAuxData, what) {
     nPoints                      <- length(eachStep)
     eachStep[nPoints + 1]        <- as.vector(time[length(time)] - time["start"])
     names(eachStep)[nPoints + 1] <- "overall"
-
+    
     usrVars <- lapply(c("End", "usr"), function(x) grep(x, names(eachStep)))
     
     if(length(unlist(usrVars)) > 1) {
@@ -297,7 +297,6 @@ calcTime <- function(pcAuxData, what) {
 
 ## Write machine status to a text files 
 writeStatus <- function(pcAuxData, outName, what) {
-    fileName <- file(outName)
-    writeLines(capture.output(pcAuxData$status[[what]]), fileName)
-    close(fileName)
+    capture.output(pcAuxData$status[[what]], file = outName)
+    paste("Wrote status to", outName)
 }

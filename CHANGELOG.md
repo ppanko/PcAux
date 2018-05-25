@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
+## 0.0.0.9013 - 2018-05-25 - ACTIVE
+
+### Changed
+- Resolved final known issues with the timing utilities contributed by @ppanko
+- Exported the `calcTime` and `writeStatus` functions
+
 ## 0.0.0.9012 - 2017-11-16
 
 ### Fixed
