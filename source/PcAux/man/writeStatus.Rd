@@ -60,7 +60,9 @@ cleanData <- prepData(rawData   = iris2,
                       ordVars   = "Petal.Width",
                       idVars    = "ID",
                       dropVars  = "Junk",
-                      groupVars = "Species")
+                      groupVars = "Species",
+                      control   = list(checkStatus = "all")
+                      )
 
 ## Create principal component auxiliary variables:
 pcAuxOut <- createPcAux(pcAuxData    = cleanData,
@@ -73,7 +75,5 @@ miOut <- miWithPcAux(rawData   = iris2,
                      nImps     = 5)
 
 ## Extract timing infromation:
-timeInfo <- writeStatus(pcAuxData = miOut,
-                        outName   = "miOutStatus.txt",
-                        what      = "mi")
+writeStatus(pcAuxData = miOut, outName = "miOutStatus.txt", what = "mi")
 }

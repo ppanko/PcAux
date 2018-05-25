@@ -92,7 +92,8 @@ PcAuxData <- setRefClass("PcAuxData",
                              checkStatus  = "character",
                              useQuickPred = "logical",
                              corPairs     = "data.frame",
-                             dumVars      = "character"
+                             dumVars      = "character",
+                             frozenMods   = "character"
                          )# END fields
                          )# END PcAuxData
 
@@ -189,7 +190,8 @@ PcAuxData$methods(
         ),
         checkStatus  = "none",
         useQuickPred = FALSE,
-        dumVars      = vector("character")
+        dumVars      = vector("character"),
+        frozenMods   = ""
     )                                                                          {
         "Initialize an object of class PcAuxData"
         call         <<- call
@@ -253,6 +255,7 @@ PcAuxData$methods(
         checkStatus  <<- checkStatus
         useQuickPred <<- useQuickPred
         dumVars      <<- dumVars
+        frozenMods   <<- frozenMods
     },
 
     ##------------------ "Overloaded" / Non-Standard Mutators ----------------##
@@ -495,8 +498,8 @@ PcAuxData$methods(
         if(asProportion) {
             if(countMissing) {
                 respCounts        <<- colMeans(is.na(data)             )
-                ## KML 2017-09-11: Manually name 'respCounts' to hack issue with
-                ##                 is.na() dropping some column names
+                ## Manually name 'respCounts' to hack issue with is.na()
+                ## dropping some column names
                 names(respCounts) <<- colnames(data                    )
                 noMissing         <-  all     (respCounts == 0.0       )
             } else {
@@ -701,7 +704,7 @@ PcAuxData$methods(
             methVec        <<- rep     ("pmm", ncol(data))
             names(methVec) <<- colnames(data             )
             
-            ## KML 2016-JUL-31: Don't use PMM for nominal variables
+            ## Don't use PMM for nominal variables
             binNames <- cn0[typeVec[cn0] == "binary"]
             nomNames <- cn0[typeVec[cn0] == "nominal"]
             
@@ -879,15 +882,6 @@ PcAuxData$methods(
         if(intMeth == 1) focal <- setdiff(colnames(data), mods)
         else             focal <- pcNames
         
-        ## Use dummy-coded nominal moderators:
-        check <- mods %in% nomVars
-        if(any(check)) {
-            tmp  <- mods[check]
-            mods <- c(mods[!check],
-                      as.character(sapply(dumNoms[tmp], colnames))
-                      )
-        }
-        
         ## Generate a list of interacted variable pairs:
         if(length(focal) == 0) {
             ## All possible two-way interactions:
@@ -1053,7 +1047,8 @@ PcAuxData$methods(
                 data[ , ords] <<- data.frame(lapply(data[ , ords], as.numeric))
             else
                 data[ , ords] <<- as.numeric(data[ , ords])
-        } else {
+        }
+        else {
             ## Cast back to ordered factors:
             if(length(ords) > 1)
                 data[ , ords] <<- data.frame(lapply(data[ , ords], as.ordered))
@@ -1065,17 +1060,30 @@ PcAuxData$methods(
     castNomVars     = function(toNumeric = TRUE)                               {
         "Swap factor and dummy-coded representations of nominal variables"
         if(toNumeric) {# Replace factors in the data with dummy codes
-            otherNames     <- setdiff(colnames(data), nomVars)
+            otherNames     <-  setdiff(colnames(data), nomVars)
             data           <<- data.frame(data[ , otherNames],
                                           do.call(cbind, dumNoms)
                                           )
             colnames(data) <<- c(otherNames, dumVars)
-        } else {# Undo dummy coding
-            data <<- data.frame(
-                data[ , setdiff(colnames(data), dumVars)],
-                facNoms
-            )
+            
+            ## Update the moderators with dummy code names:
+            check <- moderators %in% nomVars
+            if(any(check)) {
+                frozenMods <<- moderators
+                moderators <<-
+                    c(moderators[!check],
+                      unlist(lapply(dumNoms[moderators[check]], colnames),
+                             use.names = FALSE)
+                      )
+            }
+        }
+        else {# Undo dummy coding
+            data <<-
+                data.frame(data[ , setdiff(colnames(data), dumVars)], facNoms)
+            
+            ## Revert to original moderator list:
+            moderators <<- frozenMods
         }
     }
-     
-)# END PcAuxData$methods()
+    
+    )# END PcAuxData$methods()
