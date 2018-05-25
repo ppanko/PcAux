@@ -40,30 +40,30 @@ PcAuxData <-
                     miceRidge    = "numeric",
                     maxNetWts    = "integer",
                     forcePmm     = "logical",
-                    typeVec      = "vector",
-                    methVec      = "vector",
-                    nComps       = "vector",
-                    respCounts   = "vector",
-                    initialPm    = "vector",
-                    nomVars      = "vector",
-                    ordVars      = "vector",
-                    idVars       = "vector",
+                    typeVec      = "character",
+                    methVec      = "character",
+                    nComps       = "numeric",
+                    respCounts   = "numeric",
+                    initialPm    = "numeric",
+                    nomVars      = "character",
+                    ordVars      = "character",
+                    idVars       = "character",
                     dropVars     = "matrix",
                     nomMaxLev    = "integer",
                     ordMaxLev    = "integer",
                     conMinLev    = "integer",
-                    probNoms     = "vector",
-                    probOrds     = "vector",
-                    probCons     = "vector",
-                    levelVec     = "vector",
+                    probNoms     = "character",
+                    probOrds     = "character",
+                    probCons     = "character",
+                    levelVec     = "numeric",
                     simMode      = "logical",
-                    highPmVars   = "vector",
-                    emptyVars    = "vector",
-                    constants    = "vector",
+                    highPmVars   = "character",
+                    emptyVars    = "character",
+                    constants    = "character",
                     minRespCount = "integer",
                     verbose      = "integer",
-                    groupVars    = "vector",
-                    intVars      = "vector",
+                    groupVars    = "character",
+                    intVars      = "character",
                     pcAux        = "list",
                     rSquared     = "list",
                     pcaMemLev    = "integer",
@@ -71,7 +71,7 @@ PcAuxData <-
                     interact     = "ANY",
                     poly         = "ANY",
                     collinThresh = "numeric",
-                    minPredCor   = "vector",
+                    minPredCor   = "numeric",
                     nGVarCats    = "integer",
                     collinVars   = "data.frame",
                     impFails     = "list",
@@ -109,95 +109,132 @@ PcAuxData$
         ##---------------------------- Constructor ---------------------------##
         
         initialize = function(data         = data.frame(NULL),
-                              seed         = as.integer(NA),
-                              miceIters    = 10L,
-                              miceRidge    = 1.0e-5,
-                              maxNetWts    = 10000L,
-                              forcePmm     = FALSE,
-                              nComps       = vector("integer"),
-                              nImps        =  0L,
+                              nComps       = vector("numeric"),
+                              nImps        = 0L,
                               nomVars      = vector("character"),
                               ordVars      = vector("character"),
                               idVars       = vector("character"),
                               dropVars     = matrix(NA, 1, 2),
-                              groupVars    = vector("character"),
                               moderators   = vector("character"),
+                              groupVars    = vector("character"),
+                              seed         = as.integer(NA),
+                              forcePmm     = FALSE,
+                              simMode      = FALSE,
+                              verbose      = 0L,
+                              maxPower     = 3L,
+                              intMeth      = 0L,
+                              nProcess     = 1L,
+                              miceIters    = 10L,
+                              miceRidge    = 1.0e-5,
+                              maxNetWts    = 10000L,
                               nomMaxLev    = 10L,
                               ordMaxLev    = 10L,
                               conMinLev    = 10L,
-                              simMode      = FALSE,
-                              minRespCount = as.integer(floor(0.05 * nrow(data))),
-                              verbose      = 0L,
                               pcaMemLev    = 0L,
-                              maxPower     = 3L,
                               collinThresh = 0.95,
                               minPredCor   = 0.1,
                               nGVarCats    = 3L,
-                              nProcess     = 1L,
-                              intMeth      = 0L,
                               checkStatus  = "none",
-                              useQuickPred = FALSE)
+                              useQuickPred = FALSE,
+                              minRespCount = as.integer(
+                                  floor(0.05 * nrow(data))
+                              )
+                              )
         {
             "Initialize an object of class PcAuxData"
-            call         <<- list(
+
+            ## User-supplied values:
+            data       <<- data[ , setdiff(colnames(data), dropVars)]
+            dropVars   <<- cbind(dropVars, "user_defined")
+            seed       <<- seed
+            nComps     <<- nComps
+            nomVars    <<- nomVars
+            ordVars    <<- ordVars
+            idVars     <<- idVars
+            simMode    <<- simMode
+            verbose    <<- verbose
+            groupVars  <<- groupVars
+            maxPower   <<- maxPower
+            nImps      <<- nImps
+            moderators <<- moderators
+            intMeth    <<- intMeth
+            nProcess   <<- nProcess
+            forcePmm   <<- forcePmm
+            compFormat <<- ""
+            
+            ## Control list parameters:
+            miceIters    <<- miceIters
+            miceRidge    <<- miceRidge
+            maxNetWts    <<- maxNetWts
+            nomMaxLev    <<- nomMaxLev
+            ordMaxLev    <<- ordMaxLev
+            conMinLev    <<- conMinLev
+            minRespCount <<- minRespCount
+            pcaMemLev    <<- pcaMemLev
+            collinThresh <<- collinThresh
+            minPredCor   <<- minPredCor
+            nGVarCats    <<- nGVarCats
+            checkStatus  <<- checkStatus
+            useQuickPred <<- useQuickPred
+            
+            ## Structured fields:
+            call <<- list(
                 prepData    = NULL,
                 createPcAux = NULL,
                 miWithPcAux = NULL
             )
-            data         <<- data[ , setdiff(colnames(data), dropVars)]
-            dropVars     <<- cbind(dropVars, "user_defined")
-            seed         <<- seed
-            miceIters    <<- miceIters
-            miceRidge    <<- miceRidge
-            maxNetWts    <<- maxNetWts
-            forcePmm     <<- forcePmm
-            nComps       <<- nComps
-            nomVars      <<- nomVars
-            ordVars      <<- ordVars
-            idVars       <<- idVars
-            nomMaxLev    <<- nomMaxLev
-            ordMaxLev    <<- ordMaxLev
-            conMinLev    <<- conMinLev
-            simMode      <<- simMode
-            minRespCount <<- minRespCount
-            verbose      <<- verbose
-            groupVars    <<- groupVars
-            pcaMemLev    <<- pcaMemLev
-            maxPower     <<- maxPower
-            pcAux        <<- list(
+            pcAux <<- list(
                 lin    = data.frame(NULL),
                 nonLin = data.frame(NULL)
             )
-            rSquared     <<- list(
+            rSquared <<- list(
                 lin    = vector("numeric"),
                 nonLin = vector("numeric")
             )
-            impFails     <<- list(
+            impFails <<- list(
                 firstPass = vector("character"),
                 pmm       = vector("character"),
                 groupMean = vector("character"),
                 grandMean = vector("character")
             )
-            collinThresh <<- collinThresh
-            minPredCor   <<- minPredCor
-            nGVarCats    <<- nGVarCats
-            nImps        <<- nImps
-            nProcess     <<- nProcess
-            moderators   <<- moderators
-            intMeth      <<- intMeth
-            dumNoms      <<- list()
-            status       <<- list(
+            status <<- list(
                 prep   = list(),
                 create = list(),
                 mi     = list()
             )
-            time         <<- list(
+            time <<- list(
                 prep   = vector("numeric"),
                 create = vector("numeric"),
                 mi     = vector("numeric")
             )
-            checkStatus  <<- checkStatus
-            useQuickPred <<- useQuickPred
+            
+            ## Additional fields:
+            typeVec     <<- vector("character")
+            methVec     <<- vector("character")
+            respCounts  <<- vector("numeric")
+            initialPm   <<- vector("numeric")
+            probNoms    <<- vector("character")
+            probOrds    <<- vector("character")
+            probCons    <<- vector("character")
+            levelVec    <<- vector("numeric")
+            highPmVars  <<- vector("character")
+            emptyVars   <<- vector("character")
+            constants   <<- vector("character")
+            intVars     <<- vector("character")
+            interact    <<- data.frame(NULL)
+            poly        <<- list()
+            collinVars  <<- data.frame(NULL)
+            patterns    <<- list()
+            frozenGVars <<- data.frame(NULL)
+            idFills     <<- list()
+            miDatasets  <<- list()
+            miceObject  <<- list()
+            idCols      <<- data.frame(NULL)
+            dumNoms     <<- list()
+            facNoms     <<- data.frame(NULL)
+            corPairs    <<- data.frame(NULL)
+            dumVars     <<- vector("character")
+            frozenMods  <<- vector("character")
         },
         
         ##--------------- "Overloaded" / Non-Standard Mutators ---------------##

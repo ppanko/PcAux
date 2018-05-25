@@ -218,10 +218,9 @@ simplePca <- function(map, lv, parse, scale = TRUE)
     ## Replace such values with zero:
     eigenOut$values[eigenOut$values < 0.0] <- 0.0
 
-    ## Compute the proportions of variance explained:
-    map$rSquared[[lv]] <- eigenOut$values
-    map$calcRSquared()
-
+    ## Compute the cumulative proportions of variance explained:
+    map$rSquared[[lv]] <- cumsum(eigenOut$values) / sum(eigenOut$values)
+    
     ## Set component counts when some are defined by variance explained:
     if(parse) map$setNComp(type = lv)
     

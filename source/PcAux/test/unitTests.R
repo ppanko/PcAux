@@ -1,22 +1,27 @@
 ### Title:    Unit Tests for PcAux
 ### Author:   Kyle M. Lang, Pavel Panko
 ### Created:  2015-NOV-01
-### Modified: 2017-SEP-10 
+### Modified: 2018-MAY-25
 
-### Copyright (C) 2017 Kyle M. Lang
-###
-### This program is free software: you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation, either version 3 of the License, or
-### (at your option) any later version.
-###
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
-###
-### You should have received a copy of the GNU General Public License
-### along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
+##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
+##                                                                            ##
+##  This file is part of PcAux.                                               ##
+##                                                                            ##
+##  This program is free software: you can redistribute it and/or modify it   ##
+##  under the terms of the GNU General Public License as published by the     ##
+##  Free Software Foundation, either version 3 of the License, or (at you     ##
+##  option) any later version.                                                ##
+##                                                                            ##
+##  This program is distributed in the hope that it will be useful, but       ##
+##  WITHOUT ANY WARRANTY; without even the implied warranty of                ##
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General  ##
+##  Public License for more details.                                          ##
+##                                                                            ##
+##  You should have received a copy of the GNU General Public License along   ##
+##  with this program. If not, see <http://www.gnu.org/licenses/>.            ##
+##----------------------------------------------------------------------------##
+
 
 rm(list = ls(all = TRUE))
 
@@ -167,6 +172,11 @@ inspect(object = newData, what = "data")
 ## Check PcAux's warranty:
 pcAuxW()
 
+### pcAuxL():
+
+## Check PcAux's license:
+pcAuxL()
+
 
 ### iris2:
 data(iris2)
@@ -221,11 +231,10 @@ miOut <- miWithPcAux(rawData   = iris2,
                      nImps     = 5)
 
 ## Extract timing infromation:
-                                        #writeStatus(pcAuxData = miOut,
-                                        #            outName   = "miOutStatus.txt",
-                                        #            what      = "mi")
+writeStatus(pcAuxData = miOut,
+            outName   = "miOutStatus.txt",
+            what      = "mi")
 
-                                        #read.table("miOutStatus.txt")
 
 ##### DATA PREP TESTING #####
 
@@ -361,7 +370,7 @@ pcAuxData <- prepData(rawData    = testData,
                       )
 
 ## Test:   Make sure moderators' collinear partner is dropped
-## Result: Successful 
+## Result: Successful execution
 pcAuxData <- prepData(rawData    = testData,
                       moderators = "x2",
                       nomVars    = c("nom1", "nom2"),
@@ -392,6 +401,7 @@ pcAuxData <- prepData(rawData    = testData,
                       groupVars  = c("nom1", "nom2", "ord1")
                       )
 frozenPcAuxData4 <- pcAuxData$copy()
+
 ## Test:   Suppress all printed output
 ## Result: Successful execution
 pcAuxData <- prepData(rawData    = testData,
@@ -561,7 +571,7 @@ colnames(testData3) <- paste0("x", c(1 : 50))
 
 testData3[as.logical(rbinom(prod(dim(testData3)), 1, 0.2))] <- NA
 
-## Test:   Run OcAux on clean, normally distributed data
+## Test:   Run PcAux on clean, normally distributed data
 ## Result: Successful execution
 pcAuxData <- prepData(rawData    = testData3,
                       moderators = c("x1", "x2", "x3")

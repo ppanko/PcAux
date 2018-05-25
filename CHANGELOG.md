@@ -16,6 +16,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
   #20)
 - Bug causing issues when computing interaction terms with certain arrangements 
   of few moderators (Issue #18)
+- Bug causing crashes when no ID variables are specified (Issue #21)
   
 ### Changed
 - Resolved final known issues with the timing utilities contributed by @ppanko

@@ -597,7 +597,7 @@ doPCA <- function(map) {
         if(!missCheck(map$nomVars)) map$castNomVars() 
 
         ## Cast any remaining factors to numeric formats:
-        check <- unlist(lapply(map$data, is.factor))
+        check <- sapply(map$data, is.factor)
         if(sum(check) > 1)
             map$data[ , check] <- data.frame(lapply(map$data[ , check], f2n))
         if(sum(check) == 1)
@@ -664,7 +664,7 @@ doPCA <- function(map) {
         if(parseCheck) map$setNComps(type = pcType)
                 
         ## Extract the principal component scores:
-        if(is.null(map$idCols))
+        if(length(map$idCols) == 0)
             map$pcAux[[linVal]] <- pcaOut$x[ , 1 : map$nComps[pcType]]
         else
             map$pcAux[[linVal]] <-
