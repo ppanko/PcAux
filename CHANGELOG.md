@@ -23,6 +23,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - Improved the way interaction terms are computed to be more robust to 
   unanticipated use-cases
 - Improved implementation of the `pcAuxW` function
+- Cleaned up the source code for the `PcAuxData` class definition
 
 ### Added
 - A `pcAuxL` function to print licensing information
