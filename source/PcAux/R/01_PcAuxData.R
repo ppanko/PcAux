@@ -5,25 +5,29 @@
 ### Modified:     2018-MAY-25
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
-### Copyright (C) 2018 Kyle M. Lang
-###
-### This program is free software: you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation, either version 3 of the License, or
-### (at your option) any later version.
-###
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
-###
-### You should have received a copy of the GNU General Public License
-### along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
+##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
+##                                                                            ##
+##  This file is part of PcAux.                                               ##
+##                                                                            ##
+##  This program is free software: you can redistribute it and/or modify it   ##
+##  under the terms of the GNU General Public License as published by the     ##
+##  Free Software Foundation, either version 3 of the License, or (at you     ##
+##  option) any later version.                                                ##
+##                                                                            ##
+##  This program is distributed in the hope that it will be useful, but       ##
+##  WITHOUT ANY WARRANTY; without even the implied warranty of                ##
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General  ##
+##  Public License for more details.                                          ##
+##                                                                            ##
+##  You should have received a copy of the GNU General Public License along   ##
+##  with this program. If not, see <http://www.gnu.org/licenses/>.            ##
+##----------------------------------------------------------------------------##
 
 
-#################################################################################
-#####----------------------- DEFINE CLASS & FIELDS -------------------------#####
-#################################################################################
+################################################################################
+#####----------------------- DEFINE CLASS & FIELDS ------------------------#####
+################################################################################
 
 PcAuxData <- setRefClass("PcAuxData",
 
@@ -93,13 +97,13 @@ PcAuxData <- setRefClass("PcAuxData",
                          )# END PcAuxData
 
 
-#################################################################################
-#####---------------------------- DEFINE METHODS ---------------------------#####
-#################################################################################
+################################################################################
+#####---------------------------- DEFINE METHODS --------------------------#####
+################################################################################
 
 PcAuxData$methods(
 
-    ##------------------------------ Constructor ------------------------------##
+    ##------------------------------ Constructor -----------------------------##
 
     initialize     = function(
         call         = list(
@@ -186,7 +190,7 @@ PcAuxData$methods(
         checkStatus  = "none",
         useQuickPred = FALSE,
         dumVars      = vector("character")
-    )                                                                           {
+    )                                                                          {
         "Initialize an object of class PcAuxData"
         call         <<- call
         data         <<- data[ , setdiff(colnames(data), dropVars)]
@@ -251,21 +255,21 @@ PcAuxData$methods(
         dumVars      <<- dumVars
     },
 
-    ##------------------ "Overloaded" / Non-Standard Mutators -----------------##
-    setCall         = function(x, parent)                                       {
+    ##------------------ "Overloaded" / Non-Standard Mutators ----------------##
+    setCall         = function(x, parent)                                      {
         if     (parent == "prepData"        ) call[[1]] <<- x
         else if(parent == "createPcAux"     ) call[[2]] <<- x
         else if(parent == "miWithPcAux"     ) call[[3]] <<- x
         else                                  stop("Invalid 'parent' argument.")
     },
 
-    setPoly         = function(x, power = NULL)                                 {
+    setPoly         = function(x, power = NULL)                                {
         "Modify the list of polynomial expansions of 'data'"
         if(is.null(power)) poly          <<- x
         else               poly[[power]] <<- x
     },
 
-    setPcAux        = function(x, type = NULL)                                  {
+    setPcAux        = function(x, type = NULL)                                 {
         "Modify the list of principal component auxiliaries"
         if     (is.null(type)      ) pcAux        <<- x
         else if(type == "linear"   ) pcAux$lin    <<- x
@@ -273,7 +277,7 @@ PcAuxData$methods(
         else                         stop("Invalid pcAux type.")
     },
 
-    setRSquared     = function(x, type = NULL)                                  {
+    setRSquared     = function(x, type = NULL)                                 {
         "Modify the list of R-Squared values for the PcAux scores"
         if     (is.null(type)      ) rSquared        <<- x
         else if(type == "linear"   ) rSquared$lin    <<- x
@@ -281,7 +285,7 @@ PcAuxData$methods(
         else                         stop("Invalid rSquared type.")
     },
 
-    setControl      = function(x)                                               {
+    setControl      = function(x)                                              {
         "Assign the control parameters"
         nonInts <- c("minPredCor",
                      "collinThresh",
@@ -295,18 +299,18 @@ PcAuxData$methods(
         }
     },
 
-    updateImpFails   = function(x, type)                                        {
+    updateImpFails   = function(x, type)                                       {
         "Update the list of imputation failure records"
         impFails[[type]] <<- x
     },
 
-    setMethVec     = function(x, index = NULL)                                  {
+    setMethVec     = function(x, index = NULL)                                 {
         "Update the elementary imputation method vector"
         if(is.null(index)) methVec        <<- x
         else               methVec[index] <<- x
     },
     
-    setNComps       = function(type)                                            {
+    setNComps       = function(type)                                           {
         "Set the number of PcAux to extract"
         r2 <- rSquared[[type]]
         nc <- nComps[type]
@@ -320,7 +324,7 @@ PcAuxData$methods(
         }
     },
     
-    setStatus      = function(step = "start")                                   {
+    setStatus      = function(step = "start")                                  {
         "Set machine specs and encumbrance"
         session <- list(sessionInfo())
         os      <- as.character(Sys.info()["sysname"])
@@ -364,7 +368,7 @@ PcAuxData$methods(
         else if(stCall == 0) status$mi[[step]]     <<- session
     },
     
-    setTime        = function(step = "start")                                   {
+    setTime        = function(step = "start")                                  {
         "Set the elapsed time between processes"
         stCall <- sum(sapply(call, function(x) is.null(x)))
         if     (stCall == 2) time$prep[[step]] <<- proc.time()["elapsed"] 
@@ -372,15 +376,15 @@ PcAuxData$methods(
         else if(stCall == 0) time$mi[step]     <<- proc.time()["elapsed"] 
     },
     
-    ##------------------------- "Overloaded" Accessors ------------------------##
+    ##------------------------- "Overloaded" Accessors -----------------------##
     
-    getPoly         = function(power = NULL)                                    {
+    getPoly         = function(power = NULL)                                   {
         "Retrieve the polynomial expansions of 'data'"
         if(is.null(power)) return(poly         )
         else               return(poly[[power]])
     },
 
-    getPcAux        = function(type = NULL)                                     {
+    getPcAux        = function(type = NULL)                                    {
         "Retrieve the principal component auxiliary scores"
         if     (is.null(type)      ) return(pcAux                )
         else if(type == "linear"   ) return(pcAux$lin            )
@@ -388,7 +392,7 @@ PcAuxData$methods(
         else                         stop  ("Invalid pcAux type.")
     },
 
-    getRSquared     = function(type = NULL)                                     {
+    getRSquared     = function(type = NULL)                                    {
         "Retrieve the R-Squareds for the PcAux scores"
         if     (is.null(type)      ) return(rSquared                )
         else if(type == "linear"   ) return(rSquared$lin            )
@@ -396,7 +400,7 @@ PcAuxData$methods(
         else                         stop  ("Invalid rSquared type.")
     },
 
-    getControl      = function()                                                {
+    getControl      = function()                                               {
         "Retrieve the control parameters"
         list(
             miceIters    = miceIters,
@@ -414,16 +418,16 @@ PcAuxData$methods(
         )
     },
 
-    ##---------------- Data Screening and Manipulation Methods ----------------##
+    ##---------------- Data Screening and Manipulation Methods ---------------##
 
-    removeVars     = function(x, reason, recordOnly = FALSE)                    {
+    removeVars     = function(x, reason, recordOnly = FALSE)                   {
         "Remove columns from 'data' and store their meta-data"
         dropCols <-  which(colnames(data) %in% x)
         dropVars <<- rbind(dropVars, cbind(colnames(data)[dropCols], reason))
         if(!recordOnly) data <<- data[ , -dropCols]
     },
 
-    countVarLevels = function()                                                 {
+    countVarLevels = function()                                                {
         "Count the levels for each column in 'data'"
         levelVec <<- as.integer(
             unlist(lapply(data, function(x) length(unique(na.omit(x)))))
@@ -431,7 +435,7 @@ PcAuxData$methods(
         names(levelVec) <<- colnames(data)
     },
     
-    typeData       = function()                                                 {
+    typeData       = function()                                                {
         "Populate a vector containing each variable's type"
         cn <- colnames(data); nv <- ncol(data)
         ## Default type is continuous:
@@ -446,7 +450,7 @@ PcAuxData$methods(
         names(typeVec                          ) <<- colnames(data       )
     },
 
-    castData       = function()                                                 {
+    castData       = function()                                                {
         "Cast all variables to the appropriate measurement level"
         for(i in 1 : ncol(data)) {
             data[ , i] <<-
@@ -463,13 +467,13 @@ PcAuxData$methods(
         }
     },
     
-    centerData      = function()                                                {
+    centerData      = function()                                               {
         conNames <- names(typeVec)[typeVec == "continuous"]
         data[ , conNames] <<-
             scale(data[ , conNames], center = TRUE, scale = FALSE)
     },
     
-    checkTypes     = function()                                                 {
+    checkTypes     = function()                                                {
         "Check each variable for a sensible number of levels"
         tmpN <- (typeVec == "nominal" | typeVec == "binary") &
             levelVec > nomMaxLev
@@ -486,7 +490,7 @@ PcAuxData$methods(
         asProportion = FALSE,
         strict       = FALSE,
         initialPm    = FALSE
-    )                                                                           {
+    )                                                                          {
         "Calculate the variable-wise response counts"
         if(asProportion) {
             if(countMissing) {
@@ -522,7 +526,7 @@ PcAuxData$methods(
         if(initialPm) initialPm <<- colMeans(is.na(data))
     },
 
-    findHighPmVars = function()                                                 {
+    findHighPmVars = function()                                                {
         "Flag variables with few responses"
         tmpNames   <-  setdiff   (names(respCounts), dropVars[ , 1]       )
         tmpCounts  <-  respCounts[tmpNames                                ]
@@ -530,7 +534,7 @@ PcAuxData$methods(
         length(highPmVars) > 0 # Find any High PM variables?
     },
 
-    findEmptyVars  = function(remove = TRUE)                                    {
+    findEmptyVars  = function(remove = TRUE)                                   {
         "Flag empty variables"
         tmpNames  <-  setdiff(names(typeVec), dropVars[ , 1])
         tmpTypes  <-  typeVec[tmpNames                      ]
@@ -544,7 +548,7 @@ PcAuxData$methods(
         outFlag
     },
 
-    findConstCols  = function()                                                 {
+    findConstCols  = function()                                                {
         "Locate and fill constant columns in 'data'"
         creatingPcAux <-  length(pcAux$lin) == 0 # Are we in createPcAux()?
         tmpNames      <-  setdiff (names(typeVec), dropVars[ , 1])
@@ -564,7 +568,7 @@ PcAuxData$methods(
         outFlag
     },
 
-    fillConstants   = function()                                                {
+    fillConstants   = function()                                               {
         "Fill constant columns with the appropriate value"
         tmp1    <- names  (initialPm)[initialPm == 0]
         targets <- setdiff(constants, tmp1          )
@@ -583,7 +587,7 @@ PcAuxData$methods(
         data[ , targets] <<- tmp2
     },
      
-    fillNomCell     = function(name)                                            {
+    fillNomCell     = function(name)                                           {
         "Fill single missing nominal cells via marginal sampling"
         for(n in name) {
             tmp         <- table(data[ , n])
@@ -592,7 +596,7 @@ PcAuxData$methods(
         }
     },
 
-    cleanCollinVars = function(x)                                               {
+    cleanCollinVars = function(x)                                              {
         "Remove one variable from all collinear pairs"
         collinVars     <<- x
         collinVarPairs <- collinVars[ , 1 : 2]
@@ -601,8 +605,8 @@ PcAuxData$methods(
         diffNaCntVec   <- NULL
         diffMaxCntVec  <- NULL
         
-        ## KML 2017-MAR-09: First, drop any variable that is collinear with a key
-        ##                  moderator to ensure that all moderators are retained
+        ## First, drop any variable that is collinear with a key moderator to
+        ## ensure that all moderators are retained
         if(length(moderators) > 0) {
             ## Find moderators in collinear pairs:
             modScreen <- do.call(cbind,
@@ -622,7 +626,8 @@ PcAuxData$methods(
             for(i in which(!filter)) {
                 tmp <- collinVarPairs[i, !modScreen[i, ]]
                 if(length(tmp) == 1) dropList[[i]] <- tmp
-                else                 warnFun("collinMods", map = collinVars[i, ])
+                else                 warnFun("collinMods",
+                                             map = collinVars[i, ])
             }
             
             ## Exclude variables collected above:
@@ -687,7 +692,7 @@ PcAuxData$methods(
             removeVars(x = unique(varsToRemove), reason = "collinear")
     },
     
-    createMethVec  = function(initialImp = FALSE)                               {
+    createMethVec  = function(initialImp = FALSE)                              {
         "Populate a vector of elementary imputation methods"
         cn0 <- setdiff(colnames(data), c(intVars, colnames(poly)))
         cn1 <- setdiff(colnames(data), cn0)
@@ -736,7 +741,7 @@ PcAuxData$methods(
         setMethVec(x = "", index = colSums(is.na(data)) == 0)
     },
     
-    addVars         = function(x, names = NULL)                                 {
+    addVars         = function(x, names = NULL)                                {
         "Add columns to 'data'"
         if(is.null(names)) names <-  colnames  (x              )
         oldNames                 <-  colnames  (data           )
@@ -744,7 +749,7 @@ PcAuxData$methods(
         colnames(data)           <<- c         (oldNames, names)
     },
 
-    idToCharacter   = function()                                                {
+    idToCharacter   = function()                                               {
         "If any IDs are factors, cast them as character objects"
         if(length(idVars) == 1) {
             if(is.factor(idCols)) idCols <<- as.character(idCols)
@@ -756,7 +761,7 @@ PcAuxData$methods(
         }
     },
     
-    binGroupVars    = function(undo = FALSE)                                    {
+    binGroupVars    = function(undo = FALSE)                                   {
         "Discretize continuous grouping variables"
         gvTypes  <- typeVec[groupVars                       ]
         conGVars <- names  (gvTypes)[gvTypes == "continuous"]
@@ -788,7 +793,7 @@ PcAuxData$methods(
         }
     },
 
-    createPatterns  = function()                                                {
+    createPatterns  = function()                                               {
         "Create patterns to use for group-mean substitution"
         ## Deal with any continuous grouping variables:
         gVarCheck <- any(typeVec[groupVars] == "continuous")
@@ -811,7 +816,7 @@ PcAuxData$methods(
         if(gVarCheck) binGroupVars(undo = TRUE)
     },
 
-    completeMiData  = function()                                                {
+    completeMiData  = function()                                               {
         "Complete the multiply imputed data sets"
         specialComp <- compFormat %in% c("long", "broad", "repeated")
         if(specialComp) {
@@ -831,7 +836,7 @@ PcAuxData$methods(
         }
     },
     
-    transformMiData = function()                                                {
+    transformMiData = function()                                               {
         "Format imputed data sets after parallelMice()"
         ## Remove the PcAux:
         pcCols <- grep("^linPC\\d|^nonLinPC\\d", colnames(miDatasets[[1]]))
@@ -858,7 +863,7 @@ PcAuxData$methods(
         }
     },
 
-    computeInteract = function()                                                {
+    computeInteract = function()                                               {
         "Calculate interaction terms"
         if(length(pcAux$lin) > 0) # Do we have linear PcAux?
             pcNames <- setdiff(colnames(pcAux$lin), idVars)
@@ -871,7 +876,7 @@ PcAuxData$methods(
         if(intMeth < 3) mods <- moderators
         else            mods <- colnames(data)
         
-        if(intMeth == 1) focal <- colnames(data)
+        if(intMeth == 1) focal <- setdiff(colnames(data), mods)
         else             focal <- pcNames
         
         ## Use dummy-coded nominal moderators:
@@ -879,15 +884,22 @@ PcAuxData$methods(
         if(any(check)) {
             tmp  <- mods[check]
             mods <- c(mods[!check],
-                      as.character(unlist(lapply(dumNoms[tmp], colnames)))
+                      as.character(sapply(dumNoms[tmp], colnames))
                       )
         }
         
         ## Generate a list of interacted variable pairs:
-        varCombs <- list()
-        for(m in mods)
-            for(f in focal)
-                varCombs[[paste0(m, f)]] <- c(m, f)
+        if(length(focal) == 0) {
+            ## All possible two-way interactions:
+            varCombs <- combn(mods, 2, simplify = FALSE)
+        }
+        else {
+            ## Subset of interactions defined by user:
+            varCombs <- list()
+            for(m in mods)
+                for(f in focal)
+                    varCombs[[paste0(m, f)]] <- c(m, f)
+        }
         
         ## Generate variable names for interaction terms:
         intVars <<- as.character(sapply(varCombs, paste0, collapse = "."))
@@ -909,7 +921,7 @@ PcAuxData$methods(
         colnames(interact) <<- intVars
         
         ## Remove dummy codes for empty cells:
-        levVec   <-  sapply(interact, function(x) length(unique(na.omit(x))))
+        levVec   <-  sapply(interact, countLevels)
         interact <<- interact[ , levVec > 1]
         intVars  <<- colnames(interact)
         
@@ -936,7 +948,7 @@ PcAuxData$methods(
         if(length(nomVars) > 0) castNomVars(toNumeric = FALSE)
     },
     
-    computePoly     = function()                                                {
+    computePoly     = function()                                               {
         "Compute polynomial terms"
         ## Cast ordered factors to numeric:
         if(length(ordVars) > 0) castOrdVars()
@@ -980,22 +992,22 @@ PcAuxData$methods(
         if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
     },
     
-    calcRSquared    = function()                                                {
-        "Compute the proportion of variance explained by PcAux"
-        if(length(pcAux$lin) == 0) lv <- "lin"
-        else                       lv <- "nonLin"
-        
-        ## Compute the cumulative variance explained:
-        totalVar <- sum(rSquared[[lv]], na.rm = TRUE)
-        
-        rSquared[[lv]][1] <<- rSquared[[lv]][1] / totalVar
-        
-        for(i in 2 : length(rSquared[[lv]]))
-            rSquared[[lv]][i] <<-
-                rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
-    },
+                                        #calcRSquared    = function()                                               {
+                                        #    "Compute the proportion of variance explained by PcAux"
+                                        #    if(length(pcAux$lin) == 0) lv <- "lin"
+                                        #    else                       lv <- "nonLin"
+                                        #    
+                                        #    ## Compute the cumulative variance explained:
+                                        #    totalVar <- sum(rSquared[[lv]], na.rm = TRUE)
+                                        #    
+                                        #    rSquared[[lv]][1] <<- rSquared[[lv]][1] / totalVar
+                                        #    
+                                        #    for(i in 2 : length(rSquared[[lv]]))
+                                        #        rSquared[[lv]][i] <<-
+                                        #            rSquared[[lv]][i - 1] + (rSquared[[lv]][i] / totalVar)
+                                        #},
 
-    codeNomVars     = function()                                                {
+    codeNomVars     = function()                                               {
         "Dummy code nominal factors"
         noms <- colnames(data)[colnames(data) %in% nomVars]
         
@@ -1030,7 +1042,7 @@ PcAuxData$methods(
         dumVars <<- as.character(unlist(lapply(dumNoms, colnames)))
     },
 
-    castOrdVars     = function(toNumeric = TRUE)                                {
+    castOrdVars     = function(toNumeric = TRUE)                               {
         "Cast ordinal factors to numeric variables"
         ## Find ordinal variables that are still on the data set:
         ords <- colnames(data)[colnames(data) %in% ordVars]
@@ -1050,7 +1062,7 @@ PcAuxData$methods(
         }
     },
     
-    castNomVars     = function(toNumeric = TRUE)                                {
+    castNomVars     = function(toNumeric = TRUE)                               {
         "Swap factor and dummy-coded representations of nominal variables"
         if(toNumeric) {# Replace factors in the data with dummy codes
             otherNames     <- setdiff(colnames(data), nomVars)

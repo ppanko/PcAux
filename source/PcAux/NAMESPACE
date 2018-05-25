@@ -6,6 +6,7 @@ export(prepData,
        inspect,
        getImpData,
        pcAuxW,
+       pcAuxL,
        calcTime,
        writeStatus)
 
