@@ -28,8 +28,9 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 
 ### Added
 - A `pcAuxL` function to print licensing information
-- Included Luke Waggenspack as a contributor, particularly for help with 
-  locating and correcting the first bug noted in the above *fixed* subsection
+- Included @Lwaggens (Luke Waggenspack) as a contributor, particularly for help
+  with locating and correcting the first bug noted in the above *fixed* 
+  subsection
   
 ## 0.0.0.9012 - 2017-11-16
 
