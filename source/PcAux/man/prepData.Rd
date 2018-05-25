@@ -144,7 +144,8 @@ prepData(rawData,
     }
     \item{checkStatus: }{
       The steps at which to record system and OS status. Can take
-      values, \code{"start"} or \code{"all"}. Defaults to \code{"none"}.
+      values: \code{"none"}, \code{"start"} or \code{"all"}. Defaults to
+      \code{"none"}.
     }
   }
 }
