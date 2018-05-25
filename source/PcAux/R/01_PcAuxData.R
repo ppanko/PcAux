@@ -2,10 +2,10 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung, Vibhuti Gupta, Pavel Panko
 ### Created:      2015-OCT-30
-### Modified:     2017-NOV-16
+### Modified:     2018-MAY-25
 ### Note:         PcAuxData is the metadata class for the PcAux package.
 
-### Copyright (C) 2017 Kyle M. Lang
+### Copyright (C) 2018 Kyle M. Lang
 ###
 ### This program is free software: you can redistribute it and/or modify
 ### it under the terms of the GNU General Public License as published by
@@ -866,8 +866,13 @@ PcAuxData$methods(
         ## Cast factors to numeric:
         if(length(ordVars) > 0) castOrdVars()
         if(length(nomVars) > 0) castNomVars()
+
+        ## Define moderators and focal predictors:
+        if(intMeth < 3) mods <- moderators
+        else            mods <- colnames(data)
         
-        mods <- moderators
+        if(intMeth == 1) focal <- colnames(data)
+        else             focal <- pcNames
         
         ## Use dummy-coded nominal moderators:
         check <- mods %in% nomVars
@@ -878,45 +883,39 @@ PcAuxData$methods(
                       )
         }
         
-        if(intMeth == 1) # Interactions among raw variables
-            varCombs <- combn(mods, 2)
-        else             # Interactions involving linear PcAux
-            varCombs <- t(expand.grid(mods, pcNames, stringsAsFactors = FALSE))
-        filter <- varCombs[1, ] %in% mods
+        ## Generate a list of interacted variable pairs:
+        varCombs <- list()
+        for(m in mods)
+            for(f in focal)
+                varCombs[[paste0(m, f)]] <- c(m, f)
         
-        ## Generate interaction terms:
-        intVars <<-
-            apply(varCombs[ , filter], 2, function(x) paste0(x, collapse = "."))
+        ## Generate variable names for interaction terms:
+        intVars <<- as.character(sapply(varCombs, paste0, collapse = "."))
 
+        ## Compute the interaction terms:
         if(intMeth == 1)
             interact <<- data.frame(
-                apply(varCombs[ , filter],
-                      2,
-                      function(x, dat) dat[ , x[1]] * dat[ , x[2]],
-                      dat = data)
+                lapply(varCombs,
+                       function(x, dat) dat[ , x[1]] * dat[ , x[2]],
+                       dat = data)
             )
         else
             interact <<- data.frame(
-                apply(varCombs[ , filter],
-                      2,
-                      function(x, dat) dat[ , x[1]] * dat[ , x[2]],
-                      dat = data.frame(data, pcAux$lin[ , pcNames])
-                      )
+                lapply(varCombs,
+                       function(x, dat, pc) dat[ , x[1]] * pc[ , x[2]],
+                       dat = data,
+                       pc  = pcAux$lin[ , pcNames])
             )
         colnames(interact) <<- intVars
         
         ## Remove dummy codes for empty cells:
-        levVec <- unlist(
-            lapply(interact, function(x) length(unique(na.omit(x))))
-        )
-        
+        levVec   <-  sapply(interact, function(x) length(unique(na.omit(x))))
         interact <<- interact[ , levVec > 1]
         intVars  <<- colnames(interact)
         
         ## Cast dummy codes as factors:
-        dumFlag <- unlist(
-            lapply(interact, function(x) all(unique(na.omit(x)) %in% c(0, 1)))
-        )
+        dumFlag <-
+            sapply(interact, function(x) all(unique(na.omit(x)) %in% c(0, 1)))
         
         if(sum(dumFlag) > 1)
             interact[ , dumFlag] <<-
