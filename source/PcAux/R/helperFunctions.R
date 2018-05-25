@@ -205,10 +205,7 @@ simplePca <- function(map, lv, parse, scale = TRUE)
 {
     ## Scale the raw data:
     if(scale) {
-        for(i in 1 : ncol(map$data)) {
-            map$data[ , i] <-
-                (map$data[ , i] - mean(map$data[ , i])) / sd(map$data[ , i])
-        }
+        map$data[] <- scale(map$data)
     }
 
     ## Get the eigen decomposition
