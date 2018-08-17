@@ -421,7 +421,7 @@ PcAuxData$
             "Retrieve any logged events provided by mice"
             if(!nrow(loggedEvents)) return("No logged events")
             else                    return(loggedEvents)
-        }
+        },
         
         ##-------------- Data Screening and Manipulation Methods -------------##
 
