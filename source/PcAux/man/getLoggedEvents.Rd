@@ -1,7 +1,7 @@
-\name{getImpData}
-\alias{getImpData}
+\name{getLoggedEvents}
+\alias{getLoggedEvents}
 \title{
-  Extract multiply logged events from a PcAuxData object.
+  Extract logged imputation events from a PcAuxData object.
 }
 \description{
   This is function is used to retrieve logged events from the
