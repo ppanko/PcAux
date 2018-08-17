@@ -95,7 +95,7 @@ PcAuxData <-
                     corPairs     = "data.frame",
                     dumVars      = "character",
                     frozenMods   = "character",
-                    loggedEvents = "matrix"
+                    loggedEvents = "data.frame"
                 )# END fields
                 )# END PcAuxData
 
@@ -236,7 +236,7 @@ PcAuxData$
             corPairs     <<- data.frame(NULL)
             dumVars      <<- vector("character")
             frozenMods   <<- vector("character")
-            loggedEvents <<- matrix()
+            loggedEvents <<- data.frame(NULL)
         },
         
         ##--------------- "Overloaded" / Non-Standard Mutators ---------------##
@@ -415,14 +415,7 @@ PcAuxData$
                 pcaMemLev    = pcaMemLev,
                 checkStatus  = checkStatus
             )
-        },
-        getLoggedEvents = function()
-        {
-            "Retrieve any logged events provided by mice"
-            if(!nrow(loggedEvents)) return("No logged events")
-            else                    return(loggedEvents)
-        },
-        
+        },        
         ##-------------- Data Screening and Manipulation Methods -------------##
 
         removeVars = function(x, reason, recordOnly = FALSE)

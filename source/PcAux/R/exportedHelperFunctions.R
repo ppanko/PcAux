@@ -203,8 +203,6 @@ mergePcAux <- function(pcAuxData, rawData, nComps = NULL, verbose = TRUE, ...)
 }# END mergePcAux()
 
 
-
-
 ### Make a predictor matrix suitable for use by mice() that designated subset of
 ### the principle component auxiliaries produced by pcAux() as the imputation
 ### model predictors:
@@ -245,7 +243,6 @@ makePredMatrix <- function(mergedData,
 }# END makePredMatrix()
 
 
-
 ## Wrapper function to give S3/S4-like access to fields:
 inspect <- function(object, what) object$field(what)
 
@@ -280,4 +277,12 @@ calcTime <- function(pcAuxData, what) {
 writeStatus <- function(pcAuxData, outName, what) {
     capture.output(pcAuxData$status[[what]], file = outName)
     paste("Wrote status to", outName)
+}
+
+
+getLoggedEvents <- function(pcAuxData) {
+    if(!nrow(pcAuxData$loggedEvents))
+        return("No logged events")
+    else
+        return(pcAuxData$loggedEvents)
 }
