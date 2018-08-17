@@ -94,7 +94,8 @@ PcAuxData <-
                     useQuickPred = "logical",
                     corPairs     = "data.frame",
                     dumVars      = "character",
-                    frozenMods   = "character"
+                    frozenMods   = "character",
+                    loggedEvents = "matrix"
                 )# END fields
                 )# END PcAuxData
 
@@ -209,32 +210,33 @@ PcAuxData$
             )
             
             ## Additional fields:
-            typeVec     <<- vector("character")
-            methVec     <<- vector("character")
-            respCounts  <<- vector("numeric")
-            initialPm   <<- vector("numeric")
-            probNoms    <<- vector("character")
-            probOrds    <<- vector("character")
-            probCons    <<- vector("character")
-            levelVec    <<- vector("numeric")
-            highPmVars  <<- vector("character")
-            emptyVars   <<- vector("character")
-            constants   <<- vector("character")
-            intVars     <<- vector("character")
-            interact    <<- data.frame(NULL)
-            poly        <<- list()
-            collinVars  <<- data.frame(NULL)
-            patterns    <<- list()
-            frozenGVars <<- data.frame(NULL)
-            idFills     <<- list()
-            miDatasets  <<- list()
-            miceObject  <<- list()
-            idCols      <<- data.frame(NULL)
-            dumNoms     <<- list()
-            facNoms     <<- data.frame(NULL)
-            corPairs    <<- data.frame(NULL)
-            dumVars     <<- vector("character")
-            frozenMods  <<- vector("character")
+            typeVec      <<- vector("character")
+            methVec      <<- vector("character")
+            respCounts   <<- vector("numeric")
+            initialPm    <<- vector("numeric")
+            probNoms     <<- vector("character")
+            probOrds     <<- vector("character")
+            probCons     <<- vector("character")
+            levelVec     <<- vector("numeric")
+            highPmVars   <<- vector("character")
+            emptyVars    <<- vector("character")
+            constants    <<- vector("character")
+            intVars      <<- vector("character")
+            interact     <<- data.frame(NULL)
+            poly         <<- list()
+            collinVars   <<- data.frame(NULL)
+            patterns     <<- list()
+            frozenGVars  <<- data.frame(NULL)
+            idFills      <<- list()
+            miDatasets   <<- list()
+            miceObject   <<- list()
+            idCols       <<- data.frame(NULL)
+            dumNoms      <<- list()
+            facNoms      <<- data.frame(NULL)
+            corPairs     <<- data.frame(NULL)
+            dumVars      <<- vector("character")
+            frozenMods   <<- vector("character")
+            loggedEvents <<- matrix()
         },
         
         ##--------------- "Overloaded" / Non-Standard Mutators ---------------##
@@ -414,6 +416,12 @@ PcAuxData$
                 checkStatus  = checkStatus
             )
         },
+        getLoggedEvents = function()
+        {
+            "Retrieve any logged events provided by mice"
+            if(!nrow(loggedEvents)) return("No logged events")
+            else                    return(loggedEvents)
+        }
         
         ##-------------- Data Screening and Manipulation Methods -------------##
 
