@@ -388,11 +388,14 @@ doSingleImputation <- function(map) {
             silent = TRUE)
         if(map$verbose > 0) cat("done.\n")
         
-        if(class(map$data) != "try-error") # mice() didn't crash
+        if(class(map$data) != "try-error") { # mice() didn't crash
+            ## Record any logged events 
+            map$loggedEvents <- map$data$loggedEvents
             ## Fill missing values with the imputations
-            map$data <- complete(map$data)
-        else
+            map$data         <- complete(map$data)
+        } else {
             errFun("miceCrash", map = map)
+        }
         
         ## Check for any remaining missing data:
         ## NOTE: map$respCounts now contains counts of missing data
