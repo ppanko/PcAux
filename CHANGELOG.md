@@ -31,6 +31,8 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - Included @Lwaggens (Luke Waggenspack) as a contributor, particularly for help
   with locating and correcting the first bug noted in the above *fixed* 
   subsection
+- A `getLoggedEvents` function used to retrieve events produced by `mice`
+  during the initial imputation contributed by @ppanko 
   
 ## 0.0.0.9012 - 2017-11-16
 
