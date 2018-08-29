@@ -235,6 +235,32 @@ writeStatus(pcAuxData = miOut,
             outName   = "miOutStatus.txt",
             what      = "mi")
 
+### getLoggedEvents():
+
+## Load the data:
+data(iris2)
+
+## Prepare the data:
+cleanData <- prepData(rawData   = iris2,
+                      nomVars   = "Species",
+                      ordVars   = "Petal.Width",
+                      idVars    = "ID",
+                      dropVars  = "Junk",
+                      groupVars = "Species")
+
+## Create principal component auxiliary variables:
+pcAuxOut <- createPcAux(pcAuxData    = cleanData,
+                        nComps       = c(3, 2),
+                        interactType = 2)
+
+## Extract mice logged events
+pcLoggedEvents <- getLoggedEvents(pcAuxOut)
+
+## Conduct MI with the pcAux:
+miOut <- miWithPcAux(rawData   = iris2,
+                     pcAuxData = pcAuxOut,
+                     nImps     = 5)
+
 
 ##### DATA PREP TESTING #####
 
