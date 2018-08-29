@@ -2,26 +2,22 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung
 ### Created:      2015-AUG-03
-### Modified:     2018-MAY-25
+### Modified:     2017-NOV-16
 
-##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
-##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
-##                                                                            ##
-##  This file is part of PcAux.                                               ##
-##                                                                            ##
-##  This program is free software: you can redistribute it and/or modify it   ##
-##  under the terms of the GNU General Public License as published by the     ##
-##  Free Software Foundation, either version 3 of the License, or (at you     ##
-##  option) any later version.                                                ##
-##                                                                            ##
-##  This program is distributed in the hope that it will be useful, but       ##
-##  WITHOUT ANY WARRANTY; without even the implied warranty of                ##
-##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General  ##
-##  Public License for more details.                                          ##
-##                                                                            ##
-##  You should have received a copy of the GNU General Public License along   ##
-##  with this program. If not, see <http://www.gnu.org/licenses/>.            ##
-##----------------------------------------------------------------------------##
+### Copyright (C) 2017 Kyle M. Lang
+###
+### This program is free software: you can redistribute it and/or modify
+### it under the terms of the GNU General Public License as published by
+### the Free Software Foundation, either version 3 of the License, or
+### (at your option) any later version.
+###
+### This program is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU General Public License for more details.
+###
+### You should have received a copy of the GNU General Public License
+### along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ## Print startup message:
@@ -205,8 +201,10 @@ simplePca <- function(map, lv, parse, scale = TRUE)
 {
     ## Scale the raw data:
     if(scale) {
-        map$data[] <- lapply(X   = map$data,
-                             FUN = function(x) (x - mean(x))/sd(x))
+        for(i in 1 : ncol(map$data)) {
+            map$data[ , i] <-
+                (map$data[ , i] - mean(map$data[ , i])) / sd(map$data[ , i])
+        }
     }
 
     ## Get the eigen decomposition
@@ -216,9 +214,10 @@ simplePca <- function(map, lv, parse, scale = TRUE)
     ## Replace such values with zero:
     eigenOut$values[eigenOut$values < 0.0] <- 0.0
 
-    ## Compute the cumulative proportions of variance explained:
-    map$rSquared[[lv]] <- cumsum(eigenOut$values) / sum(eigenOut$values)
-    
+    ## Compute the proportions of variance explained:
+    map$rSquared[[lv]] <- eigenOut$values
+    map$calcRSquared()
+
     ## Set component counts when some are defined by variance explained:
     if(parse) map$setNComp(type = lv)
     
@@ -389,12 +388,7 @@ warnFun <- function(type, map) {
                           map$miceObj,
                           "\n"),
                noMods =
-                   paste0("You have specified 'interactType = ",
-                          map$intMeth,
-                          "' without specifying any moderators, so I will ",
-                          "incorporate all pairwise interactions among the ",
-                          "observed variables into the initial imputation ",
-                          "model.\n"),
+                   "You have specified 'interactType = 1' without specifying any moderators, so I will incorporate all pairwise interactions among the observed variables into the initial imputation model.\n",
                collinMods = {
                    val <- map[ , 3]
                    paste0("Two of your moderator variables (i.e., ",

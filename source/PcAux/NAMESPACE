@@ -6,10 +6,8 @@ export(prepData,
        inspect,
        getImpData,
        pcAuxW,
-       pcAuxL,
-       calcTime,
-       writeStatus,
-       getLoggedEvents)
+       calcTime) #,
+                                        #writeStatus)
 
 import(methods)
 
