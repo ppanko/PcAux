@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2018-AUG-17
+### Modified:     2018-SEP-05
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -390,7 +390,7 @@ doSingleImputation <- function(map) {
         
         if(class(map$data) != "try-error") { # mice() didn't crash
             ## Record any logged events 
-            map$loggedEvents <- map$data$loggedEvents
+            map$loggedEvents <- as.data.frame(map$data$loggedEvents)
             ## Fill missing values with the imputations
             map$data         <- complete(map$data)
         } else {
