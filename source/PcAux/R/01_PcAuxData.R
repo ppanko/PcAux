@@ -1029,7 +1029,8 @@ PcAuxData$
         codeNomVars = function()
         {
             "Dummy code nominal factors"
-            noms <- colnames(data)[colnames(data) %in% nomVars]
+            noms <- colnames(data)[colnames(data) %in%
+                                   setdiff(nomVars, dropVars[,1])]
             
             ## Store factor representations:
             facNoms           <<- data.frame(data[ , noms])
