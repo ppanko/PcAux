@@ -125,7 +125,7 @@ checkInputs <- function() {
 castData <- function(map) {
     if(map$verbose > 0) cat("\nChecking data and information provided...\n")
     
-    creatingPcAux <- length(map$time$create) > 0 # Are we in createPcAux()?
+    creatingPcAux <- length(map$time$create) > 0 && length(map$time$mi) == 0 # Are we in createPcAux()?
     nVars         <- ncol(map$data)             # How many variables?
     
     if(map$verbose > 0) cat("--Examining data...")
