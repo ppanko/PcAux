@@ -7,7 +7,14 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9013 - 2018-09-05 - ACTIVE
+## 0.0.0.9014 - 2018-11-29 - ACTIVE
+
+### Fixed	
+-Bug in check on whether 'castData' is operating inside 'createPcAux'
+ causing 'doPCA' to crash because unimputed drop variables were erroneously
+ added back in
+	
+## 0.0.0.9013 - 2018-09-05
 
 ### Fixed
 - Bug with calculation of the cumulative proportions of variance explained by 

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2018-SEP-05
+### Modified:     2018-NOV-29
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
