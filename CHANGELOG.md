@@ -10,9 +10,11 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 ## 0.0.0.9014 - 2018-11-29 - ACTIVE
 
 ### Fixed	
--Bug in check on whether 'castData' is operating inside 'createPcAux'
- causing 'doPCA' to crash because unimputed drop variables were erroneously
+-Bug in check on whether `castData` is operating inside `createPcAux`
+ causing `doPCA` to crash because unimputed drop variables were erroneously
  added back in
+-Typo in helper function `simplePca` referencing `setNComp` instead of 	
+ `setNComps`
 	
 ## 0.0.0.9013 - 2018-09-05
 

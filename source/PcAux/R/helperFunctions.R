@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung
 ### Created:      2015-AUG-03
-### Modified:     2018-MAY-25
+### Modified:     2018-DEC-04
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -220,7 +220,7 @@ simplePca <- function(map, lv, parse, scale = TRUE)
     map$rSquared[[lv]] <- cumsum(eigenOut$values) / sum(eigenOut$values)
     
     ## Set component counts when some are defined by variance explained:
-    if(parse) map$setNComp(type = lv)
+    if(parse) map$setNComps(type = lv)
     
     nc <- map$nComps[lv]
     
