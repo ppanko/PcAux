@@ -301,7 +301,7 @@ PcAuxData$
             if(is.null(index)) methVec        <<- x
             else               methVec[index] <<- x
         },
-    
+        
         setNComps = function(type)
         {
             "Set the number of PcAux to extract"
@@ -316,7 +316,7 @@ PcAuxData$
                 nComps[type] <<- length(r2)
             }
         },
-    
+        
         setStatus = function(step = "start")
         {
             "Set machine specs and encumbrance"
@@ -370,9 +370,9 @@ PcAuxData$
             else if(stCall == 1) time$create[step] <<- proc.time()["elapsed"]
             else if(stCall == 0) time$mi[step]     <<- proc.time()["elapsed"] 
         },
-    
+        
         ##----------------------- "Overloaded" Accessors ---------------------##
-    
+        
         getPoly = function(power = NULL)
         {
             "Retrieve the polynomial expansions of 'data'"
@@ -434,7 +434,7 @@ PcAuxData$
             )
             names(levelVec) <<- colnames(data)
         },
-    
+        
         typeData = function()
         {
             "Populate a vector containing each variable's type"
@@ -475,7 +475,7 @@ PcAuxData$
             data[ , conNames] <<-
                 scale(data[ , conNames], center = TRUE, scale = FALSE)
         },
-    
+        
         checkTypes = function()
         {
             "Check each variable for a sensible number of levels"
@@ -682,7 +682,7 @@ PcAuxData$
                         maxNaCount     <- as.character(maxNaCount$var1)
                         collinVarPairs <-
                             subset(collinVarPairs,
-                                                 collinVarPairs[ , 1] != maxNaCount)
+                                   collinVarPairs[ , 1] != maxNaCount)
                         collinVarPairs <-
                             subset(collinVarPairs,
                                    collinVarPairs[ , 2] != maxNaCount)
@@ -856,7 +856,7 @@ PcAuxData$
                 }
             }
         },
-    
+        
         transformMiData = function()
         {
             "Format imputed data sets after parallelMice()"
@@ -1010,7 +1010,7 @@ PcAuxData$
             ## Revert ordinal variable casting:
             if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
         },
-    
+        
                                         #calcRSquared    = function()                                               {
                                         #    "Compute the proportion of variance explained by PcAux"
                                         #    if(length(pcAux$lin) == 0) lv <- "lin"
@@ -1031,7 +1031,7 @@ PcAuxData$
             "Dummy code nominal factors"
             noms <- colnames(data)[colnames(data) %in%
                                    setdiff(nomVars, dropVars[,1])]
-                                   
+            
             ## Store factor representations:
             facNoms           <<- data.frame(data[ , noms])
             colnames(facNoms) <<- noms
@@ -1058,61 +1058,61 @@ PcAuxData$
             }
             ## Save dummy code names:
             dumVars <<- as.character(unlist(lapply(dumNoms, colnames)))
-            },
+        },
+        
+        castOrdVars = function(toNumeric = TRUE)
+        {
+            "Cast ordinal factors to numeric variables"
+            ## Find ordinal variables that are still on the data set:
+            ords <- colnames(data)[colnames(data) %in% ordVars]
             
-            castOrdVars = function(toNumeric = TRUE)
-            {
-                "Cast ordinal factors to numeric variables"
-                ## Find ordinal variables that are still on the data set:
-                ords <- colnames(data)[colnames(data) %in% ordVars]
+            if(toNumeric) {
+                ## Cast the ordinal variables as numeric:
+                if(length(ords) > 1)
+                    data[ , ords] <<-
+                        data.frame(lapply(data[ , ords], as.numeric))
+                else
+                    data[ , ords] <<- as.numeric(data[ , ords])
+            }
+            else {
+                ## Cast back to ordered factors:
+                if(length(ords) > 1)
+                    data[ , ords] <<-
+                        data.frame(lapply(data[ , ords], as.ordered))
+                else
+                    data[ , ords] <<- as.ordered(data[ , ords])
+            }
+        },
+        
+        castNomVars = function(toNumeric = TRUE)
+        {
+            "Swap factor and dummy-coded representations of nominal variables"
+            if(toNumeric) {# Replace factors in the data with dummy codes
+                otherNames     <-  setdiff(colnames(data), nomVars)
+                data           <<- data.frame(data[ , otherNames],
+                                              do.call(cbind, dumNoms)
+                                              )
+                colnames(data) <<- c(otherNames, dumVars)
                 
-                if(toNumeric) {
-                    ## Cast the ordinal variables as numeric:
-                    if(length(ords) > 1)
-                        data[ , ords] <<-
-                            data.frame(lapply(data[ , ords], as.numeric))
-                    else
-                        data[ , ords] <<- as.numeric(data[ , ords])
-                }
-                else {
-                    ## Cast back to ordered factors:
-                    if(length(ords) > 1)
-                        data[ , ords] <<-
-                            data.frame(lapply(data[ , ords], as.ordered))
-                    else
-                        data[ , ords] <<- as.ordered(data[ , ords])
-                }
-            },
-            
-            castNomVars = function(toNumeric = TRUE)
-            {
-                "Swap factor and dummy-coded representations of nominal variables"
-                if(toNumeric) {# Replace factors in the data with dummy codes
-                    otherNames     <-  setdiff(colnames(data), nomVars)
-                    data           <<- data.frame(data[ , otherNames],
-                                                  do.call(cbind, dumNoms)
-                                                  )
-                    colnames(data) <<- c(otherNames, dumVars)
-                    
-                    ## Update the moderators with dummy code names:
-                    check <- moderators %in% nomVars
-                    if(any(check)) {
-                        frozenMods <<- moderators
-                        moderators <<-
-                            c(moderators[!check],
-                              unlist(lapply(dumNoms[moderators[check]], colnames),
-                                     use.names = FALSE)
-                              )
-                    }
-                }
-                else {# Undo dummy coding
-                    data <<-
-                        data.frame(data[ , setdiff(colnames(data), dumVars)],
-                                   facNoms)
-                    
-                    ## Revert to original moderator list:
-                    moderators <<- frozenMods
+                ## Update the moderators with dummy code names:
+                check <- moderators %in% nomVars
+                if(any(check)) {
+                    frozenMods <<- moderators
+                    moderators <<-
+                        c(moderators[!check],
+                          unlist(lapply(dumNoms[moderators[check]], colnames),
+                                 use.names = FALSE)
+                          )
                 }
             }
-            
+            else {# Undo dummy coding
+                data <<-
+                    data.frame(data[ , setdiff(colnames(data), dumVars)],
+                               facNoms)
+                
+                ## Revert to original moderator list:
+                moderators <<- frozenMods
+            }
+        }
+        
     )# END PcAuxData$methods()
