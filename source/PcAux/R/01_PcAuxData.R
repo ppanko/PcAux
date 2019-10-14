@@ -1029,8 +1029,9 @@ PcAuxData$
         codeNomVars = function()
         {
             "Dummy code nominal factors"
-            noms <- colnames(data)[colnames(data) %in% nomVars]
-            
+            noms <- colnames(data)[colnames(data) %in%
+                                   setdiff(nomVars, dropVars[,1])]
+                                   
             ## Store factor representations:
             facNoms           <<- data.frame(data[ , noms])
             colnames(facNoms) <<- noms
@@ -1046,7 +1047,7 @@ PcAuxData$
                     model.matrix(as.formula(paste0("~", v)), data = data)
                 )
                 dumNames <- colnames(tmp)
-           
+                
                 ## Reset the na.action option:
                 options(na.action = oldOpt$na.action)
                 
@@ -1057,61 +1058,61 @@ PcAuxData$
             }
             ## Save dummy code names:
             dumVars <<- as.character(unlist(lapply(dumNoms, colnames)))
-        },
-        
-        castOrdVars = function(toNumeric = TRUE)
-        {
-            "Cast ordinal factors to numeric variables"
-            ## Find ordinal variables that are still on the data set:
-            ords <- colnames(data)[colnames(data) %in% ordVars]
+            },
             
-            if(toNumeric) {
-                ## Cast the ordinal variables as numeric:
-                if(length(ords) > 1)
-                    data[ , ords] <<-
-                        data.frame(lapply(data[ , ords], as.numeric))
-                else
-                    data[ , ords] <<- as.numeric(data[ , ords])
-            }
-            else {
-                ## Cast back to ordered factors:
-                if(length(ords) > 1)
-                    data[ , ords] <<-
-                        data.frame(lapply(data[ , ords], as.ordered))
-                else
-                    data[ , ords] <<- as.ordered(data[ , ords])
-            }
-        },
-        
-        castNomVars = function(toNumeric = TRUE)
-        {
-            "Swap factor and dummy-coded representations of nominal variables"
-            if(toNumeric) {# Replace factors in the data with dummy codes
-                otherNames     <-  setdiff(colnames(data), nomVars)
-                data           <<- data.frame(data[ , otherNames],
-                                              do.call(cbind, dumNoms)
-                                              )
-                colnames(data) <<- c(otherNames, dumVars)
+            castOrdVars = function(toNumeric = TRUE)
+            {
+                "Cast ordinal factors to numeric variables"
+                ## Find ordinal variables that are still on the data set:
+                ords <- colnames(data)[colnames(data) %in% ordVars]
                 
-                ## Update the moderators with dummy code names:
-                check <- moderators %in% nomVars
-                if(any(check)) {
-                    frozenMods <<- moderators
-                    moderators <<-
-                        c(moderators[!check],
-                          unlist(lapply(dumNoms[moderators[check]], colnames),
-                                 use.names = FALSE)
-                          )
+                if(toNumeric) {
+                    ## Cast the ordinal variables as numeric:
+                    if(length(ords) > 1)
+                        data[ , ords] <<-
+                            data.frame(lapply(data[ , ords], as.numeric))
+                    else
+                        data[ , ords] <<- as.numeric(data[ , ords])
+                }
+                else {
+                    ## Cast back to ordered factors:
+                    if(length(ords) > 1)
+                        data[ , ords] <<-
+                            data.frame(lapply(data[ , ords], as.ordered))
+                    else
+                        data[ , ords] <<- as.ordered(data[ , ords])
+                }
+            },
+            
+            castNomVars = function(toNumeric = TRUE)
+            {
+                "Swap factor and dummy-coded representations of nominal variables"
+                if(toNumeric) {# Replace factors in the data with dummy codes
+                    otherNames     <-  setdiff(colnames(data), nomVars)
+                    data           <<- data.frame(data[ , otherNames],
+                                                  do.call(cbind, dumNoms)
+                                                  )
+                    colnames(data) <<- c(otherNames, dumVars)
+                    
+                    ## Update the moderators with dummy code names:
+                    check <- moderators %in% nomVars
+                    if(any(check)) {
+                        frozenMods <<- moderators
+                        moderators <<-
+                            c(moderators[!check],
+                              unlist(lapply(dumNoms[moderators[check]], colnames),
+                                     use.names = FALSE)
+                              )
+                    }
+                }
+                else {# Undo dummy coding
+                    data <<-
+                        data.frame(data[ , setdiff(colnames(data), dumVars)],
+                                   facNoms)
+                    
+                    ## Revert to original moderator list:
+                    moderators <<- frozenMods
                 }
             }
-            else {# Undo dummy coding
-                data <<-
-                    data.frame(data[ , setdiff(colnames(data), dumVars)],
-                               facNoms)
-                
-                ## Revert to original moderator list:
-                moderators <<- frozenMods
-            }
-        }
-        
+            
     )# END PcAuxData$methods()
