@@ -57,11 +57,11 @@ miWithPcAux <- function(rawData,
     }
     if(!missCheck(ordVars)) {
         pcAuxData$ordVars        <- ordVars
-        pcAuxData$dropVars[ , 1] <- pcAuxData$dropVars[!pcAuxData$dropVars[,1] %in% ordVars, ]
+        pcAuxData$dropVars <- pcAuxData$dropVars[!pcAuxData$dropVars[,1] %in% ordVars, ]
     }
     if(!missCheck(idVars)) {
         pcAuxData$idVars         <- idVars
-        pcAuxData$dropVars[ , 1] <- pcAuxData$dropVars[!pcAuxData$dropVars[,1] %in% idVars, ]
+        pcAuxData$dropVars <- pcAuxData$dropVars[!pcAuxData$dropVars[,1] %in% idVars, ]
     }
     if(length(dropVars) == 1 && dropVars == "useExtant") {
         tmp <- pcAuxData$dropVars[pcAuxData$dropVars[ , 2] == "user_defined", ]
