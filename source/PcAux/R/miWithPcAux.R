@@ -53,15 +53,15 @@ miWithPcAux <- function(rawData,
     ## Get variable types:
     if(!missCheck(nomVars)) {
         pcAuxData$nomVars        <- nomVars
-        pcAuxData$dropVars[ , 1] <- setdiff(pcAuxData$dropVars[ , 1], nomVars)
+        pcAuxData$dropVars <- setdiff(pcAuxData$dropVars[ , 1], nomVars)
     }
     if(!missCheck(ordVars)) {
         pcAuxData$ordVars        <- ordVars
-        pcAuxData$dropVars[ , 1] <- setdiff(pcAuxData$dropVars[ , 1], ordVars)
+        pcAuxData$dropVars <- setdiff(pcAuxData$dropVars[ , 1], ordVars)
     }
     if(!missCheck(idVars)) {
         pcAuxData$idVars         <- idVars
-        pcAuxData$dropVars[ , 1] <- setdiff(pcAuxData$dropVars[ , 1], idVars)
+        pcAuxData$dropVars <- setdiff(pcAuxData$dropVars[ , 1], idVars)
     }
     if(length(dropVars) == 1 && dropVars == "useExtant") {
         tmp <- pcAuxData$dropVars[pcAuxData$dropVars[ , 2] == "user_defined", ]
