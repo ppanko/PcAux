@@ -10,20 +10,24 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 ## 0.0.0.9014 - 2020-04-09 - ACTIVE
 
 ### Fixed	
--Bug in check on whether `castData` is operating inside `createPcAux`
- causing `doPCA` to crash because unimputed drop variables were erroneously
- added back in
--Typo in helper function `simplePca` referencing `setNComp` instead of 	
- `setNComps`
--Bug resulting from incorrectly subsetting dropVars specified in 
- `miWithPcaux` that were not previously specified
--Bug breaking `interactType = 1` due to the absence of dummy-coded nominal 
- variables
--Bug resulting from having id variables of class `factor` with missing 
- values
--Bug in including/excluding `dropVars` between `createPcAux` and 
- `miWithPcAux`
-	
+- Bug in check on whether `castData` is operating inside `createPcAux`
+  causing `doPCA` to crash because unimputed drop variables were erroneously
+  added back in
+- Typo in helper function `simplePca` referencing `setNComp` instead of 	
+  `setNComps`
+- Bug resulting from incorrectly subsetting dropVars specified in 
+  `miWithPcaux` that were not previously specified
+- Bug breaking `interactType = 1` due to the absence of dummy-coded nominal 
+  variables
+- Bug resulting from having id variables of class `factor` with missing 
+  values
+- Bug in including/excluding `dropVars` between `createPcAux` and 
+  `miWithPcAux`
+
+### Changed
+
+- Defaults for `interactType` and `maxPolyPow` changed to 0 and 1, respecitvely
+
 ## 0.0.0.9013 - 2018-09-05
 
 ### Fixed
