@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9013 - 2018-09-05 - ACTIVE
+## 0.0.0.9013 - 2018-08-29 - ACTIVE
 
 ### Fixed
 - Bug with calculation of the cumulative proportions of variance explained by 
@@ -17,8 +17,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - Bug causing issues when computing interaction terms with certain arrangements 
   of few moderators (Issue #18)
 - Bug causing crashes when no ID variables are specified (Issue #21)
-- Bug breaking getLoggedEvents due to inconsistent object typing by mice
-	
+  
 ### Changed
 - Resolved final known issues with the timing utilities contributed by @ppanko
 - Exported the `writeStatus` function
