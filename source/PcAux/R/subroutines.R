@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2018-AUG-17
+### Modified:     2020-APR-09
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -125,7 +125,7 @@ checkInputs <- function() {
 castData <- function(map) {
     if(map$verbose > 0) cat("\nChecking data and information provided...\n")
     
-    creatingPcAux <- length(map$pcAux$lin) == 0 # Are we in createPcAux()?
+    creatingPcAux <- length(map$time$create) > 0 && length(map$time$mi) == 0 # Are we in createPcAux()?
     nVars         <- ncol(map$data)             # How many variables?
     
     if(map$verbose > 0) cat("--Examining data...")
@@ -238,6 +238,10 @@ cleanData <- function(map) {
     creatingPcAux <- length(map$pcAux$lin) == 0 # Are we in createPcAux()?
     
     if(creatingPcAux) {
+        ## Check for factor id columns
+        checkFactors <- sapply(map$idCols, is.factor)
+        if(any(checkFactors))
+            map$idCols[checkFactors] <- lapply(map$idCols[checkFactors], as.character)
         if(length(map$idVars) > 1) {
             ## Check for missing data on ID variables:
             missIdCounts <- switch(as.character(length(map$idVars)),
@@ -390,7 +394,7 @@ doSingleImputation <- function(map) {
         
         if(class(map$data) != "try-error") { # mice() didn't crash
             ## Record any logged events 
-            map$loggedEvents <- map$data$loggedEvents
+            map$loggedEvents <- as.data.frame(map$data$loggedEvents)
             ## Fill missing values with the imputations
             map$data         <- complete(map$data)
         } else {

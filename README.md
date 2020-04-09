@@ -56,8 +56,7 @@ A basic missing data treatment using **PcAux** might look like the following:
 2. Next, create a set of principal component auxiliary variables:
 
         pcAuxOut <- createPcAux(pcAuxData = cleanData,
-                                nComps    = c(3, 2)
-                                )
+                                nComps    = c(3, 2))
 
 3. Finally, use the principal component auxiliaries as the predictors in a
    multiple imputation run:

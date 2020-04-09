@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Steven Chesnut, Pavel Panko, Luke Waggenspack
 ### Created:      2015-SEP-17
-### Modified:     2018-MAY-25
+### Modified:     2020-APR-09
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -26,8 +26,8 @@
 
 createPcAux <- function(pcAuxData,
                         nComps,
-                        interactType = 1L,
-                        maxPolyPow   = 3L,
+                        interactType = 0L,
+                        maxPolyPow   = 1L,
                         simMode      = FALSE,
                         seed         = NULL,
                         verbose      = 2L,
@@ -77,7 +77,7 @@ createPcAux <- function(pcAuxData,
     if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("modExt")
     
     ## Re-cast the data if needed
-    if(castData) castData(map = pcAuxData)
+    if(castData | interactType == 1) castData(map = pcAuxData)
 
     pcAuxData$setTime("cast")
     if(pcAuxData$checkStatus == "all") pcAuxData$setStatus("cast")

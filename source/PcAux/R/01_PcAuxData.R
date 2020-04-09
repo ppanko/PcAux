@@ -301,7 +301,7 @@ PcAuxData$
             if(is.null(index)) methVec        <<- x
             else               methVec[index] <<- x
         },
-    
+        
         setNComps = function(type)
         {
             "Set the number of PcAux to extract"
@@ -316,7 +316,7 @@ PcAuxData$
                 nComps[type] <<- length(r2)
             }
         },
-    
+        
         setStatus = function(step = "start")
         {
             "Set machine specs and encumbrance"
@@ -370,9 +370,9 @@ PcAuxData$
             else if(stCall == 1) time$create[step] <<- proc.time()["elapsed"]
             else if(stCall == 0) time$mi[step]     <<- proc.time()["elapsed"] 
         },
-    
+        
         ##----------------------- "Overloaded" Accessors ---------------------##
-    
+        
         getPoly = function(power = NULL)
         {
             "Retrieve the polynomial expansions of 'data'"
@@ -434,7 +434,7 @@ PcAuxData$
             )
             names(levelVec) <<- colnames(data)
         },
-    
+        
         typeData = function()
         {
             "Populate a vector containing each variable's type"
@@ -475,7 +475,7 @@ PcAuxData$
             data[ , conNames] <<-
                 scale(data[ , conNames], center = TRUE, scale = FALSE)
         },
-    
+        
         checkTypes = function()
         {
             "Check each variable for a sensible number of levels"
@@ -682,7 +682,7 @@ PcAuxData$
                         maxNaCount     <- as.character(maxNaCount$var1)
                         collinVarPairs <-
                             subset(collinVarPairs,
-                                                 collinVarPairs[ , 1] != maxNaCount)
+                                   collinVarPairs[ , 1] != maxNaCount)
                         collinVarPairs <-
                             subset(collinVarPairs,
                                    collinVarPairs[ , 2] != maxNaCount)
@@ -856,7 +856,7 @@ PcAuxData$
                 }
             }
         },
-    
+        
         transformMiData = function()
         {
             "Format imputed data sets after parallelMice()"
@@ -1010,7 +1010,7 @@ PcAuxData$
             ## Revert ordinal variable casting:
             if(length(ordVars) > 0) castOrdVars(toNumeric = FALSE)
         },
-    
+        
                                         #calcRSquared    = function()                                               {
                                         #    "Compute the proportion of variance explained by PcAux"
                                         #    if(length(pcAux$lin) == 0) lv <- "lin"
@@ -1029,7 +1029,8 @@ PcAuxData$
         codeNomVars = function()
         {
             "Dummy code nominal factors"
-            noms <- colnames(data)[colnames(data) %in% nomVars]
+            noms <- colnames(data)[colnames(data) %in%
+                                   setdiff(nomVars, dropVars[, 1])]
             
             ## Store factor representations:
             facNoms           <<- data.frame(data[ , noms])
@@ -1046,7 +1047,7 @@ PcAuxData$
                     model.matrix(as.formula(paste0("~", v)), data = data)
                 )
                 dumNames <- colnames(tmp)
-           
+                
                 ## Reset the na.action option:
                 options(na.action = oldOpt$na.action)
                 
