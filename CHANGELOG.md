@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9014 - 2018-11-29 - ACTIVE
+## 0.0.0.9014 - 2020-04-09 - ACTIVE
 
 ### Fixed	
 -Bug in check on whether `castData` is operating inside `createPcAux`
@@ -15,6 +15,14 @@ should, therefore, be viewed with an appropriate degree of skepticism.
  added back in
 -Typo in helper function `simplePca` referencing `setNComp` instead of 	
  `setNComps`
+-Bug resulting from incorrectly subsetting dropVars specified in 
+ `miWithPcaux` that were not previously specified
+-Bug breaking `interactType = 1` due to the absence of dummy-coded nominal 
+ variables
+-Bug resulting from having id variables of class `factor` with missing 
+ values
+-Bug in including/excluding `dropVars` between `createPcAux` and 
+ `miWithPcAux`
 	
 ## 0.0.0.9013 - 2018-09-05
 
@@ -26,7 +34,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 - Bug causing issues when computing interaction terms with certain arrangements 
   of few moderators (Issue #18)
 - Bug causing crashes when no ID variables are specified (Issue #21)
-- Bug breaking getLoggedEvents due to inconsistent object typing by mice
+- Bug breaking `getLoggedEvents` due to inconsistent object typing by mice
 	
 ### Changed
 - Resolved final known issues with the timing utilities contributed by @ppanko

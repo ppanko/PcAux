@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Byungkwan Jung
 ### Created:      2015-AUG-03
-### Modified:     2018-DEC-04
+### Modified:     2020-APR-09
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -58,9 +58,9 @@ countLevels <- function(x) length(unique(na.omit(x)))
 ### to use as temporary fill-ins for missing IDs:
 createDummyIdValues <- function(x) {
     varType <- class(x)
-    if(varType == "numeric" | varType == "integer")
+    if(is.numeric(x) | is.integer(x))
         idFills <- 2 * max(x, na.rm = TRUE) + c(0 : (sum(is.na(x)) - 1))
-    else if(varType == "character")
+    else if(is.character(x) | is.factor(x))
         idFills <- paste0("dummyID", c(1 : sum(is.na(x))))
     idFills
 }# END createDummyIdValues()
