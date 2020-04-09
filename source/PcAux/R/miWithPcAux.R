@@ -63,7 +63,7 @@ miWithPcAux <- function(rawData,
     }
     if(!missCheck(idVars)) {
         pcAuxData$idVars   <- idVars
-        removeIds         <- which(pcAuxData$dropVars[,1] %in% idVars)
+        removeIds          <- which(pcAuxData$dropVars[,1] %in% idVars)
         pcAuxData$dropVars <- pcAuxData$dropVars[-removeIds, ]
     }
     if(length(dropVars) == 1 && dropVars == "useExtant") {
