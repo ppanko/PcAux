@@ -7,7 +7,28 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9014 - 2020-04-09 - ACTIVE
+## 0.0.0.9015 - 2020-04-10
+
+### Fixed 
+
+- Documentation for `createPcAux` to stay consistent with the new defaults for
+  `interactType` and `maxPolyPow`
+- Bugs in the unit tests due to the changes to the default values for 
+  `interactType` and `maxPolyPow`
+
+### Changed
+
+- forcePmm to off by default inside `createPcAux` in order to give the user 
+  control over mice methods
+
+### Added
+
+- The ability to select imputation methods for `mice` using the `miceMethods` 
+  argument in the control list
+- New functions `getMiceMethods` to retrieve specified methods for variable
+  types and `getMethVec` to retrieve imputation method vector used by mice
+
+## 0.0.0.9014 - 2020-04-09
 
 ### Fixed	
 - Bug in check on whether `castData` is operating inside `createPcAux`
