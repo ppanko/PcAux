@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang
 ### Contributors: Pavel Panko, Vibhuti Gupta
 ### Created:      2015-OCT-29
-### Modified:     2020-APR-10
+### Modified:     2020-APR-15
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -295,4 +295,13 @@ getMiceMethods <- function(pcAuxData) {
 ## Retrieve method vector
 getMethVec <- function(pcAuxData) {
     pcAuxData$methVec
+}
+
+## Retrieve predictor matrix
+getPredMat <- function(pcAuxData) {
+    if(mice::is.mids(pcAuxData$miceObject)) {
+        return(pcAuxData$miceObject$predictorMatrix)
+    } else {
+        warning("The mids field in this object is empty")
+    }
 }

@@ -2,7 +2,7 @@
 ### Author:       Kyle M. Lang & Stephen Chesnut
 ### Contributors: Byungkwan Jung, Pavel Panko
 ### Created:      2015-JUL-27
-### Modified:     2020-APR-09
+### Modified:     2020-APR-15
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -379,7 +379,7 @@ doSingleImputation <- function(map) {
         
         ## Initially fill-in the data with a single imputation:
         if(map$verbose > 0) cat("--Filling missing values...")
-        map$data <- try(
+        map$miceObject <- try(
             mice(data            = map$data,
                  maxit           = map$miceIters,
                  m               = 1L,
@@ -392,11 +392,11 @@ doSingleImputation <- function(map) {
             silent = TRUE)
         if(map$verbose > 0) cat("done.\n")
         
-        if(class(map$data) != "try-error") { # mice() didn't crash
+        if(class(map$miceObject) != "try-error") { # mice() didn't crash
             ## Record any logged events 
             map$loggedEvents <- as.data.frame(map$data$loggedEvents)
             ## Fill missing values with the imputations
-            map$data         <- complete(map$data)
+            map$data         <- complete(map$miceObject)
         } else {
             errFun("miceCrash", map = map)
         }

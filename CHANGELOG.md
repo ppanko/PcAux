@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9015 - 2020-04-10
+## 0.0.0.9015 - 2020-04-15
 
 ### Fixed 
 
@@ -20,6 +20,7 @@ should, therefore, be viewed with an appropriate degree of skepticism.
 
 - forcePmm to off by default inside `createPcAux` in order to give the user 
   control over mice methods
+- `createPcAux` now records a `miceObject` after the initial imputation
 
 ### Added
 
@@ -27,6 +28,9 @@ should, therefore, be viewed with an appropriate degree of skepticism.
   argument in the control list
 - New functions `getMiceMethods` to retrieve specified methods for variable
   types and `getMethVec` to retrieve imputation method vector used by mice
+- New function `getPredMat` to retrieve the predictor matrix from either 
+  `createPcAux` or `miWithPcAux`
+
 
 ## 0.0.0.9014 - 2020-04-09
 

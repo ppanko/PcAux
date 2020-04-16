@@ -1,7 +1,7 @@
 ### Title:    Unit Tests for PcAux
 ### Author:   Kyle M. Lang, Pavel Panko
 ### Created:  2015-NOV-01
-### Modified: 2020-APR-10
+### Modified: 2020-APR-15
 
 ##--------------------- COPYRIGHT & LICENSING INFORMATION --------------------##
 ##  Copyright (C) 2018 Kyle M. Lang <k.m.lang@uvt.nl>                         ##
@@ -428,6 +428,20 @@ getMethVec(frozenCreateData1)
 
 ## Retrieve mice methods from miWithPcAux:
 getMethVec(frozenMiData1)
+
+## getPredMat
+
+## Test:   Retrieve the predictor matrix from prepData:
+## Result: Warning
+getPredMat(frozenPrepData1)
+
+## Test:   Retrieve the predictor matrix from createPcAux:
+## Result: Successful execution
+getPredMat(frozenCreateData1)
+
+## Test:   Retrieve the predictor matrix from miWithPcAux:
+## Result: Successful execution
+getPredMat(frozenMiData1)
 
 ##### DATA PREP TESTING #####
 
