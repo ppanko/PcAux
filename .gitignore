@@ -26,3 +26,6 @@ PcAux.Rcheck
 
 # Hidden files
 .*
+
+# Except for .travis
+!.travis.yml
