@@ -27,5 +27,6 @@ PcAux.Rcheck
 # Hidden files
 .*
 
-# Except for .travis
+# Exceptions
 !.travis.yml
+!.Rbuildignore
