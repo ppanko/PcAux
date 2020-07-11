@@ -1,0 +1,15 @@
+language: r
+before_install:
+  - cd source/PcAux
+
+os:
+  - linux
+  - osx
+  - windows
+
+r:
+  - oldrel
+  - release
+  - devel
+
+sudo: false

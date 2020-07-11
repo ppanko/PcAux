@@ -12,4 +12,4 @@ Imports: methods, vcd, ICC, rlecuyer, parallel
 NeedsCompilation: no
 URL: http://github.com/PcAux-Package/PcAux/
 BugReports: https://github.com/PcAux-Package/PcAux/issues
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

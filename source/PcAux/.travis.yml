@@ -1,8 +1,0 @@
-language: r
-
-r:
-  - oldrel
-  - release
-  - devel
-
-sudo: false
