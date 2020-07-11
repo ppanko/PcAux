@@ -341,7 +341,7 @@ PcAuxData$
                     "free -m"            
                 )
             
-            else if (os == "macOS") 
+            else if (grepl("macOS", os)) 
                 lookFor <- list(
                     "top -l1|egrep 'CPU usage|PhysMem'",
                     "system_profiler SPHardwareDataType|egrep 'Processor|Cache'"
