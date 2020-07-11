@@ -7,9 +7,10 @@ The format is based on [Keep a Changelog][kacl], and this project adheres to
 NOTE: Changes prior to version 0.0.0.9006 were documented retrospectively and 
 should, therefore, be viewed with an appropriate degree of skepticism.
 
-## 0.0.0.9014 - 2020-04-09 - ACTIVE
+## 0.0.0.9014 - 2020-07-11 - ACTIVE
 
 ### Fixed	
+- Inconsistencies in help pages regarding defaults and examples
 - Bug in check on whether `castData` is operating inside `createPcAux`
   causing `doPCA` to crash because unimputed drop variables were erroneously
   added back in

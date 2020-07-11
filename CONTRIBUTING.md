@@ -13,7 +13,7 @@ To submit a pull request to the PcAux project:
 * Create a feature branch (preferably named in accordance to the bug/feature you are addressing). 
 * Pull down your branched fork of PcAux to your local machine. 
 * Make the necessary change in your user fork of PcAux.
-* Change the modification date of any scripts you have altered (and in the DESCRIPTION file) and add yourself as a contributor, if you are not already one. Address the relevant changes that you have made in the [Changelog](https://github.com/PcAux-Package/PcAux/blob/develop/CHANGELOG.md). 
+* Change the modification date of any scripts you have altered (and in the DESCRIPTION file) and add yourself as a contributor, if you are not already one. Address the relevant changes that you have made in the [Changelog](https://github.com/PcAux-Package/PcAux/blob/develop/CHANGELOG.md). Make sure to change the date listed in the Changelog as well. 
 * Check that the package still works after you have made your changes using either `R CMD check` or `devtools::check()`.
 * Run the unit tests that are in the `test` directory, and if you are adding a new feature, write the appropriate tests to the `unitTests.R` script. You will need to build and install the package to run the unit tests.
 * Push the changes to your feature branch. 
@@ -29,7 +29,8 @@ TL;DR for making changes:
 * Create branch on your fork
 * Edit branch
 * Change script dates, DESCRIPTION date
-* Add contributor credits to script & add changes to the changelog
+* Add contributor credits to each edited script 
+* Add changes to the changelog, and update changelog date 
 * Run checks (devtools::check())
 * Build & install your version of PcAux
 * Run unit tests
